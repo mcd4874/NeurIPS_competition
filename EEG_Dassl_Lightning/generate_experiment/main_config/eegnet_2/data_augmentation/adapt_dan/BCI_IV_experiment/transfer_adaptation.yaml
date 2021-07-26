@@ -1,0 +1,119 @@
+INPUT:
+  SIZE: (22, 256)
+  TRANSFORMS: [ ]
+  NO_TRANSFORM: True
+
+DATASET:
+  NAME: 'INCREMENT_ADAPTATION_DATASET_V1'
+  DIR: 'heterogeneous_label_adaptation_v0'
+  FILENAME: 'BCI_IV_transfer_learning.mat'
+  K_FOLD: 2
+  VALID_FOLD: 1
+  DOMAIN_CLASS_WEIGHT: False
+  TOTAL_CLASS_WEIGHT: False
+  WITHIN_SUBJECTS: True
+  CROSS_SUBJECTS: False
+  TEST_K_FOLDS: True
+  K_FOLD_TEST: 6
+  VALID_FOLD_TEST: 1
+  TEST_NUM_SUBJECTS: 1
+  EXTRA_CONFIG:
+    SHUFFLE_SEED: 0
+    SET_FIX_SEED: False
+    TEST_SUBJECT_INDEX: [ ]
+  AUGMENTATION:
+    NAME: "temporal_segment"
+    PARAMS:
+      N_SEGMENT: 4
+      MAX_TRIAL_MUL: 4
+      MAX_FIX_TRIAL: -1
+      DATASET_NAME: "BCI_IV"
+
+TRAIN_EVAL_PROCEDURE:
+  HISTORY_FOLDER: 'history'
+  RESULT_FOLDER: 'results_v1'
+  TRAIN:
+    TEST_FOLD_PREFIX: 'test_fold'
+    START_TEST_FOLD: 1
+    END_TEST_FOLD: 2
+    VALID_FOLD_PREFIX: 'valid_fold'
+    START_VALID_FOLD: 2
+    END_VALID_FOLD: 2
+    INCREMENTAL:
+      INCREMENT_FOLD_PREFIX: 'increment_fold'
+      START_INCREMENT_FOLD: 1
+      END_INCREMENT_FOLD: 4
+      START_NUM_TRAIN_SUGJECT: 2
+      CURRENT_FOLD: 1
+      INCREMENT_UPDATE: 2
+      NUM_INCREMENT_FOLDS: 4
+
+DATALOADER:
+  NUM_WORKERS: 1
+  TRAIN_X:
+    SAMPLER: 'RandomSampler'
+    BATCH_SIZE: 64
+  LIST_TRAIN_U:
+    SAMPLERS: ['RandomSampler']
+    BATCH_SIZES: [64]
+  TEST:
+    BATCH_SIZE: 64
+
+OPTIM:
+  NAME: adam
+  LR: 0.001
+  MAX_EPOCH: 100
+  LR_SCHEDULER: exponential
+  STEPSIZE: (1, )
+  WEIGHT_DECAY: 0.0
+  GAMMA: 1.0
+
+TRAIN:
+  CHECKPOINT_FREQ: 0
+  PRINT_FREQ: 100
+  COUNT_ITER: bigger_one
+
+TRAINER:
+  NAME: 'HeterogeneousDAN'
+  HeterogeneousDAN:
+    trade_off: 5.0
+TEST:
+  EVALUATOR: 'Classification'
+  PER_CLASS_RESULT: True
+
+MODEL:
+  BACKBONE:
+    NAME: 'extractor'
+    PARAMS:
+      kern_legnth: 64
+      num_ch: 22
+      samples: 256
+      F1: 8
+      D: 2
+      F2: 16
+      drop_prob: 0.25
+  LAST_FC:
+    NAME: max_norm
+    max_norm: 0.5
+  LAYER:
+    NAME: EEGNetConv3
+    PARAMS:
+      samples: 256
+      F2: 16
+      drop_prob: 0.25
+      avg_pool_1: 4
+      avg_pool_2: 8
+      sep_kern_length: 16
+
+EXTRA_FIELDS:
+  dataset: 'BCI_IV'
+  normalize: 'none'
+  batch_norm: 'none'
+  alg: 'none'
+  model: 'HeterogeneousDAN'
+  counter: 'bigger_one'
+  DA: none
+  source_label_space: 2
+  target_label_space: 4
+  seed: 0
+  test_group: 0
