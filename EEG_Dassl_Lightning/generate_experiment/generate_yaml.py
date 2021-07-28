@@ -75,7 +75,11 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
             ["DATAMANAGER.DATASET.AUGMENTATION.NAME","temporal_segment"],
             ["EXTRA_FIELDS.aug","temporal_aug"]
         ]
-
+    elif aug_type == "T_F_aug":
+        match_pair =[
+            ["DATAMANAGER.DATASET.AUGMENTATION.NAME","temporal_segment_T_F"],
+            ["EXTRA_FIELDS.aug","T_F_aug"]
+        ]
     else:
         match_pair = [
             ["DATAMANAGER.DATASET.AUGMENTATION.NAME", ""],
@@ -108,6 +112,12 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptation"],
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptation"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "adaptationV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
     elif trainer_type == "component_adapt":
@@ -176,15 +186,20 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/experiment_2"
 # main_path = "experiment_3"
 # config_path = "main_config/experiment_3"
-
-main_path = "final_result_3"
-config_path = "main_config/final_result_3"
+main_path = "experiment_4"
+config_path = "main_config/experiment_4"
+# main_path = "final_result_3"
+# config_path = "main_config/final_result_3"
+# main_path = "final_result_4"
+# config_path = "main_config/final_result_4"
 
 aug_conditions=["temp_aug","no_aug"]
+# aug_conditions=["T_F_aug"]
+
 norm_conditions = ["chan_norm","no_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
-trainer_conditions = ["vanilla","adaptation"]
+trainer_conditions = ["vanilla","adaptationV1","adaptation"]
 dataset_conditions = ["dataset_A", "dataset_B"]
 
 
