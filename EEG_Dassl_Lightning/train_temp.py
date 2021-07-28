@@ -46,26 +46,6 @@ def reset_cfg(cfg, args):
     if args.seed:
         cfg.SEED = args.seed
 
-    # if args.source_domains:
-    #     cfg.DATASET.SOURCE_DOMAINS = args.source_domains
-
-    # if args.target_domains:
-    #     cfg.DATASET.TARGET_DOMAINS = args.target_domains
-
-    # if args.train_k_folds:
-    #     cfg.DATAMANAGER.DATASET.TRAIN_K_FOLDS = args.train_k_folds
-    #
-    # if args.trainer:
-    #     cfg.TRAINER.NAME = args.trainer
-    #
-    # if args.backbone:
-    #     cfg.MODEL.BACKBONE.NAME = args.backbone
-    #
-    # if args.head:
-    #     cfg.MODEL.HEAD.NAME = args.head
-
-
-
 
 def setup_cfg(args):
     cfg = get_cfg_default()
@@ -123,21 +103,10 @@ def generate_excel_report(results,output_dir,result_folder="result_folder"):
 
 def generate_model_info_config(cfg,output_dir,result_folder="result_folder"):
     model_info = {
-        # "BACKBONE_NAME": [cfg.MODEL.BACKBONE.NAME],
-        # "TRAINER_NAME": [cfg.TRAINER.NAME],
-        # "DATASET_NAME": [cfg.DATASET.NAME],
-        # "DATASET_DIR": [cfg.DATASET.DIR],
-        # "DATASET_TEST_NUM_K_FOLDS": [cfg.DATASET.K_FOLD_TEST],
-        # "DATASET_VALID_NUM_K_FOLDS": [cfg.DATASET.K_FOLD],
-        # "DATASET_SPLIT": ['cross_subject ' if cfg.DATASET.CROSS_SUBJECTS else 'within_subject'],
-        # "DATALOADER_SAMPLER": [cfg.DATALOADER.TRAIN_X.SAMPLER],
-        # "OPTIM_NAME": [cfg.OPTIM.NAME],
-        # "OPTIM_LR_SCHEDULER": [cfg.OPTIM.LR_SCHEDULER],
         "EXTRA_FIELDS": cfg.EXTRA_FIELDS
     }
 
     info_filename = 'model_info.json'
-    # result_folder = cfg.TRAIN_EVAL_PROCEDURE.RESULT_FOLDER
     result_output_dir = os.path.join(output_dir, result_folder)
 
     if not os.path.isdir(result_output_dir):
@@ -146,8 +115,6 @@ def generate_model_info_config(cfg,output_dir,result_folder="result_folder"):
     with open(full_path, "w") as outfile:
         json.dump(model_info, outfile,indent=4)
 
-    # model_info = pd.DataFrame.from_dict(model_info)
-    # model_info.to_csv(), index=False)
 
 
 def generate_detail_report(list_results,output_dir,cfg):
@@ -190,10 +157,6 @@ class CustomExperimentWriter(object):
                 # print(row.to_dict())
                 self.metrics[row[self.step_key]] = row.to_dict()
 
-            # print("resume history : ",self.metrics)
-            # self.metrics = defaultdict(list)
-            # for key, val in history.items():
-            #    self.metrics[key] = history[key]
     def log_hparams(self, params: Dict[str, Any]) -> None:
         """Record hparams"""
         self.hparams.update(params)
@@ -208,15 +171,9 @@ class CustomExperimentWriter(object):
 
         if step is None:
             step = len(self.metrics)
-
-        # print("current metrics dict : ", metrics_dict)
         metrics = {k: _handle_value(v) for k, v in metrics_dict.items()}
         metrics[self.step_key] = step
-        # self.metrics.append(metrics)
-        # self.metrics.update(metrics)
-        # for k, v in metrics.items():
-        #     print("key {} - val {}".format(k,v))
-        #     self.metrics[k].add(v)
+
         self.metrics[step].update(metrics)
     def save(self) -> None:
         """Save recorded hparams and metrics into files"""
@@ -226,27 +183,9 @@ class CustomExperimentWriter(object):
         if not self.metrics:
            return
 
-        # last_m = {}
-        # print("before save list metrics : ", self.metrics)
-        # for m in self.metrics:
-        #     last_m.update(m)
-        # last_m = self.metrics
-        # metrics_keys = list(last_m.keys())
-        # print("after update before save : ", self.metrics)
-
-        # for i in sorted(self.metrics.keys()):
         last_m =  [self.metrics[i] for i in sorted(self.metrics.keys())]
         record = pd.DataFrame(last_m)
-        # for key, val in self.metrics.items():
-        #     self.record[key].append(val)
-        # record = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in self.metrics.items()]))
-        # record = pd.DataFrame.from_dict(self.metrics)
         record.to_csv(self.metrics_file_path, index=False)
-
-        # with io.open(self.metrics_file_path, 'w', newline='') as f:
-        #     self.writer = csv.DictWriter(f, fieldnames=metrics_keys)
-        #     self.writer.writeheader()
-        #     self.writer.writerows(self.metrics)
 
 class CustomeCSVLogger(CSVLogger):
     def __init__(self,save_dir: str,
@@ -346,12 +285,14 @@ def main(args):
                         cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD['CURRENT_VALID_FOLD'] = current_valid_fold
 
                         output_dir = cfg.OUTPUT_DIR
-                        output_dir = generate_path_for_multi_sub_model(cfg, output_dir,
-                                                                       test_fold_prefix=combine_prefix[TEST_FOLD_PREFIX],
-                                                                       shuffle_fold_prefix=shuffle_fold_prefix,
-                                                                       increment_fold_prefix=increment_fold_prefix,
-                                                                       valid_fold_prefix=combine_prefix[VALID_FOLD_PREFIX]
-                                                                       )
+                        generate_path = generate_path_for_multi_sub_model(cfg,
+                                                                          test_fold_prefix=combine_prefix[TEST_FOLD_PREFIX],
+                                                                          shuffle_fold_prefix=shuffle_fold_prefix,
+                                                                          increment_fold_prefix=increment_fold_prefix,
+                                                                          valid_fold_prefix=combine_prefix[VALID_FOLD_PREFIX])
+                        output_dir = os.path.join(output_dir, generate_path)
+                        if not os.path.isdir(output_dir):
+                            os.makedirs(output_dir)
                         cfg.merge_from_list( ["output_dir",output_dir])
                         print("current output dir : ",output_dir)
                         pl.seed_everything(42)
@@ -429,8 +370,7 @@ def main(args):
 
                         else:
                             # trainer_lightning.checkpoin
-                            # model = torch.load(os.path.join(output_dir,'checkpoint.ckpt'),map_location='cuda:0')
-                            model = torch.load(os.path.join(output_dir,'checkpoint.ckpt'))
+                            model = torch.load(os.path.join(output_dir,'checkpoint.ckpt'),map_location='cuda:0')
                             # model = torch.load(os.path.join(output_dir,'last.ckpt'))
 
                             print("save checkpoint keys : ",model.keys())

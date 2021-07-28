@@ -39,6 +39,7 @@ source "${DIR}/common_script.sh"
 #Cho2017_dataset="Cho2017"
 #Physionet_dataset="Physionet"
 
+#group_aug=("$T_F_aug")
 #group_aug=("$temp_aug")
 group_aug=("$no_aug")
 
@@ -50,10 +51,12 @@ group_norm=("$chan_norm")
 #group_datasets=("$Physionet")
 
 group_datasets=("$Dataset_A_dataset")
-group_model=("$vanilla_prefix" "$adaptation_prefix")
+#group_model=("$vanilla_prefix" "$adaptation_prefix")
+group_model=("$adaptationV1_prefix" "$adaptation_prefix" "$vanilla_prefix")
 
 #group_model=("$component_adapt_prefix" "$vanilla_prefix" "$adaptation_prefix")
 
 #run_full_multi_gpu $gpu_device_0 $experiment_2 group_aug group_norm group_model group_datasets
 
-run_full_multi_gpu $gpu_device_3 $final_result_3 group_aug group_norm group_model group_datasets
+run_full_multi_gpu $gpu_device_3 $experiment_4 group_aug group_norm group_model group_datasets
+#run_full_multi_gpu $gpu_device_3 $final_result_4 group_aug group_norm group_model group_datasets

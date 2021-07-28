@@ -15,6 +15,11 @@ from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1
 from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
+
+from NeurIPS_competition.util.support import (
+    expand_data_dim,normalization,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
+    correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data
+)
 def print_args(args, cfg):
     print('***************')
     print('** Arguments **')
@@ -200,14 +205,24 @@ def dataset_norm(data):
 import mne
 import pickle
 from numpy.random import RandomState
+
+
 def get_dataset_B(norm=False):
-
-
     os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    cuda = torch.cuda.is_available()
+    seed = 42
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    rng = RandomState(seed)
 
+    X_MIB_test_data = load_dataset_B(train=False,norm=norm)
+
+def get_dataset_B(norm=False):
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     cuda = torch.cuda.is_available()
     print('gpu: ', cuda)
-    device = 'cuda' if cuda else 'cpu'
 
     seed = 42
     torch.manual_seed(seed)
@@ -215,7 +230,7 @@ def get_dataset_B(norm=False):
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = True
     rng = RandomState(seed)
-    # process Dataset B (S1, S2, S3)
+    # process Dataset B (S3, S4, S5)
     # get train target data
     path = '/Users/wduong/mne_data/MNE-beetlmileaderboard-data/'
     sfreq = 128
@@ -295,7 +310,7 @@ def get_dataset_A(norm=False):
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = True
     rng = RandomState(seed)
-    # process Dataset B (S1, S2, S3)
+    # process Dataset A (S1, S2)
     # get train target data
     path = '/Users/wduong/mne_data/MNE-beetlmileaderboard-data/'
     sfreq = 128
@@ -352,6 +367,7 @@ def get_dataset_A(norm=False):
     X_MIA_test_data = np.concatenate(X_MIA_test_data)
     return X_MIA_test_data
 
+
 def generate_pred_MI_label(test_fold_preds,test_fold_probs,output_dir,predict_folder = "predict_folder"):
     for test_fold in range(len(test_fold_preds)):
         valid_fold_pred = test_fold_preds[test_fold]
@@ -390,8 +406,11 @@ def generate_pred_MI_label(test_fold_preds,test_fold_probs,output_dir,predict_fo
         print("just arg pred output : ",np.argmax(current_pred,axis=1))
         combine_folder = os.path.join(output_dir, predict_folder)
         np.savetxt(os.path.join(combine_folder,"pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
+
 def generate_assemble_result(test_fold_preds,test_fold_probs,test_fold_labels,output_dir,predict_folder = "predict_folder"):
-    test_fold_acc = list()
+    # test_fold_acc = list()
+    test_fold_prefix = 'test_fold_'
+    test_fold_result = list()
     for test_fold in range(len(test_fold_preds)):
         valid_fold_pred = test_fold_preds[test_fold]
         current_pred = valid_fold_pred[0]
@@ -430,7 +449,7 @@ def generate_assemble_result(test_fold_preds,test_fold_probs,test_fold_labels,ou
             pred_output.append(best_idx)
         pred_output = np.array(pred_output)
         acc = np.mean(pred_output == current_label)
-        test_fold_acc.append(acc)
+        # test_fold_acc.append(acc)
         print("pred output : ",pred_output)
         print("current label : ",current_label)
         print(" valid_fold_label : ",valid_fold_label)
@@ -438,13 +457,46 @@ def generate_assemble_result(test_fold_preds,test_fold_probs,test_fold_labels,ou
         # print("just arg pred output : ",np.argmax(current_pred,axis=1))
         # combine_folder = os.path.join(output_dir, predict_folder)
         # np.savetxt(os.path.join(combine_folder,"pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
-
+        current_test_fold = test_fold_prefix+str(test_fold+1)
+        result = {
+            "test_fold":current_test_fold,
+            "test_acc":acc
+        }
+        test_fold_result.append(result)
+    result = pd.DataFrame.from_dict(test_fold_result)
+    result_output_dir = os.path.join(output_dir, predict_folder)
+    if not os.path.isdir(result_output_dir):
+        os.makedirs(result_output_dir)
+    result_filename = 'ensemble_result.xlsx'
+    result.to_excel(os.path.join(result_output_dir, result_filename), index=False)
+def get_test_data(dataset_type,norm):
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    cuda = torch.cuda.is_available()
+    seed = 42
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    rng = RandomState(seed)
+    #get correct chans order
+    target_channels = generate_common_chan_test_data()
+    fmin, fmax = 4,36
+    epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin, fmax=fmax, selected_chans=target_channels,
+                                                    subjects=[1])
+    print("cho2017 current chans : ", epoch_X_src1.ch_names)
+    print("size : ", len(epoch_X_src1.ch_names))
+    target_channels = epoch_X_src1.ch_names
+    if dataset_type == 'dataset_B':
+        test_data = load_dataset_B(train=False,norm=norm,selected_chans = target_channels)
+    else:
+        test_data = load_dataset_A(train=False,norm=norm,selected_chans = target_channels)
+    return test_data
 
 def main(args):
     benchmark = False
     deterministic = False  # this can help to reproduce the result
     cfg = setup_cfg(args)
-    setup_logger(cfg.OUTPUT_DIR)
+    # setup_logger(cfg.OUTPUT_DIR)
 
     if torch.cuda.is_available() and cfg.USE_CUDA:
         print("use determinstic ")
@@ -495,13 +547,7 @@ def main(args):
     use_assemble_test_dataloader = True
     dataset_type = cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
     if generate_predict and not use_assemble_test_dataloader:
-        if dataset_type == 'dataset_B':
-            dataset = get_dataset_B(norm=norm)
-        else:
-            dataset = get_dataset_A(norm=norm)
-
-        # dataset_B = get_dataset_B(norm=norm)
-
+        dataset = get_test_data(dataset_type,norm)
 
     combine_prefix = dict()
 
@@ -616,19 +662,6 @@ def main(args):
                         print("save checkpoint keys : ",model.keys())
                         trainer_model.load_state_dict(model['state_dict'])
                         trainer_model.eval()
-                        # test_result = trainer_lightning.test(trainer_model,datamodule=data_manager)[0]
-                        # result = trainer_lightning.predict(trainer_model,dataloaders=predict_dataloader)
-                        # print("pred result : ",result                                                                                                                                                                     )
-                        # test_result.update(combine_prefix)
-                        # test_folds_results.append(test_result)
-
-
-
-                        # subject_probs_list = []
-                        # subject_preds_list = []
-                        # for subject_idx in range(len(dataset_B)):
-                        #     test_data = dataset_B[subject_idx]
-
 
                         probs_list =[]
                         preds_list = []
@@ -639,8 +672,6 @@ def main(args):
                                 label = label.numpy()
                                 return input,label
                             test_dataloader = data_manager.test_dataloader()
-                            # for step, test_input in enumerate(test_dataloader):
-                            #     input, label, domain = test_input
 
                         else:
                             test_data = dataset
@@ -698,39 +729,11 @@ def main(args):
                 test_fold_probs.append(valid_fold_probs)
                 test_fold_label.append(valid_fold_label)
 
-
-            # winner = np.argwhere(current_pred[trial_idx] == np.amax(current_pred[trial_idx]))
-            # winner = winner.flatten().tolist()
-            # if len(winner) > 1:
-            #     probs_options = [current_prob[trial_idx][idx] for idx in winner]
-            #     np.amax(probs_options)
-
-
-                    # subject_probs_list.append(probs_list)
-                    # subject_preds_list.append(preds_list)
-                # data_result = pd.DataFrame({
-                #     "test_fold":combine_prefix[TEST_FOLD_PREFIX],
-                #     "valid_fold": combine_prefix[VALID_FOLD_PREFIX],
-                #     "pred_list":subject_preds_list,
-                #     "prob_list":subject_probs_list
-                # })
-                # data_result_org = data_result_org.append(data_result)
-                # print("update data result table : ",data_result_org)
-    # predict_folder = "predict_folder"
-    # predict_folder = os.path.join(cfg.OUTPUT_DIR,predict_folder)
-    # if not os.path.exists(predict_folder):
-    #     os.makedirs(predict_folder)
-    # data_result_org.to_csv(os.path.join(predict_folder,"temp_result.csv"),index=False)
     if not generate_predict:
         if not use_assemble_test_dataloader:
             generate_pred_MI_label(test_fold_preds,test_fold_probs,output_dir=cfg.OUTPUT_DIR)
         else:
             generate_assemble_result(test_fold_preds,test_fold_probs,test_fold_label,output_dir=cfg.OUTPUT_DIR)
-
-
-
-
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

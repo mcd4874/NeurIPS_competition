@@ -20,8 +20,8 @@ function run_full_multi_gpu() {
     local -n LIST_NORMALIZE_PREFIX=$4
     local -n TRAINER_MODEL_PREFIXS=$5
     local -n DATASETS=$6
-#    printf '1: %q\n' "${TRAINER_MODEL_PREFIXS[@]}"
-#    printf '2: %q\n' "${DATASETS[@]}"
+    printf '1: %q\n' "${TRAINER_MODEL_PREFIXS[@]}"
+    printf '2: %q\n' "${DATASETS[@]}"
 
     echo TRAINER_MODEL_PREFIXS
     for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
@@ -58,15 +58,20 @@ gpu_device_3=3
 experiment_1="NeurIPS_competition/experiment_1"
 experiment_2="NeurIPS_competition/experiment_2"
 experiment_3="NeurIPS_competition/experiment_3"
+experiment_4="NeurIPS_competition/experiment_4"
 final_result_3="NeurIPS_competition/final_result_3"
+final_result_4="NeurIPS_competition/final_result_4"
 
 
+T_F_aug="T_F_aug"
 temp_aug="temp_aug"
 no_aug="no_aug"
 chan_norm="chan_norm"
 no_norm="no_norm"
 
 adaptation_prefix="adaptation"
+adaptationV1_prefix="adaptationV1"
+
 vanilla_prefix="vanilla"
 component_adapt_prefix="component_adapt"
 
