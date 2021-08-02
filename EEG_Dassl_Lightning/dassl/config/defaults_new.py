@@ -154,6 +154,14 @@ _C.DATAMANAGER.DATASET.AUGMENTATION.PARAMS.MAX_FIX_TRIAL = -1
 _C.DATAMANAGER.DATASET.AUGMENTATION.PARAMS.DATASET_NAME = "BCI_IV"
 
 
+#use filter bank
+_C.DATAMANAGER.DATASET.FILTERBANK= CN()
+_C.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK = False
+_C.DATAMANAGER.DATASET.FILTERBANK.freq_interval = 4
+
+#use Euclidean Alignment
+_C.DATAMANAGER.DATASET.USE_Euclidean_Aligment = False
+
 ###########################
 # Dataloader
 ###########################
@@ -186,6 +194,10 @@ _C.DATAMANAGER.DATALOADER.VALID = CN()
 _C.DATAMANAGER.DATALOADER.VALID.SAMPLER = 'SequentialSampler'
 _C.DATAMANAGER.DATALOADER.VALID.BATCH_SIZE = 32
 _C.DATAMANAGER.DATALOADER.VALID.N_DOMAIN = 0
+
+
+
+
 
 _C.LIGHTNING_MODEL = CN()
 _C.LIGHTNING_MODEL.COMPONENTS = CN()
@@ -342,6 +354,7 @@ _C.LIGHTNING_MODEL.TRAINER.EpiDG.start_train_classifier = 35
 # _C.TRAINER.PARAMS.pretrain = False
 # _C.TRAINER.PARAMS.pretrain_epochs = 0
 
+#lightning trainer setup
 _C.LIGHTNING_TRAINER = CN()
 _C.LIGHTNING_TRAINER.LOGGER = CN()
 # _C.LIGHTNING_TRAINER.LOGGER.TENSORBOARD = CN()
@@ -353,7 +366,13 @@ _C.LIGHTNING_TRAINER.CHECKPOINT.save_top_k = 1
 _C.LIGHTNING_TRAINER.CHECKPOINT.save_last = True
 _C.LIGHTNING_TRAINER.CHECKPOINT.every_n_val_epochs = 1
 
-_C.LIGHTNING_TRAINER.progress_bar_refresh_rate = 10
+_C.LIGHTNING_TRAINER.early_stop = CN()
+_C.LIGHTNING_TRAINER.early_stop.params = CN()
+_C.LIGHTNING_TRAINER.early_stop.use_early_stop = False
+
+_C.LIGHTNING_TRAINER.multiple_trainloader_mode = 'max_size_cycle'
+_C.LIGHTNING_TRAINER.progress_bar_refresh_rate = 100
+_C.LIGHTNING_TRAINER.num_sanity_val_steps = 0
 _C.LIGHTNING_TRAINER.profiler = 'simple'
 _C.LIGHTNING_TRAINER.stochastic_weight_avg = False
 
@@ -476,15 +495,20 @@ _C.EXTRA_FIELDS = CN()
 # Optimization
 ###########################
 _C.OPTIM = CN()
-_C.OPTIM.NAME = 'adam'
-_C.OPTIM.LR = 0.001 #default to 1e-3
-_C.OPTIM.WEIGHT_DECAY = 5e-4
-_C.OPTIM.MOMENTUM = 0.9
-_C.OPTIM.SGD_DAMPNING = 0
-_C.OPTIM.SGD_NESTEROV = False
-_C.OPTIM.RMSPROP_ALPHA = 0.99
-_C.OPTIM.ADAM_BETA1 = 0.9
-_C.OPTIM.ADAM_BETA2 = 0.999
+_C.OPTIM.OPTIMIZER = CN()
+_C.OPTIM.SCHEDULER = CN()
+
+# _C.OPTIM.NAME = 'adam'
+
+
+# _C.OPTIM.LR = 0.001 #default to 1e-3
+# _C.OPTIM.WEIGHT_DECAY = 5e-4
+# _C.OPTIM.MOMENTUM = 0.9
+# _C.OPTIM.SGD_DAMPNING = 0
+# _C.OPTIM.SGD_NESTEROV = False
+# _C.OPTIM.RMSPROP_ALPHA = 0.99
+# _C.OPTIM.ADAM_BETA1 = 0.9
+# _C.OPTIM.ADAM_BETA2 = 0.999
 
 # STAGED_LR allows different layers to have
 # different lr, e.g. pre-trained base layers

@@ -2,6 +2,12 @@ from scipy.linalg import sqrtm, inv
 from scipy import signal
 import numpy as np
 from dassl.data.datasets.base_dataset import EEGDatum
+
+# class EuclideanAlignment:
+#     def __init__(self):
+#
+#     def
+
 def euclidean_alignment(x):
         """
         convert trials in data with EA technique
@@ -16,6 +22,9 @@ def euclidean_alignment(x):
             print("covariance matrix problem sqrt")
 
         r_op = inv(sqrtm(r))
+        # print("r_op shape : ",r_op.shape)
+        # print("data shape : ",x.shape)
+        # print("r_op : ",r_op)
         if np.iscomplexobj(r_op):
             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
                   "not, check data!!")
@@ -24,8 +33,20 @@ def euclidean_alignment(x):
             print("WARNING! Not finite values in R Matrix")
 
         results = np.matmul(r_op, x)
+        # print("r_op shape : ",r_op.shape)
+        # print("data shape : ",x.shape)
+        # print("r_op : ",r_op)
+        # print("result shape : ",results.shape)
+        # print("a trial before convert : ",x[0,:,:])
+        # print("a trial after convert : ",results[0,:,:])
         return results
-
+def convert_subjects_data_with_EA(subjects_data):
+    new_data = list()
+    for subject_idx in range(len(subjects_data)):
+        subject_data = subjects_data[subject_idx]
+        subject_data = euclidean_alignment(subject_data)
+        new_data.append(subject_data)
+    return new_data
 # def generate_datasource(data, label, test_data=False,label_name_map= None):
 #     total_subjects = 1
 #     if not test_data:
@@ -376,3 +397,142 @@ class DataAugmentation:
             update_data.append(new_subject_data)
             update_label.append(new_subject_label)
         return update_data,update_label
+
+def normalization(X):
+    # assert len(X) == len(y)
+    # Normalised, you could choose other normalisation strategy
+    if len(X.shape)==3:
+        #assume the data in format (trials,channels,samples)
+        axis=1
+    elif len(X.shape)==4:
+        # assume the data in format (trials,filter,channels,samples)
+        axis=2
+    else:
+        axis=-1
+        raise ValueError("there is problem with data format")
+
+    mean = np.mean(X,axis=axis,keepdims=True)
+    # here normalise across channels as an example, unlike the in the sleep kit
+    std = np.std(X, axis=axis, keepdims=True)
+    X = (X - mean) / std
+    return X
+def dataset_norm(data,label):
+    new_data = list()
+    new_label = list()
+    for subject_idx in range(len(data)):
+        subject_data = data[subject_idx]
+        subject_label = label[subject_idx]
+        subject_data = normalization(subject_data)
+        new_data.append(subject_data)
+        new_label.append(subject_label)
+    return new_data,new_label
+
+
+class filterBank(object):
+    """
+    filter the given signal in the specific bands using cheby2 iir filtering.
+    If only one filter is specified then it acts as a simple filter and returns 2d matrix
+    Else, the output will be 3d with the filtered signals appended in the third dimension.
+    axis is the time dimension along which the filtering will be applied
+    """
+
+    def __init__(self, filtBank, fs, filtAllowance=2, axis=-1, filtType='filter'):
+        self.filtBank = filtBank
+        self.fs = fs
+        self.filtAllowance = filtAllowance
+        self.axis = axis
+        self.filtType = filtType
+
+    def bandpassFilter(self, data, bandFiltCutF, fs, filtAllowance=2, axis=-1, filtType='filter'):
+        """
+         Filter a signal using cheby2 iir filtering.
+        Parameters
+        ----------
+        data: 2d/ 3d np array
+            trial x channels x time
+        bandFiltCutF: two element list containing the low and high cut off frequency in hertz.
+            if any value is specified as None then only one sided filtering will be performed
+        fs: sampling frequency
+        filtAllowance: transition bandwidth in hertz
+        filtType: string, available options are 'filtfilt' and 'filter'
+        Returns
+        -------
+        dataOut: 2d/ 3d np array after filtering
+            Data after applying bandpass filter.
+        """
+        aStop = 30  # stopband attenuation
+        aPass = 3  # passband attenuation
+        nFreq = fs / 2  # Nyquist frequency
+
+        if (bandFiltCutF[0] == 0 or bandFiltCutF[0] is None) and (
+                bandFiltCutF[1] == None or bandFiltCutF[1] >= fs / 2.0):
+            # no filter
+            print("Not doing any filtering. Invalid cut-off specifications")
+            return data
+
+        elif bandFiltCutF[0] == 0 or bandFiltCutF[0] is None:
+            # low-pass filter
+            print("Using lowpass filter since low cut hz is 0 or None")
+            fPass = bandFiltCutF[1] / nFreq
+            fStop = (bandFiltCutF[1] + filtAllowance) / nFreq
+            # find the order
+            [N, ws] = signal.cheb2ord(fPass, fStop, aPass, aStop)
+            b, a = signal.cheby2(N, aStop, fStop, 'lowpass')
+
+        elif (bandFiltCutF[1] is None) or (bandFiltCutF[1] == fs / 2.0):
+            # high-pass filter
+            print("Using highpass filter since high cut hz is None or nyquist freq")
+            fPass = bandFiltCutF[0] / nFreq
+            fStop = (bandFiltCutF[0] - filtAllowance) / nFreq
+            # find the order
+            [N, ws] = signal.cheb2ord(fPass, fStop, aPass, aStop)
+            b, a = signal.cheby2(N, aStop, fStop, 'highpass')
+
+        else:
+            # band-pass filter
+            # print("Using bandpass filter")
+            fPass = (np.array(bandFiltCutF) / nFreq).tolist()
+            fStop = [(bandFiltCutF[0] - filtAllowance) / nFreq, (bandFiltCutF[1] + filtAllowance) / nFreq]
+            # find the order
+            [N, ws] = signal.cheb2ord(fPass, fStop, aPass, aStop)
+            b, a = signal.cheby2(N, aStop, fStop, 'bandpass')
+
+        if filtType == 'filtfilt':
+            dataOut = signal.filtfilt(b, a, data, axis=axis)
+        else:
+            dataOut = signal.lfilter(b, a, data, axis=axis)
+        return dataOut
+
+    def __call__(self, data1):
+
+        data = copy.deepcopy(data1)
+        d = data
+        # d = data['data']
+
+        # initialize output
+        out = np.zeros([*d.shape, len(self.filtBank)])
+        # print("out shape : ",out.shape)
+        # repetitively filter the data.
+        for i, filtBand in enumerate(self.filtBank):
+            filter = self.bandpassFilter(d, filtBand, self.fs, self.filtAllowance,
+                                               self.axis, self.filtType)
+            # print("filter shape : ",filter.shape)
+            out[:,:, :, i] =filter
+
+
+        # remove any redundant 3rd dimension
+        if len(self.filtBank) <= 1:
+            out = np.squeeze(out, axis=2)
+
+        # data['data'] = torch.from_numpy(out).float()
+        return out
+        # return data
+def subjects_filterbank(data,filter,source,destination):
+    new_data = list()
+    for subject_idx in range(len(data)):
+        subject_data = data[subject_idx]
+        filter_data = filter(subject_data)
+        subject_data = np.moveaxis(filter_data, source, destination)
+        subject_data=subject_data.astype(np.float32)
+        new_data.append(subject_data)
+    return new_data

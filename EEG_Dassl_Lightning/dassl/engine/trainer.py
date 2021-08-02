@@ -83,7 +83,7 @@ class SimpleNet(nn.Module):
 class TrainerBase(pl.LightningModule):
     def __init__(self,cfg,require_parameter=None):
         self.cfg = cfg
-        self.lr = self.cfg.OPTIM.LR
+        # self.lr = self.cfg.OPTIM.LR
         self.require_parameter = require_parameter
         self.num_classes = require_parameter['num_classes']
         self._history = defaultdict(list)
@@ -145,11 +145,15 @@ class TrainerBase(pl.LightningModule):
         return input, label,domain
 
     def configure_optimizers(self):
-        opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            opt,gamma=1.0
-        )
+        # opt = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+        #
+        # scheduler = torch.optim.lr_scheduler.ExponentialLR(
+        #     opt,gamma=1.0
+        # )
+        params = self.model.parameters()
+        opt_cfg = self.cfg.OPTIM
+        opt = build_optimizer(params,opt_cfg)
+        scheduler = build_lr_scheduler(optimizer=opt,optim_cfg=opt_cfg)
         optimizers = [opt]
         # lr_schedulers = {'scheduler': scheduler, 'monitor': 'metric_to_track'}
         # return optimizers, lr_schedulers
@@ -314,12 +318,14 @@ class TrainerMultiAdaptation(TrainerBase):
                  list(self.TargetClassifier.parameters()) + \
                  list(self.SourceFeatures.parameters()) + \
                  list(self.SourceClassifiers.parameters())
-
-        opt = torch.optim.Adam(params, lr=self.lr)
-
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            opt, gamma=1.0
-        )
+        opt_cfg = self.cfg.OPTIM
+        opt = build_optimizer(params,opt_cfg)
+        scheduler = build_lr_scheduler(optimizer=opt,optim_cfg=opt_cfg)
+        # opt = torch.optim.Adam(params, lr=self.lr)
+        #
+        # scheduler = torch.optim.lr_scheduler.ExponentialLR(
+        #     opt, gamma=1.0
+        # )
         optimizers = [opt]
         lr_schedulers=[scheduler]
         # lr_schedulers = {'scheduler': scheduler, 'monitor': 'metric_to_track'}

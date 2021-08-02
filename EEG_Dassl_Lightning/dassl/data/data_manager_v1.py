@@ -1,38 +1,27 @@
 import torch
-import torchvision.transforms as T
 from torch.utils.data import Dataset as TorchDataset
-from dassl.data.datasets.data_util import generate_datasource,euclidean_alignment,DataAugmentation,get_num_classes,get_label_classname_mapping
-from dassl.utils import read_image
-
+from dassl.data.datasets.data_util import (generate_datasource,euclidean_alignment,convert_subjects_data_with_EA,
+                                           DataAugmentation,get_num_classes,get_label_classname_mapping,
+                                           normalization,dataset_norm,subjects_filterbank,filterBank)
 from .datasets import build_dataset
 from .samplers import build_sampler
-from .transforms import build_transform
 import numpy as np
 from pytorch_lightning import LightningDataModule
 from typing import Any, List, Mapping, Optional, Sequence, Tuple, Union
 from collections import defaultdict
+from scipy.linalg import sqrtm, inv
+import scipy.signal as signal
+import copy
 
-def normalization(X):
-    # assert len(X) == len(y)
-    # Normalised, you could choose other normalisation strategy
-    mean = np.mean(X,axis=1,keepdims=True)
-    # here normalise across channels as an example, unlike the in the sleep kit
-    std = np.std(X, axis=1, keepdims=True)
-    X = (X - mean) / std
-    return X
-def dataset_norm(data,label):
-    new_data = list()
-    new_label = list()
 
-    for subject_idx in range(len(data)):
-        subject_data = data[subject_idx]
-        subject_label = label[subject_idx]
-        subject_data = normalization(subject_data)
+# def convert_subjects_data_with_EA(subjects_data):
+#     new_data = list()
+#     for subject_idx in range(len(subjects_data)):
+#         subject_data = subjects_data[subject_idx]
+#         subject_data = euclidean_alignment(subject_data)
+#         new_data.append(subject_data)
+#     return new_data
 
-        new_data.append(subject_data)
-        new_label.append(subject_label)
-
-    return new_data,new_label
 
 class DataManagerV1(LightningDataModule):
     def __init__(self,cfg,transform_data_func=None):
@@ -50,6 +39,7 @@ class DataManagerV1(LightningDataModule):
         self.dataset_wrapper = CustomWrapper
 
         self._dataset = None
+        self.useFilterBank = self.cfg.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK
         super(DataManagerV1, self).__init__()
 
 
@@ -99,6 +89,42 @@ class DataManagerV1(LightningDataModule):
         #     self.domain_class_weight = self.generate_domain_class_weight(train_x_label)
         if self.TOTAL_CLASS_WEIGHT:
             self.whole_class_weight = self.generate_class_weight(train_x_label)
+
+        if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
+            print("run custom EA")
+            train_x_data = convert_subjects_data_with_EA(train_x_data)
+            val_data = convert_subjects_data_with_EA(val_data)
+            test_data = convert_subjects_data_with_EA(test_data)
+
+        """Use filter bank """
+        if self.useFilterBank:
+            # diff = 4
+            diff = self.cfg.DATAMANAGER.DATASET.FILTERBANK.freq_interval
+            filter_bands = []
+            # axis = 2
+            for i in range(1, 9):
+                filter_bands.append([i * diff, (i + 1) * diff])
+            print("build filter band : ", filter_bands)
+            filter = filterBank(
+                filtBank=filter_bands,
+                fs=128
+            )
+            source = [0, 1, 2, 3]
+            destination = [0, 2, 3, 1]
+
+            # def subjects_filterbank(data,filter,source,destination):
+            #     new_data = list()
+            #     for subject_idx in range(len(data)):
+            #         subject_data = data[subject_idx]
+            #         filter_data = filter(subject_data)
+            #         subject_data = np.moveaxis(filter_data, source, destination)
+            #         subject_data=subject_data.astype(np.float32)
+            #         new_data.append(subject_data)
+            #     return new_data
+
+            train_x_data = subjects_filterbank(train_x_data,filter,source,destination)
+            val_data = subjects_filterbank(val_data,filter,source,destination)
+            test_data = subjects_filterbank(test_data,filter,source,destination)
 
         """Apply data transformation/normalization"""
         if not self.cfg.INPUT.NO_TRANSFORM:
@@ -192,7 +218,10 @@ class DataManagerV1(LightningDataModule):
     def _expand_data_dim(self, data):
         if isinstance(data, list):
             for idx in range(len(data)):
-                new_data = np.expand_dims(data[idx], axis=1)
+                if len(data[idx].shape) == 3:
+                    new_data = np.expand_dims(data[idx], axis=1)
+                else:
+                    new_data = data[idx]
                 data[idx] = new_data
             return data
         elif isinstance(data, np.ndarray):
@@ -314,6 +343,29 @@ class MultiDomainDataManagerV1(DataManagerV1):
             source_data = source_data_list[source_dataset_idx]
             source_label = source_label_list[source_dataset_idx]
             print("source dataset idx : ",source_dataset_idx)
+
+            if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
+                print("run custom EA")
+                source_data = convert_subjects_data_with_EA(source_data)
+
+            """Use filter bank """
+            if self.useFilterBank:
+                # diff = 4
+                diff = self.cfg.DATAMANAGER.DATASET.FILTERBANK.freq_interval
+                filter_bands = []
+                # axis = 2
+                for i in range(1, 9):
+                    filter_bands.append([i * diff, (i + 1) * diff])
+                print("build filter band : ", filter_bands)
+                filter = filterBank(
+                    filtBank=filter_bands,
+                    fs=128
+                )
+                source = [0, 1, 2, 3]
+                destination = [0, 2, 3, 1]
+                source_data = subjects_filterbank(source_data, filter, source, destination)
+
+
             """Apply data transformation/normalization"""
             if not self.cfg.INPUT.NO_TRANSFORM:
                 normalization = self.cfg.INPUT.TRANSFORMS[0]

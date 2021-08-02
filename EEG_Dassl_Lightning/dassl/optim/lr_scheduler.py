@@ -12,10 +12,13 @@ def build_lr_scheduler(optimizer, optim_cfg):
         optimizer (Optimizer): an Optimizer.
         optim_cfg (CfgNode): optimization config.
     """
-    lr_scheduler = optim_cfg.LR_SCHEDULER
-    stepsize = optim_cfg.STEPSIZE
-    gamma = optim_cfg.GAMMA
+    # stepsize = optim_cfg.STEPSIZE
+    # gamma = optim_cfg.GAMMA
     max_epoch = optim_cfg.MAX_EPOCH
+
+    lr_scheduler = optim_cfg.SCHEDULER.NAME
+    scheduler_params = optim_cfg.SCHEDULER.PARAMS
+
 
 
 
@@ -27,28 +30,13 @@ def build_lr_scheduler(optimizer, optim_cfg):
         )
 
     if lr_scheduler == 'single_step':
-        if isinstance(stepsize, (list, tuple)):
-            stepsize = stepsize[-1]
-
-        if not isinstance(stepsize, int):
-            raise TypeError(
-                'For single_step lr_scheduler, stepsize must '
-                'be an integer, but got {}'.format(type(stepsize))
-            )
-
         scheduler = torch.optim.lr_scheduler.StepLR(
-            optimizer, step_size=stepsize, gamma=gamma
+            optimizer, **scheduler_params
         )
 
     elif lr_scheduler == 'multi_step':
-        if not isinstance(stepsize, (list, tuple)):
-            raise TypeError(
-                'For multi_step lr_scheduler, stepsize must '
-                'be a list, but got {}'.format(type(stepsize))
-            )
-
         scheduler = torch.optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=stepsize, gamma=gamma
+            optimizer, **scheduler_params
         )
 
     elif lr_scheduler == 'cosine':
@@ -57,16 +45,16 @@ def build_lr_scheduler(optimizer, optim_cfg):
         )
     elif lr_scheduler == 'exponential':
         scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            optimizer,gamma=gamma
+            optimizer,**scheduler_params
         )
     elif lr_scheduler == 'cosine_decay':
         from dassl.optim.CosineDecay import CosineDecay
-        max_lr = optim_cfg.COSINDECAY.MAX_LR
-        warmup = optim_cfg.COSINDECAY.WARM_UP
-        warm_drop = optim_cfg.COSINDECAY.WARM_DROP
-        last_epoch = optim_cfg.COSINDECAY.LAST_EPOCH
+        # max_lr = optim_cfg.COSINDECAY.MAX_LR
+        # warmup = optim_cfg.COSINDECAY.WARM_UP
+        # warm_drop = optim_cfg.COSINDECAY.WARM_DROP
+        # last_epoch = optim_cfg.COSINDECAY.LAST_EPOCH
 
         scheduler = CosineDecay(
-            optimizer,max_lr,warmup,max_epoch,warm_drop,last_epoch
+            optimizer,**scheduler_params
         )
     return scheduler

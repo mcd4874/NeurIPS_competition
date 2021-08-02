@@ -65,6 +65,120 @@ def generate_config_file(conditions,config_file,current_folder_path="",output_fi
                 current_config_file.merge_from_list(pair_list)
             generate_config_file(remain_conditions,current_config_file,update_folder_name)
 
+# def check_type_info(type_name,type_param):
+#     if type_name == "aug_type":
+#         aug_type = type_param['aug']
+#         if aug_type == "temp_aug":
+#             match_pair = [
+#                 ["DATAMANAGER.DATASET.AUGMENTATION.NAME", "temporal_segment"],
+#                 ["EXTRA_FIELDS.aug", "temporal_aug"]
+#             ]
+#         elif aug_type == "T_F_aug":
+#             match_pair = [
+#                 ["DATAMANAGER.DATASET.AUGMENTATION.NAME", "temporal_segment_T_F"],
+#                 ["EXTRA_FIELDS.aug", "T_F_aug"]
+#             ]
+#         else:
+#             match_pair = [
+#                 ["DATAMANAGER.DATASET.AUGMENTATION.NAME", ""],
+#                 ["EXTRA_FIELDS.aug", "no_aug"]
+#             ]
+#         aug_info = [
+#             dict(dir_name=aug_type, match_pair=match_pair)
+#         ]
+#         return aug_info
+#     elif type_name == "norm_type":
+#         norm_type = type_param['norm']
+#         if norm_type == "chan_norm":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.normalize", "chan_norm"],
+#                 ["INPUT.TRANSFORMS", ["cross_channel_norm"]],
+#                 ["INPUT.NO_TRANSFORM", False]
+#             ]
+#         else:
+#             match_pair = [
+#                 ["EXTRA_FIELDS.normalize", "no_norm"],
+#                 ["INPUT.TRANSFORMS", []],
+#                 ["INPUT.NO_TRANSFORM", True]
+#             ]
+#         norm_info = [
+#             dict(dir_name=norm_type, match_pair=match_pair)
+#         ]
+#         return norm_info
+#     elif type_name == "trainer_type":
+#         trainer_type = type_param['trainer']
+#         if trainer_type == "adaptation":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.model", "MultiDatasetAdaptation"],
+#                 ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptation"],
+#                 ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+#             ]
+#         elif trainer_type == "adaptationV1":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
+#                 ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
+#                 ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+#             ]
+#         elif trainer_type == "FBCNET_adaptV1":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
+#                 ["EXTRA_FIELDS.backbone", "fbcnet"],
+#                 ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
+#                 ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+#             ]
+#         elif trainer_type == "component_adapt":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.model", "ComponentAdaptation"],
+#                 ["LIGHTNING_MODEL.TRAINER.NAME", "ComponentAdaptation"],
+#                 ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+#             ]
+#         else:
+#             match_pair = [
+#                 ["EXTRA_FIELDS.model", "BaseModel"],
+#                 ["LIGHTNING_MODEL.TRAINER.NAME", "BaseModel"],
+#                 ["DATAMANAGER.MANAGER_TYPE", 'single_dataset']
+#             ]
+#         trainer_info = [
+#             dict(dir_name=trainer_type, match_pair=match_pair)
+#         ]
+#         return trainer_info
+#     elif type_name == "dataset_type":
+#         dataset_type = type_param['dataset']
+#         if dataset_type == "BCI_IV":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.target_dataset", "BCI_IV"],
+#             ]
+#         elif dataset_type == "Cho2017":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.target_dataset", "cho2017"],
+#             ]
+#         elif dataset_type == "dataset_A":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.target_dataset", "dataset_A"],
+#             ]
+#         elif dataset_type == "dataset_B":
+#             match_pair = [
+#                 ["EXTRA_FIELDS.target_dataset", "dataset_B"],
+#             ]
+#         else:
+#             match_pair = [
+#                 ["EXTRA_FIELDS.target_dataset", "physionet"],
+#             ]
+#         dataset_info = [
+#             dict(dir_name=dataset_type, match_pair=match_pair)
+#         ]
+#         return dataset_info
+#     elif type_name == "lr":
+#         lr = type_param['lr']
+#
+#
+#
+# def generate_tuning_config(main_path,config_path,list_type):
+#     for info_type in list_type:
+#         type_name = info_type["name"]
+#         type_param =
+#
+
 def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,trainer_type,dataset_type):
     config_f = open(config_path)
     config_file = CN(new_allowed=True).load_cfg(config_f)
@@ -118,6 +232,13 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "FBCNET_adaptV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
+            ["EXTRA_FIELDS.backbone", "fbcnet"],
+            ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
     elif trainer_type == "component_adapt":
@@ -186,20 +307,44 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/experiment_2"
 # main_path = "experiment_3"
 # config_path = "main_config/experiment_3"
-main_path = "experiment_4"
-config_path = "main_config/experiment_4"
+# main_path = "experiment_4"
+# config_path = "main_config/experiment_4"
+# main_path = "experiment_4_2"
+# config_path = "main_config/experiment_4_2"
+# main_path = "experiment_4_3"
+# config_path = "main_config/experiment_4_3"
+main_path = "experiment_4_4"
+config_path = "main_config/experiment_4_4"
+# main_path = "experiment_5"
+# config_path = "main_config/experiment_5"
+# main_path = "experiment_5_1"
+# config_path = "main_config/experiment_5_1"
+# main_path = "experiment_6"
+# config_path = "main_config/experiment_6"
 # main_path = "final_result_3"
 # config_path = "main_config/final_result_3"
 # main_path = "final_result_4"
 # config_path = "main_config/final_result_4"
-
+# main_path = "final_result_4_3"
+# config_path = "main_config/final_result_4_3"
+# main_path = "final_result_5_1"
+# config_path = "main_config/final_result_5_1"
+# main_path = "final_result_6"
+# config_path = "main_config/final_result_6"
 aug_conditions=["temp_aug","no_aug"]
+# aug_conditions=["no_aug"]
+
+
 # aug_conditions=["T_F_aug"]
 
 norm_conditions = ["chan_norm","no_norm"]
+# norm_conditions = ["chan_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
 trainer_conditions = ["vanilla","adaptationV1","adaptation"]
+# trainer_conditions = ["adaptationV1"]
+
+# trainer_conditions = ["FBCNET_adaptV1"]
 dataset_conditions = ["dataset_A", "dataset_B"]
 
 

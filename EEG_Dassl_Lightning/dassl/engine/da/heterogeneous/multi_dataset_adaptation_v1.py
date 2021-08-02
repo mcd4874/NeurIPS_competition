@@ -5,8 +5,8 @@ import torch.nn as nn
 from torch.nn import functional as F
 from dassl.engine.trainer import SimpleNet
 
-
-
+from dassl.optim import build_optimizer
+from dassl.optim import build_lr_scheduler
 
 
 @TRAINER_REGISTRY.register()
@@ -88,12 +88,9 @@ class MultiDatasetAdaptationV1(TrainerMultiAdaptation):
                  list(self.TargetClassifier.parameters()) + \
                  list(self.SourceClassifiers.parameters())
 
-        opt = torch.optim.Adam(params, lr=self.lr)
-
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            opt, gamma=1.0
-        )
+        opt_cfg = self.cfg.OPTIM
+        opt = build_optimizer(params,opt_cfg)
+        scheduler = build_lr_scheduler(optimizer=opt,optim_cfg=opt_cfg)
         optimizers = [opt]
         lr_schedulers=[scheduler]
-        # lr_schedulers = {'scheduler': scheduler, 'monitor': 'metric_to_track'}
         return optimizers, lr_schedulers

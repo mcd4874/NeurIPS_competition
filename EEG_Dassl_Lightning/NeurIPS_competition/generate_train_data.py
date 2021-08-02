@@ -11,7 +11,8 @@ import mne
 
 from NeurIPS_competition.util.support import (
     expand_data_dim,normalization,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
-    correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data
+    correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data,
+    generate_data_file
 )
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 cuda = torch.cuda.is_available()
@@ -90,20 +91,27 @@ dataset_3 = {
     'dataset_name': 'BCI_IV'
 }
 
-target_dataset_A = load_dataset_A(train=True,selected_chans=target_channels)
-target_dataset_B = load_dataset_B(train=True,selected_chans=target_channels)
+X_MIA_train_data,X_MIA_train_label,m_tgt_A = load_dataset_A(train=True,selected_chans=target_channels)
+X_MIB_train_data,X_MIB_train_label,m_tgt_B = load_dataset_B(train=True,selected_chans=target_channels)
 
-def generate_data_file(list_dataset_info,folder_name='case_0'):
-    list_dataset = list()
-    for dataset in list_dataset_info:
-        list_dataset.append(dataset)
-    file_name = 'NeurIPS_TL'
-    data_file = '{}.mat'.format(file_name)
-    if not os.path.isdir(folder_name):
-        os.makedirs(folder_name)
-    data_file = os.path.join(folder_name,data_file)
-    from scipy.io import savemat
-    savemat(data_file, {'datasets':list_dataset})
+X_MIA_train_label = np.array([relabel_target(l) for l in X_MIA_train_label])
+X_MIB_train_label = np.array([relabel_target(l) for l in X_MIB_train_label])
+
+target_dataset_A = {
+    'data': X_MIA_train_data,
+    'label': X_MIA_train_label,
+    'meta_data': m_tgt_A,
+    'dataset_name': 'dataset_A'
+}
+
+target_dataset_B = {
+    'data': X_MIB_train_data,
+    'label': X_MIB_train_label,
+    'meta_data': m_tgt_B,
+    'dataset_name': 'dataset_B'
+}
+
+
 
 generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_5_A')
 generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_5_B')

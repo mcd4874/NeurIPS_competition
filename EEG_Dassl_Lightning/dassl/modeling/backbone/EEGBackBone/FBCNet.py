@@ -117,14 +117,13 @@ class FBCNet(Backbone):
         self._out_features = samples
 
     def forward(self, x):
-        x = x.permute((0, 3, 1, 2))
+        # x = x.permute((0, 3, 1, 2))
         # print("update x shape : ",x.shape)
         # x = torch.squeeze(x.permute((0, 4, 2, 3, 1)), dim=4)
         x = self.scb(x)
         x = x.reshape([*x.shape[0:2], self.strideFactor, int(x.shape[3] / self.strideFactor)])
         x = self.temporalLayer(x)
         x = torch.flatten(x, start_dim=1)
-        # x = self.lastLayer(x)
         return x
 
 
@@ -133,10 +132,10 @@ class FBCNet(Backbone):
 def fbcnet(pretrained=False,pretrained_path = '', **kwargs):
     print("params set up : ",kwargs)
     model = FBCNet(**kwargs)
-    print("pretrain : ",pretrained)
-    print('pretrain path :',pretrained_path)
+    # print("pretrain : ",pretrained)
+    # print('pretrain path :',pretrained_path)
     if pretrained and pretrained_path!= '':
-        print("load pretrain model ")
+        # print("load pretrain model ")
         load_pretrained_backbone(model,pretrained_path)
 
     return model

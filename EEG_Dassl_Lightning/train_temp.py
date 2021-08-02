@@ -52,11 +52,6 @@ def setup_cfg(args):
     reset_cfg(cfg, args)
     #allowed to add new keys for config
     cfg.set_new_allowed(True)
-    # cfg.merge_from_other_cfg()
-    if args.dataset_config_file:
-        cfg.merge_from_file(args.dataset_config_file)
-    if args.config_file:
-        cfg.merge_from_file(args.config_file)
     if args.main_config_file:
         cfg.merge_from_file(args.main_config_file)
     cfg.merge_from_list(args.opts)
@@ -298,7 +293,6 @@ def main(args):
                         pl.seed_everything(42)
                         cfg_dict = convert_to_dict(cfg,[])
                         print("cfg dict : ",cfg_dict)
-                        print("test LR variable  : ", cfg_dict['OPTIM']['LR'])
 
                         if data_manager_type == "single_dataset":
                             data_manager = DataManagerV1(cfg)
@@ -346,21 +340,19 @@ def main(args):
                             resume = None
                         trainer_lightning = Trainer(
                             gpus=1,
-                            # accelerator='ddp',
                             default_root_dir=output_dir,
                             benchmark=benchmark,
                             deterministic=deterministic,
                             max_epochs=cfg.OPTIM.MAX_EPOCH,
-                            # max_epochs=16,
                             resume_from_checkpoint=resume,
-                            multiple_trainloader_mode='max_size_cycle',
+                            multiple_trainloader_mode=cfg.LIGHTNING_TRAINER.multiple_trainloader_mode,
                             # callbacks=[early_stopping,checkpoint_callback],
                             callbacks=[checkpoint_callback],
                             logger=[csv_logger,tensorboard_logger],
-                            progress_bar_refresh_rate=100,
+                            progress_bar_refresh_rate=cfg.LIGHTNING_TRAINER.progress_bar_refresh_rate,
                             profiler='simple',
-                            num_sanity_val_steps=0
-                            # stochastic_weight_avg=True
+                            num_sanity_val_steps=cfg.LIGHTNING_TRAINER.num_sanity_val_steps,
+                            stochastic_weight_avg=cfg.LIGHTNING_TRAINER.stochastic_weight_avg
 
                         )
 
@@ -405,30 +397,6 @@ if __name__ == '__main__':
         type=int,
         default=-1,
         help='only positive value enables a fixed seed'
-    )
-    parser.add_argument(
-        '--source-domains',
-        type=str,
-        nargs='+',
-        help='source domains for DA/DG'
-    )
-    parser.add_argument(
-        '--target-domains',
-        type=str,
-        nargs='+',
-        help='target domains for DA/DG'
-    )
-    parser.add_argument(
-        '--transforms', type=str, nargs='+', help='data augmentation methods'
-    )
-    parser.add_argument(
-        '--config-file', type=str, default='', help='path to config file'
-    )
-    parser.add_argument(
-        '--dataset-config-file',
-        type=str,
-        default='',
-        help='path to config file for dataset setup'
     )
     parser.add_argument(
         '--main-config-file',
