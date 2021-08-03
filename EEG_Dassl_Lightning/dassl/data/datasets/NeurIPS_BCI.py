@@ -127,6 +127,8 @@ class MultiDataset(DatasetBase):
         list_source_meta_data = []
         for dataset in datasets:
             dataset = dataset[0][0]
+            # print("dataset field name : ",dataset.dtype.names)
+            # print(" frist field name : ",('r_op_list' in list(dataset.dtype.names)))
             dataset_name = dataset['dataset_name']
             data = dataset['data'].astype(np.float32)
             label = np.squeeze(dataset['label']).astype(int)
@@ -146,6 +148,10 @@ class MultiDataset(DatasetBase):
 
 
             if dataset_name == target_dataset_name:
+                if 'r_op_list' in list(dataset.dtype.names):
+                    self.r_op_list = np.array(dataset['r_op_list']).astype(np.float32)
+                else:
+                    self.r_op_list = None
                 target_data = data
                 target_label = label
                 # print(" original target label : ", target_label)

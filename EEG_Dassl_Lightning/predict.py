@@ -21,6 +21,8 @@ from NeurIPS_competition.util.support import (
     correct_EEG_data_order, relabel, process_target_data, relabel_target, load_dataset_A, load_dataset_B, modify_data
 )
 
+from dassl.data.datasets.data_util import EuclideanAlignment
+
 
 def print_args(args, cfg):
     print('***************')
@@ -412,9 +414,26 @@ def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels,
         os.makedirs(result_output_dir)
     result_filename = 'ensemble_result.xlsx'
     result.to_excel(os.path.join(result_output_dir, result_filename), index=False)
+from scipy.io import loadmat
+def load_test_data_from_file(provide_path,dataset_type):
+    temp = loadmat(provide_path)
+    datasets = temp['datasets'][0]
+    target_dataset = None
+    list_r_op =  None
+    for dataset in datasets:
+        dataset = dataset[0][0]
+        dataset_name = dataset['dataset_name']
+        if dataset_name == dataset_type:
+            target_dataset = dataset
+
+    data = target_dataset['data'].astype(np.float32)
+    if 'r_op_list' in list(target_dataset.dtype.names):
+        list_r_op = np.array(target_dataset['r_op_list']).astype(np.float32)
+    return data,list_r_op
 
 
-def get_test_data(dataset_type, norm, use_filter_bank=False, freq_interval=4):
+
+def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=False, freq_interval=4, EA=False):
     os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     cuda = torch.cuda.is_available()
     seed = 42
@@ -423,19 +442,32 @@ def get_test_data(dataset_type, norm, use_filter_bank=False, freq_interval=4):
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = True
     rng = RandomState(seed)
+    list_r_op = None
     # get correct chans order
-    target_channels = generate_common_chan_test_data()
-    fmin, fmax = 4, 36
-    epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin, fmax=fmax, selected_chans=target_channels,
-                                                    subjects=[1])
-    print("cho2017 current chans : ", epoch_X_src1.ch_names)
-    print("size : ", len(epoch_X_src1.ch_names))
-    target_channels = epoch_X_src1.ch_names
-    if dataset_type == 'dataset_B':
-        test_data = load_dataset_B(train=False, norm=norm, selected_chans=target_channels)
-    else:
-        test_data = load_dataset_A(train=False, norm=norm, selected_chans=target_channels)
+    if provide_data_path is None:
+        target_channels = generate_common_chan_test_data()
+        fmin, fmax = 4, 36
+        epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin, fmax=fmax, selected_chans=target_channels,
+                                                        subjects=[1])
+        print("cho2017 current chans : ", epoch_X_src1.ch_names)
+        print("size : ", len(epoch_X_src1.ch_names))
+        target_channels = epoch_X_src1.ch_names
+        if dataset_type == 'dataset_B':
+            test_data = load_dataset_B(train=False, norm=norm, selected_chans=target_channels)
+            n_subjects = 3
+        else:
+            test_data = load_dataset_A(train=False, norm=norm, selected_chans=target_channels)
+            n_subjects = 2
+        if EA:
+            test_data = np.split(test_data,n_subjects)
 
+    else:
+        print("load test data from file ")
+        test_data,list_r_op = load_test_data_from_file(provide_data_path,dataset_type=dataset_type)
+    if EA:
+        test_EA = EuclideanAlignment(list_r_op=list_r_op)
+        test_data = test_EA.convert_subjects_data_with_EA(test_data)
+        test_data = np.concatenate(test_data)
     if use_filter_bank:
         # diff = 4
         diff = freq_interval
@@ -511,6 +543,7 @@ def main(args):
         normalization = cfg.INPUT.TRANSFORMS[0]
         if normalization == 'cross_channel_norm':
             norm = True
+    EA = cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment
     use_filter = cfg.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK
     diff = cfg.DATAMANAGER.DATASET.FILTERBANK.freq_interval
     print("use filter bank {} with diff interval {} ".format(use_filter,diff))
@@ -519,16 +552,13 @@ def main(args):
     use_assemble_test_dataloader = args.use_assemble_test_dataloader
     relabel = args.relabel
     print("generate predict : ", generate_predict)
-    # generate_predict = False
-    # use_assemble_test_dataloader = True
-    # relabel = True
     dataset_type = cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
 
+    test_file_path = args.test_data if args.test_data != '' else None
     if generate_predict and not use_assemble_test_dataloader:
-        dataset = get_test_data(dataset_type, norm, use_filter_bank=use_filter, freq_interval=diff)
+        dataset = get_test_data(dataset_type, norm, use_filter_bank=use_filter, freq_interval=diff,EA=EA,provide_data_path=test_file_path)
 
     combine_prefix = dict()
-
     test_fold_preds = list()
     test_fold_probs = list()
     test_fold_label = list()
@@ -704,6 +734,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=str, default='', help='path to dataset')
+    parser.add_argument('--test-data', type=str, default='', help='path to test data')
     parser.add_argument(
         '--output-dir', type=str, default='', help='output directory'
     )

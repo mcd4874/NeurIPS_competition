@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset as TorchDataset
-from dassl.data.datasets.data_util import (generate_datasource,euclidean_alignment,convert_subjects_data_with_EA,
+from dassl.data.datasets.data_util import (generate_datasource,EuclideanAlignment,
                                            DataAugmentation,get_num_classes,get_label_classname_mapping,
                                            normalization,dataset_norm,subjects_filterbank,filterBank)
 from .datasets import build_dataset
@@ -92,9 +92,20 @@ class DataManagerV1(LightningDataModule):
 
         if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
             print("run custom EA")
-            train_x_data = convert_subjects_data_with_EA(train_x_data)
-            val_data = convert_subjects_data_with_EA(val_data)
-            test_data = convert_subjects_data_with_EA(test_data)
+            if self._dataset.r_op_list is not None:
+                self.train_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+                self.val_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+                self.test_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+            else:
+                self.train_EA = EuclideanAlignment()
+                self.val_EA = EuclideanAlignment()
+                self.test_EA = EuclideanAlignment()
+            train_x_data = self.train_EA.convert_subjects_data_with_EA(train_x_data)
+            val_data = self.val_EA.convert_subjects_data_with_EA(val_data)
+            test_data = self.test_EA.convert_subjects_data_with_EA(test_data)
+
+            # print("convert trials : ",)
+            # print("new trial : ",val_data[0])
 
         """Use filter bank """
         if self.useFilterBank:
@@ -346,7 +357,8 @@ class MultiDomainDataManagerV1(DataManagerV1):
 
             if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
                 print("run custom EA")
-                source_data = convert_subjects_data_with_EA(source_data)
+                source_EA = EuclideanAlignment()
+                source_data = source_EA.convert_subjects_data_with_EA(source_data)
 
             """Use filter bank """
             if self.useFilterBank:

@@ -111,8 +111,21 @@ target_dataset_B = {
     'dataset_name': 'dataset_B'
 }
 
+X_MIA_test_data = load_dataset_A(train=False, norm=False, selected_chans=target_channels)
+X_MIB_test_data = load_dataset_B(train=False, norm=False, selected_chans=target_channels)
+temp_X_MIA_test_data = np.split(X_MIA_test_data,2)
+temp_X_MIB_test_data = np.split(X_MIB_test_data,3)
+test_dataset_A = {
+    'data': temp_X_MIA_test_data,
+    'dataset_name': 'dataset_A'
+}
 
+test_dataset_B = {
+    'data': temp_X_MIB_test_data,
+    'dataset_name': 'dataset_B'
+}
+#
+# generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_5_A')
+# generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_5_B')
 
-generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_5_A')
-generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_5_B')
-
+generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_data_volt')

@@ -105,8 +105,17 @@ LIGHTNING_MODEL:
     LAST_FC:
       NAME: max_norm
       max_norm: 0.5
+    LAYER:
+      NAME: EEGNetConv3
+      PARAMS:
+        samples: 384
+        F2: 16
+        drop_prob: 0.25
+        avg_pool_1: 4
+        avg_pool_2: 8
+        sep_kern_length: 16
     BACKBONE:
-      NAME: 'eegnet'
+      NAME: 'extractor'
       PARAMS:
         kern_legnth: 64
         num_ch: 31
@@ -115,9 +124,6 @@ LIGHTNING_MODEL:
         D: 2
         F2: 16
         drop_prob: 0.25
-        avg_pool_1: 4
-        avg_pool_2: 8
-        sep_kern_length: 16
 
 
 
@@ -126,6 +132,6 @@ EXTRA_FIELDS:
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
   aug: 'no_aug'
-  model: 'MultiDatasetAdaptationV1'
+  model: 'MultiDatasetAdaptation'
   source_label_space: [2,3,3]
   target_label_space: 3

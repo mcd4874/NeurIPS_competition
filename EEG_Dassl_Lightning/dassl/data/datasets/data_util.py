@@ -8,45 +8,100 @@ from dassl.data.datasets.base_dataset import EEGDatum
 #
 #     def
 
-def euclidean_alignment(x):
-        """
-        convert trials in data with EA technique
-        """
+# def euclidean_alignment(x):
+#         """
+#         convert trials in data with EA technique
+#         """
+#
+#         assert len(x.shape) == 3
+#
+#         r = np.matmul(x, x.transpose((0, 2, 1))).mean(0)
+#         if np.iscomplexobj(r):
+#             print("covariance matrix problem")
+#         if np.iscomplexobj(sqrtm(r)):
+#             print("covariance matrix problem sqrt")
+#
+#         r_op = inv(sqrtm(r))
+#         # print("r_op shape : ",r_op.shape)
+#         # print("data shape : ",x.shape)
+#         # print("r_op : ",r_op)
+#         if np.iscomplexobj(r_op):
+#             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
+#                   "not, check data!!")
+#             r_op = np.real(r_op).astype(np.float32)
+#         elif not np.any(np.isfinite(r_op)):
+#             print("WARNING! Not finite values in R Matrix")
+#
+#         results = np.matmul(r_op, x)
+#         # print("r_op shape : ",r_op.shape)
+#         # print("data shape : ",x.shape)
+#         # print("r_op : ",r_op)
+#         # print("result shape : ",results.shape)
+#         # print("a trial before convert : ",x[0,:,:])
+#         # print("a trial after convert : ",results[0,:,:])
+#         return results
+# def convert_subjects_data_with_EA(subjects_data):
+#     new_data = list()
+#     for subject_idx in range(len(subjects_data)):
+#         subject_data = subjects_data[subject_idx]
+#         subject_data = euclidean_alignment(subject_data)
+#         new_data.append(subject_data)
+#     return new_data
 
-        assert len(x.shape) == 3
-
-        r = np.matmul(x, x.transpose((0, 2, 1))).mean(0)
+class EuclideanAlignment:
+    """
+    convert trials of each subject to a new format with Euclidean Alignment technique
+    https://arxiv.org/pdf/1808.05464.pdf
+    """
+    def __init__(self,list_r_op=None):
+        self.list_r_op = list_r_op
+    def calculate_r_op(self,data):
+        assert len(data.shape) == 3
+        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
         if np.iscomplexobj(r):
             print("covariance matrix problem")
         if np.iscomplexobj(sqrtm(r)):
             print("covariance matrix problem sqrt")
 
         r_op = inv(sqrtm(r))
-        # print("r_op shape : ",r_op.shape)
+        # print("r_op shape : ", r_op.shape)
         # print("data shape : ",x.shape)
-        # print("r_op : ",r_op)
+        # print("r_op : ", r_op)
         if np.iscomplexobj(r_op):
             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
                   "not, check data!!")
             r_op = np.real(r_op).astype(np.float32)
         elif not np.any(np.isfinite(r_op)):
             print("WARNING! Not finite values in R Matrix")
-
-        results = np.matmul(r_op, x)
-        # print("r_op shape : ",r_op.shape)
-        # print("data shape : ",x.shape)
-        # print("r_op : ",r_op)
-        # print("result shape : ",results.shape)
-        # print("a trial before convert : ",x[0,:,:])
-        # print("a trial after convert : ",results[0,:,:])
+        return r_op
+    def convert_trials(self,data,r_op):
+        results = np.matmul(r_op, data)
         return results
-def convert_subjects_data_with_EA(subjects_data):
-    new_data = list()
-    for subject_idx in range(len(subjects_data)):
-        subject_data = subjects_data[subject_idx]
-        subject_data = euclidean_alignment(subject_data)
-        new_data.append(subject_data)
-    return new_data
+    def generate_list_r_op(self,subjects_data):
+        list_r_op = list()
+        for subject_idx in range(len(subjects_data)):
+            subject_data = subjects_data[subject_idx]
+            r_op = self.calculate_r_op(subject_data)
+            list_r_op.append(r_op)
+        return list_r_op
+    def convert_subjects_data_with_EA(self,subjects_data):
+        #calculate r_op for each subject
+        if self.list_r_op is not None:
+            assert len(self.list_r_op) == len(subjects_data)
+            print("use exist r_op")
+        else:
+            print("generate new r_op")
+            self.list_r_op = self.generate_list_r_op(subjects_data)
+        new_data = list()
+        # print("size list r : ",len(self.list_r_op))
+        # print("subject dat size : ",len(subjects_data))
+        for subject_idx in range(len(subjects_data)):
+            subject_data = subjects_data[subject_idx]
+            r_op = self.list_r_op[subject_idx]
+            subject_data = self.convert_trials(subject_data,r_op)
+            new_data.append(subject_data)
+        return new_data
+
 # def generate_datasource(data, label, test_data=False,label_name_map= None):
 #     total_subjects = 1
 #     if not test_data:
