@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset as TorchDataset
 from dassl.data.datasets.data_util import (generate_datasource,EuclideanAlignment,
                                            DataAugmentation,get_num_classes,get_label_classname_mapping,
-                                           normalization,dataset_norm,subjects_filterbank,filterBank)
+                                           normalization,dataset_norm,subjects_filterbank,filterBank,relabel_target)
 from .datasets import build_dataset
 from .samplers import build_sampler
 import numpy as np
@@ -21,6 +21,15 @@ import copy
 #         subject_data = euclidean_alignment(subject_data)
 #         new_data.append(subject_data)
 #     return new_data
+def relabel_subjects(subject_label):
+    new_subject_data = list()
+    for subject in range(len(subject_label)):
+        current_label = subject_label[subject]
+        current_label = np.array([relabel_target(l) for l in current_label])
+        new_subject_data.append(current_label)
+    return new_subject_data
+
+# train_x_label = [) for train_subject_label in train_x_label]
 
 
 class DataManagerV1(LightningDataModule):
@@ -40,6 +49,7 @@ class DataManagerV1(LightningDataModule):
 
         self._dataset = None
         self.useFilterBank = self.cfg.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK
+        self.relabel = self.cfg.DATAMANAGER.DATASET.target_dataset_relabelled
         super(DataManagerV1, self).__init__()
 
 
@@ -84,6 +94,20 @@ class DataManagerV1(LightningDataModule):
             print("apply augmentation")
             train_x_data,train_x_label = self.generate_augmentation(train_x_data,train_x_label)
 
+        if self.relabel:
+            print("train_x_label {},{} ".format(len(train_x_label),train_x_label[0].shape))
+            # train_x_label = [np.array([relabel_target(l) for l in train_subject_label]) for train_subject_label in train_x_label]
+
+            old_label = np.unique(train_x_label[0])
+            train_x_label = relabel_subjects(train_x_label)
+            val_label = relabel_subjects(val_label)
+            test_label = relabel_subjects(test_label)
+            new_label = np.unique(train_x_label[0])
+            # train_x_label = relabel_target(train_x_label)
+            # val_label = relabel_target(val_label)
+            # test_label = relabel_target(test_label)
+            # new_label = np.unique(train_x_label[0])
+            print("relabel the dataset from {} to {}".format(old_label,new_label))
         """Create class weight for train_x dataset"""
         # if self.DOMAIN_CLASS_WEIGHT:
         #     self.domain_class_weight = self.generate_domain_class_weight(train_x_label)

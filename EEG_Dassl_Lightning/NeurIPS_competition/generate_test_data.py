@@ -127,40 +127,40 @@ np.random.seed(seed)
 torch.backends.cudnn.deterministic = True
 rng = RandomState(seed)
 
-#get common channel between dataset A and dataset B
-target_channels = generate_common_chan_test_data()
-print("common target chans : ",target_channels)
-fmin=0
-fmax=80
-tmax=3
-tmin=0
-sfreq=128
-max_time_length = int((tmax - tmin) * sfreq)
-
-# epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels)
-epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels,subjects=[1,2,3])
-X_src1 = epoch_X_src1.get_data()
-diff = 4
-filter_bands = []
-# axis = 2
-for i in range(1,9):
-    filter_bands.append([i*diff,(i+1)*diff])
-print("build filter band : ",filter_bands)
-filter = filterBank(
-    filtBank= filter_bands,
-    fs=sfreq
-    # axis=axis
-)
-
-filter_data = filter(X_src1)
-print("filter data : ",filter_data.shape)
-# filter_data = filter_data.permute((0, 3, 1, 2))
-source = [0,1,2,3]
-destination = [0,2,3,1]
-
-# destination = [0,3,1,2]
-update_filter = np.moveaxis(filter_data, source, destination)
-print("update filter data : ",update_filter.shape)
+# #get common channel between dataset A and dataset B
+# target_channels = generate_common_chan_test_data()
+# print("common target chans : ",target_channels)
+# fmin=0
+# fmax=80
+# tmax=3
+# tmin=0
+# sfreq=128
+# max_time_length = int((tmax - tmin) * sfreq)
+#
+# # epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels)
+# epoch_X_src1, label_src1, m_src1 = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels,subjects=[1,2,3])
+# X_src1 = epoch_X_src1.get_data()
+# diff = 4
+# filter_bands = []
+# # axis = 2
+# for i in range(1,9):
+#     filter_bands.append([i*diff,(i+1)*diff])
+# print("build filter band : ",filter_bands)
+# filter = filterBank(
+#     filtBank= filter_bands,
+#     fs=sfreq
+#     # axis=axis
+# )
+#
+# filter_data = filter(X_src1)
+# print("filter data : ",filter_data.shape)
+# # filter_data = filter_data.permute((0, 3, 1, 2))
+# source = [0,1,2,3]
+# destination = [0,2,3,1]
+#
+# # destination = [0,3,1,2]
+# update_filter = np.moveaxis(filter_data, source, destination)
+# print("update filter data : ",update_filter.shape)
 
 
 
@@ -271,3 +271,102 @@ print("update filter data : ",update_filter.shape)
 
 # print(commonList)
 # print(len(commonList))
+
+def load_dataset(data_path,target_dataset_name):
+    from scipy.io import loadmat
+    import numpy as np
+    def reformat(data, label, meta_data):
+        n_subjects = len(np.unique(meta_data['subject']))
+        new_data = []
+        new_label = []
+        new_meta_data = []
+        start = 0
+        unique_subject_ids = np.unique(meta_data['subject'])
+        for i in range(n_subjects):
+            current_subject = unique_subject_ids[i]
+            subject_meta_data = meta_data[meta_data['subject'] == current_subject]
+            if len(subject_meta_data) > 0:
+                trials = len(subject_meta_data)
+                end = start + trials
+                subject_data = data[start:end]
+                subject_label = label[start:end]
+                new_data.append(subject_data)
+                new_label.append(subject_label)
+                new_meta_data.append(subject_meta_data)
+                # print("current meta : ",subject_meta_data)
+                # print("len meta : ",len(subject_meta_data))
+                # print("len subject size : ",len(subject_data))
+                # print("len label size : ",len(subject_label))
+                start = end
+        return new_data, new_label, new_meta_data
+    temp = loadmat(data_path)
+
+    datasets = temp['datasets'][0]
+
+    # target_dataset_name = 'BCI_IV'
+    print("target datast : ", target_dataset_name)
+    target_data = None
+    target_label = None
+    target_meta_data = None
+    list_source_data = []
+    list_source_label = []
+    list_source_meta_data = []
+    for dataset in datasets:
+        dataset = dataset[0][0]
+        # print("dataset field name : ",dataset.dtype.names)
+        # print(" frist field name : ",('r_op_list' in list(dataset.dtype.names)))
+        dataset_name = dataset['dataset_name']
+        data = dataset['data'].astype(np.float32)
+        label = np.squeeze(dataset['label']).astype(int)
+        meta_data = dataset['meta_data'][0][0]
+        new_meta_data = {}
+        new_meta_data['subject'] = meta_data['subject'][0]
+        new_meta_data['session'] = [session[0] for session in meta_data['session'][0]]
+        new_meta_data['run'] = [run[0] for run in meta_data['run'][0]]
+        meta_data = pd.DataFrame.from_dict(new_meta_data)
+        # print("dataset name : ",dataset_name)
+        # print("original data size : ",len(data))
+        # print("new meta : ",meta_data)
+        # if dataset_name == "dataset_B":
+        #     print("new meta : ",meta_data)
+        data, label, meta_data = reformat(data, label, meta_data)
+        if dataset_name == target_dataset_name:
+            target_data = data
+            target_label = label
+            # print(" original target label : ", target_label)
+            # print("len of target data : ",len(target_label))
+            target_meta_data = meta_data
+            # print("reformat meta data : ",target_meta_data)
+        else:
+            list_source_data.append(data)
+            list_source_label.append(label)
+            list_source_meta_data.append(meta_data)
+    return target_data, target_label,list_source_data,list_source_label
+
+#voltage dataset
+path_5_A = "C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/case_5_A/NeurIPS_TL.mat"
+path_5_B = "C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/case_5_B/NeurIPS_TL.mat"
+
+#microvolt dataset
+path_5_1_A = "C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/case_5_1_A/NeurIPS_TL.mat"
+# path_5_1_B = "C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/case_5_1_B/NeurIPS_TL.mat"
+
+path_5_1_B = "C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/case_4/NeurIPS_TL.mat"
+
+# data_A, label_A ,list_source_data,list_source_label = load_dataset(path_5_A,"dataset_A")
+# data_A_1, label_A_1 ,list_source_data_1,list_source_label_1 = load_dataset(path_5_1_A,"dataset_A")
+
+data_A, label_A ,list_source_data,list_source_label = load_dataset(path_5_B,"dataset_B")
+data_A_1, label_A_1 ,list_source_data_1,list_source_label_1 = load_dataset(path_5_1_B,"dataset_B")
+
+for subject in range(len(data_A)):
+    label_subject = label_A[subject]
+    print("dataset A subject {} ,   has label {}".format(subject,label_subject))
+
+    label_subject_1 = label_A_1[subject]
+    print("dataset A_1 subject {} , has label {}".format(subject,label_subject_1))
+
+    data_subject = data_A[subject][0,:3,:6]
+    print(data_subject)
+    data_subject_1 = data_A_1[subject][0,:3,:6]
+    print(data_subject_1)

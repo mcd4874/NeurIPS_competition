@@ -88,7 +88,7 @@ _C.DATAMANAGER.DATASET.DIR = ''
 _C.DATAMANAGER.DATASET.FILENAME = ''
 _C.DATAMANAGER.DATASET.NAME = ''
 _C.DATAMANAGER.DATASET.EA = False
-
+_C.DATAMANAGER.DATASET.target_dataset_relabelled = False
 #split the dataset into train/valid and test fold setup
 _C.DATAMANAGER.DATASET.SETUP = CN()
 

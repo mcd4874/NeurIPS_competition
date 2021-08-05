@@ -12,7 +12,7 @@ import mne
 from NeurIPS_competition.util.support import (
     expand_data_dim,normalization,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
     correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data,
-    generate_data_file
+    generate_data_file,print_dataset_info
 )
 
 
@@ -262,8 +262,6 @@ temp_X_MIA_train_data = EA_A.convert_subjects_data_with_EA(temp_X_MIA_train_data
 print("new trial : ",temp_X_MIA_train_data[0])
 EA_B = EuclideanAlignment()
 EA_B.generate_list_r_op(temp_X_MIB)
-
-
 X_MIA_train_label = np.array([relabel_target(l) for l in X_MIA_train_label])
 X_MIB_train_label = np.array([relabel_target(l) for l in X_MIB_train_label])
 
@@ -295,10 +293,19 @@ test_dataset_B = {
     'r_op_list': EA_B.list_r_op
 }
 
+print_dataset_info(X_MIA_train_data,"train dataset A")
+print_dataset_info(X_MIB_train_data,"train dataset B")
+
+print_dataset_info(X_MIA_test_data,"test dataset A")
+print_dataset_info(X_MIB_test_data,"test dataset B")
+
+print_dataset_info(X_src1,"source 1 ")
+print_dataset_info(X_src2,"source 2 ")
+print_dataset_info(X_src3,"source 3 ")
 
 
-# generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_8_A')
-# generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_8_B')
+generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_8_A')
+generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_8_B')
 
-# generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_data')
+generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_data')
 

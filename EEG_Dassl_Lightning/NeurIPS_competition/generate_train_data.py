@@ -12,7 +12,7 @@ import mne
 from NeurIPS_competition.util.support import (
     expand_data_dim,normalization,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
     correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data,
-    generate_data_file
+    generate_data_file,print_dataset_info
 )
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 cuda = torch.cuda.is_available()
@@ -94,8 +94,17 @@ dataset_3 = {
 X_MIA_train_data,X_MIA_train_label,m_tgt_A = load_dataset_A(train=True,selected_chans=target_channels)
 X_MIB_train_data,X_MIB_train_label,m_tgt_B = load_dataset_B(train=True,selected_chans=target_channels)
 
+
 X_MIA_train_label = np.array([relabel_target(l) for l in X_MIA_train_label])
 X_MIB_train_label = np.array([relabel_target(l) for l in X_MIB_train_label])
+
+def count(label,name=""):
+    count_0 = len(np.where(label == 0)[0])
+    count_1 = len(np.where(label == 1)[0])
+    count_2 = len(np.where(label == 2)[0])
+    print("dataset {},  has {} label 0, {} label 1, and {} label 2".format(name,count_0,count_1,count_2))
+count(X_MIA_train_label,"dataset A")
+count(X_MIB_train_label,"dataset B ")
 
 target_dataset_A = {
     'data': X_MIA_train_data,
@@ -125,7 +134,18 @@ test_dataset_B = {
     'dataset_name': 'dataset_B'
 }
 #
+
+print_dataset_info(X_MIA_train_data,"train dataset A")
+print_dataset_info(X_MIB_train_data,"train dataset B")
+
+print_dataset_info(X_MIA_test_data,"test dataset A")
+print_dataset_info(X_MIB_test_data,"test dataset B")
+
+print_dataset_info(X_src1,"source 1 ")
+print_dataset_info(X_src2,"source 2 ")
+print_dataset_info(X_src3,"source 3 ")
+
 # generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_A],folder_name='case_5_A')
 # generate_data_file([dataset_1,dataset_2,dataset_3,target_dataset_B],folder_name='case_5_B')
 
-generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_data_volt')
+# generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_data_volt')

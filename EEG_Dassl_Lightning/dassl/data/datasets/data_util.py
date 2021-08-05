@@ -48,6 +48,11 @@ from dassl.data.datasets.base_dataset import EEGDatum
 #         new_data.append(subject_data)
 #     return new_data
 
+def relabel_target(l):
+    if l == 0: return 0
+    elif l == 1: return 1
+    else: return 2
+
 class EuclideanAlignment:
     """
     convert trials of each subject to a new format with Euclidean Alignment technique

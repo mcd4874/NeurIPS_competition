@@ -458,16 +458,16 @@ def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=F
         else:
             test_data = load_dataset_A(train=False, norm=norm, selected_chans=target_channels)
             n_subjects = 2
-        if EA:
-            test_data = np.split(test_data,n_subjects)
-
+        # if EA:
+        print("{} subjects to split : ".format(n_subjects))
+        test_data = np.split(test_data,n_subjects)
     else:
         print("load test data from file ")
         test_data,list_r_op = load_test_data_from_file(provide_data_path,dataset_type=dataset_type)
     if EA:
         test_EA = EuclideanAlignment(list_r_op=list_r_op)
         test_data = test_EA.convert_subjects_data_with_EA(test_data)
-        test_data = np.concatenate(test_data)
+    test_data = np.concatenate(test_data)
     if use_filter_bank:
         # diff = 4
         diff = freq_interval

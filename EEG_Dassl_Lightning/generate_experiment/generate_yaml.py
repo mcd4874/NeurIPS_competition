@@ -228,7 +228,7 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptation"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
-    elif trainer_type == "adaptationV1":
+    elif trainer_type == "adaptationV1" or trainer_type == "shallowcon_adaptV1":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
@@ -323,18 +323,40 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/experiment_5_1"
 # main_path = "experiment_6"
 # config_path = "main_config/experiment_6"
+# main_path = "experiment_7"
+# config_path = "main_config/experiment_7"
 # main_path = "final_result_3"
 # config_path = "main_config/final_result_3"
 # main_path = "final_result_4"
 # config_path = "main_config/final_result_4"
+# main_path = "final_result_4_1_1"
+# config_path = "main_config/final_result_4_1_1"
 # main_path = "final_result_4_3"
 # config_path = "main_config/final_result_4_3"
-main_path = "final_result_4_5"
-config_path = "main_config/final_result_4_5"
+# main_path = "final_result_4_3_1"
+# config_path = "main_config/final_result_4_3_1"
+# main_path = "final_result_4_5"
+# config_path = "main_config/final_result_4_5"
 # main_path = "final_result_5_1"
 # config_path = "main_config/final_result_5_1"
 # main_path = "final_result_6"
 # config_path = "main_config/final_result_6"
+# main_path = "final_result_7"
+# config_path = "main_config/final_result_7"
+# main_path = "final_result_7_0_1"
+# config_path = "main_config/final_result_7_0_1"
+# main_path = "final_result_7_0_2"
+# config_path = "main_config/final_result_7_0_2"
+# main_path = "final_result_7_1"
+# config_path = "main_config/final_result_7_1"
+main_path = "final_result_7_1_1"
+config_path = "main_config/final_result_7_1_1"
+# main_path = "final_result_7_1_2"
+# config_path = "main_config/final_result_7_1_2"
+# main_path = "final_result_7_1_3"
+# config_path = "main_config/final_result_7_1_3"
+# main_path = "final_result_7_1_4"
+# config_path = "main_config/final_result_7_1_4"
 aug_conditions=["temp_aug","no_aug"]
 # aug_conditions=["no_aug"]
 
@@ -346,7 +368,9 @@ norm_conditions = ["chan_norm","no_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
 # trainer_conditions = ["vanilla","adaptationV1","adaptation"]
-trainer_conditions = ["adaptation"]
+# trainer_conditions = ["adaptationV1"]
+
+trainer_conditions = ["shallowcon_adaptV1"]
 
 # trainer_conditions = ["FBCNET_adaptV1"]
 dataset_conditions = ["dataset_A", "dataset_B"]

@@ -77,13 +77,16 @@ DATAMANAGER:
       BATCH_SIZE: 64
 
 OPTIM:
-  NAME: adam
-  LR: 0.001
+  OPTIMIZER:
+    NAME: adam
+    PARAMS:
+      lr: 0.001
+      weight_decay: 0.0
+  SCHEDULER:
+    NAME: exponential
+    PARAMS:
+      gamma: 1.0
   MAX_EPOCH: 20
-  LR_SCHEDULER: exponential
-  STEPSIZE: (1, )
-  WEIGHT_DECAY: 0.0
-  GAMMA: 1.0
 
 TRAIN:
   CHECKPOINT_FREQ: 0
@@ -125,7 +128,9 @@ EXTRA_FIELDS:
   target_dataset: 'dataset_B'
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
+  EA: False
   aug: 'no_aug'
   model: 'MultiDatasetAdaptationV1'
+  backbone: 'eegnet'
   source_label_space: [2,3,3]
   target_label_space: 3
