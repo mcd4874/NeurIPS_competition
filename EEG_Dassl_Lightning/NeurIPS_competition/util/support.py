@@ -189,16 +189,8 @@ def shuffle_data(subject_data,subject_label):
 def modify_data(data,time=256):
     return data[:, :, :time]
 
-
-def generate_common_chan_test_data(ch_names_A=None,ch_names_B=None):
-    if not ch_names_B:
-        ch_names_B = ['Fp1', 'Fp2', 'F3',
-                  'Fz', 'F4', 'FC5', 'FC1', 'FC2', 'FC6', 'C5', 'C3',
-                  'C1', 'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1',
-                  'CPz', 'CP2', 'CP4', 'CP6', 'P7', 'P5', 'P3', 'P1', 'Pz',
-                  'P2', 'P4', 'P6', 'P8']
-    if not ch_names_A:
-        ch_names_A = ['Fp1', 'Fz', 'F3', 'F7', 'FT9', 'FC5', 'FC1', 'C3', 'T7',
+def get_dataset_A_ch():
+    ch_names_A = ['Fp1', 'Fz', 'F3', 'F7', 'FT9', 'FC5', 'FC1', 'C3', 'T7',
                   'TP9', 'CP5', 'CP1', 'Pz', 'P3', 'P7', 'O1', 'Oz',
                   'O2', 'P4', 'P8', 'TP10', 'CP6', 'CP2', 'C4', 'T8',
                   'FT10', 'FC6', 'FC2', 'F4', 'F8', 'Fp2', 'AF7', 'AF3',
@@ -206,6 +198,21 @@ def generate_common_chan_test_data(ch_names_A=None,ch_names_B=None):
                   'TP7', 'CP3', 'P1', 'P5', 'PO7', 'PO3', 'POz', 'PO4',
                   'PO8', 'P6', 'P2', 'CPz', 'CP4', 'TP8', 'C6', 'C2',
                   'FC4', 'FT8', 'F6', 'F2', 'AF4', 'AF8']
+    return ch_names_A
+
+def get_dataset_B_ch():
+    ch_names_B = ['Fp1', 'Fp2', 'F3',
+                  'Fz', 'F4', 'FC5', 'FC1', 'FC2', 'FC6', 'C5', 'C3',
+                  'C1', 'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1',
+                  'CPz', 'CP2', 'CP4', 'CP6', 'P7', 'P5', 'P3', 'P1', 'Pz',
+                  'P2', 'P4', 'P6', 'P8']
+    return ch_names_B
+
+def generate_common_chan_test_data(ch_names_A=None,ch_names_B=None):
+    if not ch_names_B:
+        ch_names_B =get_dataset_B_ch()
+    if not ch_names_A:
+        ch_names_A = get_dataset_A_ch()
     commonList = []
     for chan_A in ch_names_A:
         for chan_B in ch_names_B:
@@ -215,14 +222,14 @@ def generate_common_chan_test_data(ch_names_A=None,ch_names_B=None):
 
 def correct_EEG_data(data,channels,correct_chans_order):
     new_eeg_data = np.zeros((data.shape[0],len(correct_chans_order),data.shape[2]))
-    # print("current BCI chans : ", data_chans)
-    # print("correct chans order : ",correct_chans_order)
+    print("current BCI chans : ", channels)
+    print("correct chans order : ",correct_chans_order)
     for target_idx in range(len(correct_chans_order)):
         target_chans = correct_chans_order[target_idx]
         check = False
         for current_idx in range(len(channels)):
-            ccurrent_hans = channels[current_idx]
-            if target_chans == ccurrent_hans:
+            current_chans = channels[current_idx]
+            if target_chans == current_chans:
                 new_eeg_data[:, target_idx:target_idx + 1, :] = data[:, current_idx:current_idx + 1, :]
                 check = True
         if not check:
@@ -308,32 +315,78 @@ def load_Physionet(sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,selected_chans = Non
         epoch_X_src2, label_src2, m_src2 = src_2_prgm.get_data(dataset=ds_src2,subjects=subjects,return_epochs=True)
 
     return epoch_X_src2, label_src2, m_src2
+# from moabb.datasets.bnci import load_data
+# class customBNCI2014001(BNCI2014001):
+#
+#
+#
+#     def __init__(self):
+#         super(customBNCI2014001, self).__init__()
+#         target_channels = generate_common_chan_test_data()
+#         epoch_X_src1, label_src1, m_src1 = load_Cho2017(selected_chans=target_channels,
+#                                                         subjects=[1])
+#
+#         print("cho2017 current chans : ", epoch_X_src1.ch_names)
+#         print("size : ", len(epoch_X_src1.ch_names))
+#         montage = epoch_X_src1.get_montage()
+#         target_channels = epoch_X_src1.ch_names
+#         self.montage = montage
+#         self.target_channels = target_channels
+#
+#
+#     def _get_single_subject_data(self, subject):
+#         """return data for a single subject"""
+#         sessions = load_data(subject=subject, dataset=self.code, verbose=False)
+#         raw_data = sessions['session_T']['run_0']
+#         data =
+#         new_raw_data =
+#         print("montage : ",raw_data.get_montage())
+#         print("session stuff",raw_data)
+#         return sessions
 
 def load_BCI_IV(sfreq = 128,fmin=4,fmax=36,tmin=0.5,tmax=3.5,selected_chans = None,montage=None,subjects=None,events=None):
     ds_src3 = BNCI2014001()
+    # ds_src3 = customBNCI2014001()
+
     # #process BCI_IV dataset
     raw = ds_src3.get_data(subjects=[1])[1]['session_T']['run_1']
     raw_src_3_channels = raw.pick_types(eeg=True).ch_names
     if not selected_chans:
         selected_chans = raw_src_3_channels
+    print("bci chans : ",len(raw_src_3_channels))
+    print("selected chans : ",len(selected_chans))
     common_BCI_chans_A_B = generate_common_chan_test_data(ch_names_A=raw_src_3_channels, ch_names_B=selected_chans)
     max_time_length = int((tmax - tmin) * sfreq)
     if events is None:
         # "left_hand": 1, "right_hand": 2, "feet": 3, "tongue": 4
+        print("use default dict")
         events = dict(left_hand=1, right_hand=2,feet=3,tongue=4)
     n_classes = len(list(events.keys()))
     print("BCI_IV event dict : ",events)
     print("n classes : ",n_classes)
-    src_3_prgm = MotorImagery(n_classes=4, channels=common_BCI_chans_A_B, resample=sfreq, fmin=fmin, fmax=fmax,
+    src_3_prgm = MotorImagery(n_classes=n_classes,events=events, channels=common_BCI_chans_A_B, resample=sfreq, fmin=fmin, fmax=fmax,
                               tmin=tmin, tmax=tmax)
     # src_3_prgm = MotorImagery(n_classes=4, channels=raw_src_3_channels, resample=sfreq, fmin=fmin, fmax=fmax,tmin=tmin,tmax=tmax)
     if subjects is None:
         epoch_X_src3, label_src3, m_src3 = src_3_prgm.get_data(dataset=ds_src3, return_epochs=True)
     else:
         epoch_X_src3, label_src3, m_src3 = src_3_prgm.get_data(dataset=ds_src3,subjects=subjects,return_epochs=True)
+
+    # def plot(epoch_data):
+
+
     # set up the interpolation and get all the data in the same correct order
     if montage:
+        # import matplotlib
+        # matplotlib.use('TkAgg')
+        # import matplotlib.pyplot as plt
+        # tmp =     epoch_X_src3.copy()
+        # tmp[0].plot()
+        # tmp.set
+        # tmp[0]
         update_epoch_src3 = interpolate_BCI_IV_dataset(epoch_X_src3, selected_chans, montage,sfreq=sfreq)
+        # update_epoch_src3[0].plot(show=False)
+        # plt.show()
         return update_epoch_src3,label_src3,m_src3
     return epoch_X_src3, label_src3, m_src3
 
@@ -447,8 +500,10 @@ def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq =
                 'PO8', 'P6', 'P2', 'CPz', 'CP4', 'TP8', 'C6', 'C2',
                 'FC4', 'FT8', 'F6', 'F2', 'AF4', 'AF8']
     ch_types = ['eeg'] * 63
+
     if not selected_chans:
         selected_chans = ch_names
+
     if train:
         X_MIA_train_data, X_MIA_train_label, dataset_A_meta = load_train_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
         X_MIA_train_data = correct_EEG_data(X_MIA_train_data, ch_names, selected_chans)
@@ -457,8 +512,8 @@ def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq =
         return X_MIA_train_data,X_MIA_train_label,m_tgt_A
     else:
         X_MIA_test_data = load_test_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
-        X_MIA_test_data = modify_data(X_MIA_test_data, time=max_time_length)
         X_MIA_test_data = correct_EEG_data(X_MIA_test_data, ch_names, selected_chans)
+        X_MIA_test_data = modify_data(X_MIA_test_data, time=max_time_length)
         return X_MIA_test_data
 
 def load_train_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
@@ -556,8 +611,9 @@ def load_dataset_B(path=None,train=True,norm=True,selected_chans = None,sfreq = 
         return X_MIB_train_data,X_MIB_train_label,m_tgt_B
     else:
         X_MIB_test_data = load_test_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
-        X_MIB_test_data = modify_data(X_MIB_test_data, time=max_time_length)
         X_MIB_test_data = correct_EEG_data(X_MIB_test_data, ch_names, selected_chans)
+        X_MIB_test_data = modify_data(X_MIB_test_data, time=max_time_length)
+
         return X_MIB_test_data
 def generate_data_file(list_dataset_info,folder_name='case_0',file_name = 'NeurIPS_TL'):
     list_dataset = list()

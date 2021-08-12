@@ -1,0 +1,25 @@
+setup 3s time window for 3 dataset
+
+resample data to 128hz
+
+Cho2017: 0-3s
+Physionet: 0-3s
+
+target_dataset_A : 0-3s.
+
+Cho2017 use 2 label categories ( left hand, right hand)
+
+Physionet use 4 label categories (left hand ,right hand,  feet, rest)
+
+
+
+Keep dataset A with 4 label. The other 3 datasets keep same label
+
+Use 59 common channels among dataset Cho2017,Physionet, and dataset_A.
+
+reorder the data of each dataset to match the same channel order. Use dataset_A channels order the other dataset.
+
+
+use microVolt unit
+
+In the LA folder, I apply Label Alignment to convert Cho2017 and Physionet to align with dataset A

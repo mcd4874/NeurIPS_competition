@@ -24,11 +24,11 @@ source "${DIR}/common_script.sh"
 #Physionet_dataset="Physionet"
 
 #group_aug=("$T_F_aug")
-#group_aug=("$temp_aug")
-group_aug=("$no_aug")
+group_aug=("$temp_aug")
+#group_aug=("$no_aug")
 
-group_norm=("$chan_norm")
-#group_norm=("$no_norm")
+#group_norm=("$chan_norm")
+group_norm=("$no_norm")
 
 #group_datasets=("$BCI_IV_dataset")
 #group_datasets=("$Cho2017_dataset")
@@ -39,14 +39,12 @@ group_datasets=("$Dataset_A_dataset")
 #group_model=("$vanilla_prefix" "$adaptation_prefix")
 #group_model=("$adaptationV1_prefix" "$vanilla_prefix")
 #group_model=("$adaptation_prefix")
-group_model=("$FBCNET_adaptV1_prefix")
+group_model=("$adaptationV1_prefix")
 
-#group_model=("$component_adapt_prefix" "$vanilla_prefix" "$adaptation_prefix")
-
-#run_full_multi_gpu $gpu_device_0 $experiment_2 group_aug group_norm group_model group_datasets
-
-#run_full_multi_gpu $gpu_device_0 $experiment_5 group_aug group_norm group_model group_datasets
-#run_full_multi_gpu $gpu_device_0 $final_result_3 group_aug group_norm group_model group_datasets
-run_full_multi_gpu $gpu_device_1 $final_result_4 group_aug group_norm group_model group_datasets
-
-#run_full_multi_gpu $gpu_device_0 $final_result_6 group_aug group_norm group_model group_datasets
+run_full_multi_gpu $gpu_device_0 $experiment_10_0_3 group_aug group_norm group_model group_datasets
+run_ensemble_predict $gpu_device_0 $experiment_10_0_3 $test_case_13_microvolt_path group_aug group_norm group_model group_datasets
+run_predict $gpu_device_0 $experiment_10_0_3 $test_case_14_microvolt_path group_aug group_norm group_model group_datasets
+#
+#run_full_multi_gpu $gpu_device_0 $experiment_10_0_1 group_aug group_norm group_model group_datasets
+#run_ensemble_predict $gpu_device_0 $experiment_10_0_1 $test_case_13_microvolt_path group_aug group_norm group_model group_datasets
+#run_predict $gpu_device_0 $experiment_10_0_1 $test_case_14_microvolt_path group_aug group_norm group_model group_datasets

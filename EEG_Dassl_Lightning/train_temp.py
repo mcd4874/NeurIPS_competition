@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import NeptuneLogger,TensorBoardLogger
 from pytorch_lightning.loggers.csv_logs import CSVLogger,ExperimentWriter
 from pytorch_lightning.callbacks import EarlyStopping
-from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1
+from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1,MultiDomainDataManagerV2
 
 import pytorch_lightning as pl
 def print_args(args, cfg):
@@ -55,7 +55,6 @@ def setup_cfg(args):
     if args.main_config_file:
         cfg.merge_from_file(args.main_config_file)
     cfg.merge_from_list(args.opts)
-    # cfg.freeze()
     return cfg
 
 from yacs.config import CfgNode as CN
@@ -296,6 +295,9 @@ def main(args):
 
                         if data_manager_type == "single_dataset":
                             data_manager = DataManagerV1(cfg)
+                        elif data_manager_type == "multi_datasetV2":
+                            print("use data manager for domain adaptation")
+                            data_manager = MultiDomainDataManagerV2(cfg)
                         else:
                             print("check multi process")
                             data_manager = MultiDomainDataManagerV1(cfg)
@@ -350,7 +352,7 @@ def main(args):
                             callbacks=[checkpoint_callback],
                             logger=[csv_logger,tensorboard_logger],
                             progress_bar_refresh_rate=cfg.LIGHTNING_TRAINER.progress_bar_refresh_rate,
-                            profiler='simple',
+                            profiler=cfg.LIGHTNING_TRAINER.profiler,
                             num_sanity_val_steps=cfg.LIGHTNING_TRAINER.num_sanity_val_steps,
                             stochastic_weight_avg=cfg.LIGHTNING_TRAINER.stochastic_weight_avg
 

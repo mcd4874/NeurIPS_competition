@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import NeptuneLogger,TensorBoardLogger
 from pytorch_lightning.loggers.csv_logs import CSVLogger,ExperimentWriter
 from pytorch_lightning.callbacks import EarlyStopping
-from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1
+from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1,MultiDomainDataManagerV2
 
 import pytorch_lightning as pl
 def print_args(args, cfg):
@@ -203,7 +203,26 @@ class CustomModelCheckPoint(ModelCheckpoint):
         self.kth_best_model_path = callback_state["best_model_path"]
         self.best_k_models[self.best_model_path] = self.best_model_score
 
+    def on_save_checkpoint(
+        self,
+        trainer: 'pl.Trainer',
+        pl_module: 'pl.LightningModule',
+        checkpoint: Dict[str, Any],
+    ) -> Dict[str, Any]:
 
+        result = super(CustomModelCheckPoint, self).on_save_checkpoint(trainer,pl_module,checkpoint)
+        print("monitor : ",result["monitor"])
+        print("best score : ",result["best_model_score"])
+        print("current score : ",result["current_score"])
+
+        return result
+        # return {
+        #     "monitor": self.monitor,
+        #     "best_model_score": self.best_model_score,
+        #     "best_model_path": self.best_model_path,
+        #     "current_score": self.current_score,
+        #     "dirpath": self.dirpath
+        # }
 
 def main(args):
     benchmark = False
@@ -295,6 +314,9 @@ def main(args):
 
                         if data_manager_type == "single_dataset":
                             data_manager = DataManagerV1(cfg)
+                        elif data_manager_type == "multi_datasetV2":
+                            print("use data manager for domain adaptation")
+                            data_manager = MultiDomainDataManagerV2(cfg)
                         else:
                             print("check multi process")
                             data_manager = MultiDomainDataManagerV1(cfg)
@@ -313,7 +335,9 @@ def main(args):
                             filename = 'checkpoint',
                             save_top_k=1,
                             save_last=True,
-                            every_n_val_epochs=1,
+                            # every_n_epochs=1,
+                            # every_n_val_epochs=1,
+                            every_n_train_steps=10,
                             auto_insert_metric_name = False)
 
                         early_stopping = EarlyStopping(monitor='val_loss',patience=10)
@@ -348,10 +372,13 @@ def main(args):
                             # callbacks=[early_stopping,checkpoint_callback],
                             callbacks=[checkpoint_callback],
                             logger=[csv_logger,tensorboard_logger],
-                            progress_bar_refresh_rate=cfg.LIGHTNING_TRAINER.progress_bar_refresh_rate,
+                            # progress_bar_refresh_rate=cfg.LIGHTNING_TRAINER.progress_bar_refresh_rate,
+                            progress_bar_refresh_rate=10,
+
                             profiler=cfg.LIGHTNING_TRAINER.profiler,
                             num_sanity_val_steps=cfg.LIGHTNING_TRAINER.num_sanity_val_steps,
-                            stochastic_weight_avg=cfg.LIGHTNING_TRAINER.stochastic_weight_avg
+                            stochastic_weight_avg=cfg.LIGHTNING_TRAINER.stochastic_weight_avg,
+                            val_check_interval=10
 
                         )
 

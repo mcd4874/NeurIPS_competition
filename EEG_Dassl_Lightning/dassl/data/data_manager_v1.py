@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset as TorchDataset
-from dassl.data.datasets.data_util import (generate_datasource,EuclideanAlignment,
+from torch.utils.data import TensorDataset
+from dassl.data.datasets.data_util import (generate_datasource,EuclideanAlignment,LabelAlignment,
                                            DataAugmentation,get_num_classes,get_label_classname_mapping,
                                            normalization,dataset_norm,subjects_filterbank,filterBank,relabel_target)
 from .datasets import build_dataset
@@ -50,6 +51,7 @@ class DataManagerV1(LightningDataModule):
         self._dataset = None
         self.useFilterBank = self.cfg.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK
         self.relabel = self.cfg.DATAMANAGER.DATASET.target_dataset_relabelled
+        self.label_alignment = self.cfg.DATAMANAGER.DATASET.source_dataset_LA
         super(DataManagerV1, self).__init__()
 
 
@@ -88,11 +90,20 @@ class DataManagerV1(LightningDataModule):
         test_data,test_label = test_dataset
 
 
+        # """Create label alignment"""
+        # if self.label_alignment:
+        #     print(" shape {}, {}, {}".format(train_x_data[0].shape,val_data[0].shape,test_data[0].shape))
+        #     tmp_data = np.concatenate([np.concatenate(train_x_data),np.concatenate(val_data),np.concatenate(test_data)])
+        #     tmp_label = np.concatenate([np.concatenate(train_x_label),np.concatenate(val_label),np.concatenate(test_label)])
+        #     print("target data for label alignment shape : ",tmp_data.shape)
+        #     print("target label for label alignment shape : ",tmp_label.shape)
+        #     self.LA = LabelAlignment(target_dataset=(tmp_data, tmp_label))
 
         """Data Augmentation for train_x dataset"""
         if self.data_augmentation != "":
             print("apply augmentation")
             train_x_data,train_x_label = self.generate_augmentation(train_x_data,train_x_label)
+
 
         if self.relabel:
             print("train_x_label {},{} ".format(len(train_x_label),train_x_label[0].shape))
@@ -147,16 +158,6 @@ class DataManagerV1(LightningDataModule):
             source = [0, 1, 2, 3]
             destination = [0, 2, 3, 1]
 
-            # def subjects_filterbank(data,filter,source,destination):
-            #     new_data = list()
-            #     for subject_idx in range(len(data)):
-            #         subject_data = data[subject_idx]
-            #         filter_data = filter(subject_data)
-            #         subject_data = np.moveaxis(filter_data, source, destination)
-            #         subject_data=subject_data.astype(np.float32)
-            #         new_data.append(subject_data)
-            #     return new_data
-
             train_x_data = subjects_filterbank(train_x_data,filter,source,destination)
             val_data = subjects_filterbank(val_data,filter,source,destination)
             test_data = subjects_filterbank(test_data,filter,source,destination)
@@ -165,9 +166,12 @@ class DataManagerV1(LightningDataModule):
         if not self.cfg.INPUT.NO_TRANSFORM:
             normalization = self.cfg.INPUT.TRANSFORMS[0]
             if normalization == 'cross_channel_norm':
-                train_x_data,train_x_label = dataset_norm(train_x_data,train_x_label)
-                val_data,val_label = dataset_norm(val_data,val_label)
-                test_data,test_label = dataset_norm(test_data,test_label)
+                # train_x_data,train_x_label = dataset_norm(train_x_data,train_x_label)
+                # val_data,val_label = dataset_norm(val_data,val_label)
+                # test_data,test_label = dataset_norm(test_data,test_label)
+                train_x_data = dataset_norm(train_x_data)
+                val_data = dataset_norm(val_data)
+                test_data = dataset_norm(test_data)
 
 
         train_x_data = self._expand_data_dim(train_x_data)
@@ -198,34 +202,43 @@ class DataManagerV1(LightningDataModule):
 
 
     def train_dataloader(self):
+
+        train_x = self.dataset_wrapper(self.cfg, self.train_x,is_train=True)
+        print("train x size : ",len(train_x))
+
         train_loader_x = build_data_loader(
             self.cfg,
             sampler_type=self.cfg.DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER,
-            data_source=self.train_x,
+            data_source=train_x,
             batch_size=self.cfg.DATAMANAGER.DATALOADER.TRAIN_X.BATCH_SIZE,
-            is_train=True,
-            dataset_wrapper=self.dataset_wrapper
+            is_train=True
         )
+        print("size of train loader : ",len(train_loader_x))
         return train_loader_x
 
     def val_dataloader(self):
+        val = self.dataset_wrapper(self.cfg, self.val,is_train=False)
+
         val_loader = build_data_loader(
             self.cfg,
             sampler_type=self.cfg.DATAMANAGER.DATALOADER.VALID.SAMPLER,
-            data_source=self.val,
+            data_source=val,
             batch_size=self.cfg.DATAMANAGER.DATALOADER.VALID.BATCH_SIZE,
-            is_train=False,
-            dataset_wrapper=self.dataset_wrapper
+            is_train=False
         )
+
+        test = self.dataset_wrapper(self.cfg, self.test,is_train=False)
 
         test_loader = build_data_loader(
             self.cfg,
             sampler_type=self.cfg.DATAMANAGER.DATALOADER.TEST.SAMPLER,
-            data_source=self.test,
+            data_source=test,
             batch_size=self.cfg.DATAMANAGER.DATALOADER.TEST.BATCH_SIZE,
-            is_train=False,
-            dataset_wrapper=self.dataset_wrapper
+            is_train=False
         )
+        print("size of val loader : ",len(val_loader))
+        print("size of test loader : ",len(test_loader))
+
         return [val_loader,test_loader]
 
         # train_loader_x = build_data_loader(
@@ -240,14 +253,17 @@ class DataManagerV1(LightningDataModule):
         # return val_loader
 
     def test_dataloader(self) :
+        test = self.dataset_wrapper(self.cfg, self.test,is_train=False)
+
         test_loader = build_data_loader(
             self.cfg,
             sampler_type=self.cfg.DATAMANAGER.DATALOADER.TEST.SAMPLER,
-            data_source=self.test,
+            data_source=test,
             batch_size=self.cfg.DATAMANAGER.DATALOADER.TEST.BATCH_SIZE,
-            is_train=False,
-            dataset_wrapper=self.dataset_wrapper
+            is_train=False
         )
+        print("size of test loader : ",len(test_loader))
+
         return test_loader
 
     def _expand_data_dim(self, data):
@@ -365,19 +381,28 @@ class MultiDomainDataManagerV1(DataManagerV1):
         self.list_train_u_exist = hasattr(self._dataset, 'multi_dataset_u')
         source_data_list , source_label_list=self._dataset.multi_dataset_u
 
-        source_domain_class_weight = self.generate_domain_class_weight(source_label_list)
-        print("source domain class weight : ",source_domain_class_weight)
-        source_domain_num_class = [len(source_domain_class_weight[i]) for i in range(len(source_domain_class_weight))]
-        source_num_domain = len(source_domain_num_class)
-        source_domain_input_shapes = [source_data_list[source_domain][0][0].shape for source_domain in range(source_num_domain) ]
 
 
 
         self.list_train_u = list()
+        source_domain_class_weight = list()
         for source_dataset_idx in range(len(source_data_list)):
             source_data = source_data_list[source_dataset_idx]
             source_label = source_label_list[source_dataset_idx]
             print("source dataset idx : ",source_dataset_idx)
+
+            # if self.label_alignment:
+            #     source_data, source_label = self.LA.convert_source_data_with_LA(source_data, source_label)
+
+            if self.relabel:
+                print("source_label {},{} ".format(len(source_label), source_label[0].shape))
+                old_label = np.unique(source_label[0])
+                source_label = relabel_subjects(source_label)
+                new_label = np.unique(source_label[0])
+                print("relabel the dataset from {} to {}".format(old_label, new_label))
+
+            current_domain_class_weight = self.generate_class_weight(source_label)
+            source_domain_class_weight.append(current_domain_class_weight)
 
             if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
                 print("run custom EA")
@@ -406,16 +431,22 @@ class MultiDomainDataManagerV1(DataManagerV1):
             if not self.cfg.INPUT.NO_TRANSFORM:
                 normalization = self.cfg.INPUT.TRANSFORMS[0]
                 if normalization == 'cross_channel_norm':
-                    source_data, source_label = dataset_norm(source_data, source_label)
+                    source_data= dataset_norm(source_data)
             for subject_idx in range(len(source_data)):
                 print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
                     subject_idx, source_data[subject_idx].shape,
                     np.max(source_data[subject_idx]), np.min(source_data[subject_idx])))
 
-
             source_data = self._expand_data_dim(source_data)
             train_u = generate_datasource(source_data,source_label)
             self.list_train_u.append(train_u)
+
+        # source_domain_class_weight = self.generate_domain_class_weight(source_label_list)
+        print("source domain class weight : ",source_domain_class_weight)
+        source_domain_num_class = [len(source_domain_class_weight[i]) for i in range(len(source_domain_class_weight))]
+        source_num_domain = len(source_domain_num_class)
+        source_domain_input_shapes = [source_data_list[source_domain][0][0].shape for source_domain in range(source_num_domain) ]
+
 
         self._num_source_domains = source_num_domain
         self._list_source_domain_class_weight = source_domain_class_weight
@@ -438,13 +469,14 @@ class MultiDomainDataManagerV1(DataManagerV1):
                 current_train_u = self.list_train_u[source_domain_idx]
                 current_batch_size = list_batch_size[source_domain_idx]
                 current_sampler_type = list_sampler_type_[source_domain_idx]
+                current_train_u = self.dataset_wrapper(self.cfg, current_train_u, is_train=True)
+
                 train_loader_u = build_data_loader(
                     self.cfg,
                     sampler_type=current_sampler_type,
                     data_source=current_train_u,
                     batch_size=current_batch_size,
                     is_train=True,
-                    dataset_wrapper=self.dataset_wrapper
                 )
                 # train_u_loaders[str(source_domain_idx)] = train_loader_u
                 train_u_loaders.append(train_loader_u)
@@ -479,15 +511,65 @@ class MultiDomainDataManagerV1(DataManagerV1):
 
         return require_parameter
 
+class MultiDomainDataManagerV2(MultiDomainDataManagerV1):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup(self, stage: Optional[str] = None) :
+        super().setup(stage)
+        train_u_data = self._dataset.train_u
+        if train_u_data is None:
+            test_dataset = self._dataset.test
+            test_data, _ = test_dataset
+            train_u_data = test_data
+        # train_u_data = self.train_u
+
+        if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
+            if self._dataset.r_op_list is not None:
+                self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+            else:
+                self.train_u_EA = EuclideanAlignment()
+            train_u_data = self.train_u_EA.convert_subjects_data_with_EA(train_u_data)
+
+        """Apply data transformation/normalization"""
+        if not self.cfg.INPUT.NO_TRANSFORM:
+            normalization = self.cfg.INPUT.TRANSFORMS[0]
+            if normalization == 'cross_channel_norm':
+                train_u_data = dataset_norm(train_u_data)
+        for subject_idx in range(len(train_u_data)):
+            print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+                subject_idx, train_u_data[subject_idx].shape,
+                np.max(train_u_data[subject_idx]), np.min(train_u_data[subject_idx])))
+
+        train_u_data = self._expand_data_dim(train_u_data)
+        train_u_data = np.concatenate(train_u_data)
+        self.train_u = train_u_data
+
+
+    def train_dataloader(self):
+        loader_dict = super(MultiDomainDataManagerV2, self).train_dataloader()
+        train_u = Wrapper(self.train_u)
+        train_loader_u = build_data_loader(
+            self.cfg,
+            sampler_type=self.cfg.DATAMANAGER.DATALOADER.TRAIN_U.SAMPLER,
+            data_source=train_u,
+            batch_size=self.cfg.DATAMANAGER.DATALOADER.TRAIN_U.BATCH_SIZE,
+            is_train=True,
+        )
+        loader_dict.update({
+            "unlabel_loader":train_loader_u
+        })
+        print("loader dict : ",loader_dict)
+        return loader_dict
+
+
 def build_data_loader(
         cfg,
         sampler_type='default',
         data_source=None,
         batch_size=64,
         n_domain=0,
-        tfm=None,
         is_train=True,
-        dataset_wrapper=None
 ):
     if sampler_type != 'default':
         # Build sampler
@@ -500,14 +582,10 @@ def build_data_loader(
         )
     else:
         sampler = None
-    if dataset_wrapper is None:
-        print("use customEEGDatasetWrapper")
-        dataset_wrapper = CustomEEGDatasetWrapper
-    else:
-        print("use provided dataset wrapper")
+
     # Build data loader
     data_loader = torch.utils.data.DataLoader(
-        dataset_wrapper(cfg, data_source, transform=tfm, is_train=is_train),
+        data_source,
         batch_size=batch_size,
         sampler=sampler,
         num_workers=cfg.DATAMANAGER.DATALOADER.NUM_WORKERS,
@@ -519,26 +597,26 @@ def build_data_loader(
 
 # class
 
-class CustomEEGDatasetWrapper(TorchDataset):
-
-    def __init__(self, cfg, data_source, transform=None, is_train=False):
-        self.cfg = cfg
-        self.data_source = data_source
-        # transform accepts list (tuple) as input
-        self.transform = transform
-        self.is_train = is_train
-
-    def __len__(self):
-        return len(self.data_source)
-
-    def __getitem__(self, idx):
-        item = self.data_source[idx]
-        output = {
-            'label': torch.tensor(item.label),
-            'domain': torch.tensor(item.domain),
-            'eeg_data': torch.from_numpy(item.eeg_data)
-        }
-        return output
+# class CustomEEGDatasetWrapper(TorchDataset):
+#
+#     def __init__(self, cfg, data_source, transform=None, is_train=False):
+#         self.cfg = cfg
+#         self.data_source = data_source
+#         # transform accepts list (tuple) as input
+#         self.transform = transform
+#         self.is_train = is_train
+#
+#     def __len__(self):
+#         return len(self.data_source)
+#
+#     def __getitem__(self, idx):
+#         item = self.data_source[idx]
+#         output = {
+#             'label': torch.tensor(item.label),
+#             'domain': torch.tensor(item.domain),
+#             'eeg_data': torch.from_numpy(item.eeg_data)
+#         }
+#         return output
 
 class CustomWrapper(TorchDataset):
 
@@ -554,9 +632,15 @@ class CustomWrapper(TorchDataset):
 
     def __getitem__(self, idx):
         item = self.data_source[idx]
-        # output = {
-        #     'label': torch.tensor(item.label),
-        #     'domain': torch.tensor(item.domain),
-        #     'eeg_data': torch.from_numpy(item.eeg_data)
-        # }
         return item.eeg_data,item.label,item.domain
+
+class Wrapper(TorchDataset):
+
+    def __init__(self,data_source):
+        self.data_source = data_source
+    def __len__(self):
+        return len(self.data_source)
+
+    def __getitem__(self, idx):
+        item = self.data_source[idx]
+        return item

@@ -57,6 +57,15 @@ class MultiDataset(DatasetBase):
         print("data root : ",self.root)
         self.dataset_dir = self.dataset_dir if not cfg.DATAMANAGER.DATASET.DIR else cfg.DATAMANAGER.DATASET.DIR
         self.file_name = self.file_name if not cfg.DATAMANAGER.DATASET.FILENAME else cfg.DATAMANAGER.DATASET.FILENAME
+
+        test_dir = cfg.DATAMANAGER.DATASET.TEST_DIR
+        test_file_path =  cfg.DATAMANAGER.DATASET.TEST_DATA_FILE
+        test_file_path = os.path.join(test_dir,test_file_path)
+        if test_file_path !='':
+            test_file_path = os.path.join(self.root,test_file_path)
+
+
+
         self._label_name_map = None
         print("root : ",self.root)
         print("dataset dir : ",self.dataset_dir)
@@ -66,12 +75,25 @@ class MultiDataset(DatasetBase):
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), data_path)
 
-        self.check_dataInfo()
+        extra_file_names = cfg.DATAMANAGER.DATASET.extra_files
+        extra_file_path = None
+        if extra_file_names is not None and isinstance(extra_file_names, list):
+            update_file_path =list()
+            for file_name in extra_file_names:
+                file_path = osp.join(self.root, self.dataset_dir, file_name)
+                if not osp.isfile(file_path):
+                    raise FileNotFoundError(
+                        errno.ENOENT, os.strerror(errno.ENOENT), file_path)
+                update_file_path.append(file_path)
+            extra_file_path = update_file_path
 
-        read_data = self._read_data(data_path)
+        self.check_dataInfo()
+        read_data = self._read_data(data_path,extra_data_path=extra_file_path)
+
         train, val, test = self.process_data_format(read_data)
         multi_dataset_u = (self.source_data_list,self.source_label_list)
-        super().__init__(train_x=train, val=val, test=test,multi_dataset_u=multi_dataset_u)
+        train_u = self.load_train_u_data(test_file_path)
+        super().__init__(train_x=train, train_u=train_u, val=val, test=test,multi_dataset_u=multi_dataset_u)
 
     # def set_up(self):
 
@@ -88,8 +110,28 @@ class MultiDataset(DatasetBase):
 
     def check_dataInfo(self):
         return
+    def load_train_u_data(self,test_file_path):
+        target_dataset = None
+        if test_file_path == '':
+            print("there is no test file ")
+            return target_dataset
+        print("there is test file ")
+        target_dataset_name = self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
+        temp = loadmat(test_file_path)
+        datasets = temp['datasets'][0]
+        for dataset in datasets:
+            dataset = dataset[0][0]
+            dataset_name = dataset['dataset_name']
+            if dataset_name == target_dataset_name:
+                target_dataset = dataset
+        if target_dataset is None:
+            raise FileNotFoundError
+        data = target_dataset['data']
+        test_data = [np.array(data[subject]).astype(np.float32) for subject in range(len(data))]
+        return test_data
 
-    def _read_data(self,data_path):
+
+    def _read_data(self,data_path,extra_data_path=None):
         """
         Process data from .mat file
         Re-implement this function to process new dataset
@@ -115,10 +157,15 @@ class MultiDataset(DatasetBase):
         temp = loadmat(data_path)
 
         datasets = temp['datasets'][0]
+        datasets = list(datasets)
+        if extra_data_path is not None:
+            for path in extra_data_path:
+                temp = loadmat(path)
+                temp_datasets = temp['datasets'][0]
+                datasets = datasets +list(temp_datasets)
 
         # target_dataset_name = 'BCI_IV'
         target_dataset_name=self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
-        print("target datast : ",target_dataset_name)
         target_data = None
         target_label = None
         target_meta_data = None
@@ -129,7 +176,7 @@ class MultiDataset(DatasetBase):
             dataset = dataset[0][0]
             # print("dataset field name : ",dataset.dtype.names)
             # print(" frist field name : ",('r_op_list' in list(dataset.dtype.names)))
-            dataset_name = dataset['dataset_name']
+            dataset_name = dataset['dataset_name'][0]
             data = dataset['data'].astype(np.float32)
             label = np.squeeze(dataset['label']).astype(int)
             meta_data = dataset['meta_data'][0][0]
@@ -145,8 +192,6 @@ class MultiDataset(DatasetBase):
             #     print("new meta : ",meta_data)
             data,label,meta_data = reformat(data,label,meta_data)
 
-
-
             if dataset_name == target_dataset_name:
                 if 'r_op_list' in list(dataset.dtype.names):
                     self.r_op_list = np.array(dataset['r_op_list']).astype(np.float32)
@@ -154,10 +199,7 @@ class MultiDataset(DatasetBase):
                     self.r_op_list = None
                 target_data = data
                 target_label = label
-                # print(" original target label : ", target_label)
-                # print("len of target data : ",len(target_label))
                 target_meta_data = meta_data
-                # print("reformat meta data : ",target_meta_data)
             else:
                 list_source_data.append(data)
                 list_source_label.append(label)
@@ -183,6 +225,8 @@ class MultiDataset(DatasetBase):
             train_subject_idx = subject_idx
             valid_subject_idx = subject_idx
         return train_data,train_label,train_subject_idx, valid_data, valid_label, valid_subject_idx
+
+    # def train_whole_dataset(self):
 
     def process_data_format(self,target_dataset):
         target_data, target_label, target_meta_data = target_dataset

@@ -292,48 +292,95 @@ class filterBank(object):
 
 
 
-
 def generate_pred_MI_label(test_fold_preds, test_fold_probs, output_dir, predict_folder="predict_folder",
                            relabel=False):
+    final_pred = np.zeros(test_fold_preds[0][0].shape)
+    final_prob = np.zeros(test_fold_probs[0][0].shape)
+    # print("test fold preds : ",test_fold_preds)
+    # print("len test fold : ",len(test_fold_preds))
+    # print("val fold size : ",len(test_fold_preds[0]))
+    # print("val pred size : ",test_fold_preds[0][0].shape)
+    # print("org final pred shape : ",final_pred.shape)
     for test_fold in range(len(test_fold_preds)):
-        valid_fold_pred = test_fold_preds[test_fold]
-        current_pred = valid_fold_pred[0]
+        current_fold_preds = test_fold_preds[test_fold]
+        current_fold_probs = test_fold_probs[test_fold]
+        for valid_fold in range(len(current_fold_preds)):
+            current_valid_pred = current_fold_preds[valid_fold]
+            current_valid_prob = current_fold_probs[valid_fold]
+            # print("current valid pred shape : ",current_valid_pred.shape)
+            # print("final pred shape : ",final_pred.shape)
+            final_pred = final_pred + current_valid_pred
+            final_prob = final_prob + current_valid_prob
 
-        valid_fold_prob = test_fold_probs[test_fold]
-        current_prob = valid_fold_prob[0]
-        for idx in range(1, len(valid_fold_pred)):
-            current_pred = current_pred + valid_fold_pred[idx]
-            current_prob = current_prob + valid_fold_prob[idx]
-        print("result current pred : ", current_pred)
-        pred_output = list()
-        if not relabel:
-            for trial_idx in range(len(current_pred)):
-                preds = current_pred[trial_idx]
-                probs = current_prob[trial_idx]
-                best_idx = -1
-                best_pred = -1
-                best_prob = -1
-                for idx in range(len(preds)):
-                    pred = preds[idx]
-                    prob = probs[idx]
-                    if pred > best_pred:
-                        best_pred = pred
-                        best_idx = idx
-                        best_prob = prob
-                    elif pred == best_pred:
-                        if prob > best_prob:
-                            best_idx = idx
-                            best_prob = prob
-                pred_output.append(best_idx)
-            pred_output = np.array(pred_output)
-        else:
-            update_preds = np.zeros((current_pred.shape[0], 3))
-            update_preds[:, :2] = current_pred[:, :2]
-            update_preds[:, 2] = current_pred[:, 2] + current_pred[:, 3]
-            pred_output = np.argmax(update_preds, axis=1)
-        combine_folder = os.path.join(output_dir, predict_folder)
-        np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
 
+        # valid_fold_pred = test_fold_preds[test_fold]
+
+    # print("result current pred : ", current_pred)
+    pred_output = list()
+    for trial_idx in range(len(final_pred)):
+        trial_pred = final_pred[trial_idx]
+        trial_prob = final_prob[trial_idx]
+        best_idx = -1
+        best_pred = -1
+        best_prob = -1
+        for idx in range(len(trial_pred)):
+            pred = trial_pred[idx]
+            prob = trial_prob[idx]
+            if pred > best_pred:
+                best_pred = pred
+                best_idx = idx
+                best_prob = prob
+            elif pred == best_pred:
+                if prob > best_prob:
+                    best_idx = idx
+                    best_prob = prob
+        pred_output.append(best_idx)
+    pred_output = np.array(pred_output)
+    combine_folder = os.path.join(output_dir, predict_folder)
+    np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
+
+
+# def generate_pred_MI_label(test_fold_preds, test_fold_probs, output_dir, predict_folder="predict_folder",
+#                            relabel=False):
+#     for test_fold in range(len(test_fold_preds)):
+#         valid_fold_pred = test_fold_preds[test_fold]
+#         current_pred = valid_fold_pred[0]
+#
+#         valid_fold_prob = test_fold_probs[test_fold]
+#         current_prob = valid_fold_prob[0]
+#         for idx in range(1, len(valid_fold_pred)):
+#             current_pred = current_pred + valid_fold_pred[idx]
+#             current_prob = current_prob + valid_fold_prob[idx]
+#         print("result current pred : ", current_pred)
+#         pred_output = list()
+#         if not relabel:
+#             for trial_idx in range(len(current_pred)):
+#                 preds = current_pred[trial_idx]
+#                 probs = current_prob[trial_idx]
+#                 best_idx = -1
+#                 best_pred = -1
+#                 best_prob = -1
+#                 for idx in range(len(preds)):
+#                     pred = preds[idx]
+#                     prob = probs[idx]
+#                     if pred > best_pred:
+#                         best_pred = pred
+#                         best_idx = idx
+#                         best_prob = prob
+#                     elif pred == best_pred:
+#                         if prob > best_prob:
+#                             best_idx = idx
+#                             best_prob = prob
+#                 pred_output.append(best_idx)
+#             pred_output = np.array(pred_output)
+#         else:
+#             update_preds = np.zeros((current_pred.shape[0], 3))
+#             update_preds[:, :2] = current_pred[:, :2]
+#             update_preds[:, 2] = current_pred[:, 2] + current_pred[:, 3]
+#             pred_output = np.argmax(update_preds, axis=1)
+#         combine_folder = os.path.join(output_dir, predict_folder)
+#         np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
+#
 
 def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels, output_dir,
                              predict_folder="predict_folder", relabel=False):
@@ -341,67 +388,45 @@ def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels,
     test_fold_prefix = 'test_fold_'
     test_fold_result = list()
     for test_fold in range(len(test_fold_preds)):
-        valid_fold_pred = test_fold_preds[test_fold]
-        current_pred = valid_fold_pred[0]
+        final_pred = np.zeros(test_fold_preds[0][0].shape)
+        final_prob = np.zeros(test_fold_probs[0][0].shape)
+        final_label = test_fold_labels[test_fold][0]
+        current_fold_preds = test_fold_preds[test_fold]
+        current_fold_probs = test_fold_probs[test_fold]
+        for valid_fold in range(len(current_fold_preds)):
+            current_valid_pred = current_fold_preds[valid_fold]
+            current_valid_prob = current_fold_probs[valid_fold]
 
-        valid_fold_prob = test_fold_probs[test_fold]
-        current_prob = valid_fold_prob[0]
+            final_pred = final_pred + current_valid_pred
+            final_prob = final_prob + current_valid_prob
 
-        valid_fold_label = test_fold_labels[test_fold]
-        current_label = valid_fold_label[0]
-
-        for idx in range(1, len(valid_fold_pred)):
-            current_pred = current_pred + valid_fold_pred[idx]
-            current_prob = current_prob + valid_fold_prob[idx]
-        print("result current pred : ", current_pred)
         pred_output = list()
-        if not relabel:
-            for trial_idx in range(len(current_pred)):
-                # print("trial {} has pred {} ".format(trial_idx,current_pred[trial_idx]))
-                # print("trial {} has probs {} ".format(trial_idx,current_prob[trial_idx]))
-
-                preds = current_pred[trial_idx]
-                probs = current_prob[trial_idx]
-                best_idx = -1
-                best_pred = -1
-                best_prob = -1
-                for idx in range(len(preds)):
-                    pred = preds[idx]
-                    prob = probs[idx]
-                    if pred > best_pred:
-                        best_pred = pred
+        for trial_idx in range(len(final_pred)):
+            trial_pred = final_pred[trial_idx]
+            trial_prob = final_prob[trial_idx]
+            best_idx = -1
+            best_pred = -1
+            best_prob = -1
+            for idx in range(len(trial_pred)):
+                pred = trial_pred[idx]
+                prob = trial_prob[idx]
+                if pred > best_pred:
+                    best_pred = pred
+                    best_idx = idx
+                    best_prob = prob
+                elif pred == best_pred:
+                    if prob > best_prob:
                         best_idx = idx
                         best_prob = prob
-                    elif pred == best_pred:
-                        if prob > best_prob:
-                            best_idx = idx
-                            best_prob = prob
-                pred_output.append(best_idx)
-            pred_output = np.array(pred_output)
-            acc = np.mean(pred_output == current_label)
-        if relabel:
-            update_preds = np.zeros((current_pred.shape[0], 3))
-            update_preds[:, :2] = current_pred[:, :2]
-            update_preds[:, 2] = current_pred[:, 2] + current_pred[:, 3]
-            pred_output = np.argmax(update_preds, axis=1)
-            update_label = list()
-            for trial_idx in range(len(current_label)):
-                label = current_label[trial_idx]
-                if label == 2 or label == 3:
-                    update_label.append(2)
-                else:
-                    update_label.append(label)
-            update_label = np.array(update_label)
-            acc = np.mean(pred_output == update_label)
-            current_label = update_label
+            pred_output.append(best_idx)
+        pred_output = np.array(pred_output)
+        acc = np.mean(pred_output == final_label)
+
         # test_fold_acc.append(acc)
-        print("pred output : ", pred_output)
-        print("current label : ", current_label)
-        print(" valid_fold_label : ", valid_fold_label)
+        # print("pred output : ", pred_output)
+        # print("current label : ", current_label)
+        # print(" valid_fold_label : ", valid_fold_label)
         print("test fold {} has acc {} ".format(test_fold, acc))
-        # print("just arg pred output : ",np.argmax(current_pred,axis=1))
-        # combine_folder = os.path.join(output_dir, predict_folder)
-        # np.savetxt(os.path.join(combine_folder,"pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
         current_test_fold = test_fold_prefix + str(test_fold + 1)
         result = {
             "test_fold": current_test_fold,
@@ -414,6 +439,95 @@ def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels,
         os.makedirs(result_output_dir)
     result_filename = 'ensemble_result.xlsx'
     result.to_excel(os.path.join(result_output_dir, result_filename), index=False)
+
+# def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels, output_dir,
+#                              predict_folder="predict_folder", relabel=False):
+#     # test_fold_acc = list()
+#     test_fold_prefix = 'test_fold_'
+#     test_fold_result = list()
+#     for test_fold in range(len(test_fold_preds)):
+#         valid_fold_pred = test_fold_preds[test_fold]
+#         current_pred = valid_fold_pred[0]
+#
+#         valid_fold_prob = test_fold_probs[test_fold]
+#         current_prob = valid_fold_prob[0]
+#
+#         valid_fold_label = test_fold_labels[test_fold]
+#         print("valid fold label : ",valid_fold_label)
+#         current_label = valid_fold_label[0]
+#
+#         print("current label : ",current_label)
+#         for idx in range(1, len(valid_fold_pred)):
+#             # check valid fold result
+#             print("current valid fold : ", test_fold)
+#             temp_pred = np.argmax(current_pred)
+#             print("temp pred ", temp_pred[:10])
+#             print("current label : ", valid_fold_prob[idx][:10])
+#             print("acc : ", (temp_pred == valid_fold_prob[idx]))
+#
+#             current_pred = current_pred + valid_fold_pred[idx]
+#             current_prob = current_prob + valid_fold_prob[idx]
+#         print("result current pred : ", current_pred)
+#         pred_output = list()
+#         if not relabel:
+#             for trial_idx in range(len(current_pred)):
+#                 # print("trial {} has pred {} ".format(trial_idx,current_pred[trial_idx]))
+#                 # print("trial {} has probs {} ".format(trial_idx,current_prob[trial_idx]))
+#
+#                 preds = current_pred[trial_idx]
+#                 probs = current_prob[trial_idx]
+#                 best_idx = -1
+#                 best_pred = -1
+#                 best_prob = -1
+#                 for idx in range(len(preds)):
+#                     pred = preds[idx]
+#                     prob = probs[idx]
+#                     if pred > best_pred:
+#                         best_pred = pred
+#                         best_idx = idx
+#                         best_prob = prob
+#                     elif pred == best_pred:
+#                         if prob > best_prob:
+#                             best_idx = idx
+#                             best_prob = prob
+#                 pred_output.append(best_idx)
+#             pred_output = np.array(pred_output)
+#             acc = np.mean(pred_output == current_label)
+#         if relabel:
+#             update_preds = np.zeros((current_pred.shape[0], 3))
+#             update_preds[:, :2] = current_pred[:, :2]
+#             update_preds[:, 2] = current_pred[:, 2] + current_pred[:, 3]
+#             pred_output = np.argmax(update_preds, axis=1)
+#             update_label = list()
+#             for trial_idx in range(len(current_label)):
+#                 label = current_label[trial_idx]
+#                 if label == 2 or label == 3:
+#                     update_label.append(2)
+#                 else:
+#                     update_label.append(label)
+#             update_label = np.array(update_label)
+#             acc = np.mean(pred_output == update_label)
+#             current_label = update_label
+#         # test_fold_acc.append(acc)
+#         print("pred output : ", pred_output)
+#         print("current label : ", current_label)
+#         print(" valid_fold_label : ", valid_fold_label)
+#         print("test fold {} has acc {} ".format(test_fold, acc))
+#         # print("just arg pred output : ",np.argmax(current_pred,axis=1))
+#         # combine_folder = os.path.join(output_dir, predict_folder)
+#         # np.savetxt(os.path.join(combine_folder,"pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
+#         current_test_fold = test_fold_prefix + str(test_fold + 1)
+#         result = {
+#             "test_fold": current_test_fold,
+#             "test_acc": acc
+#         }
+#         test_fold_result.append(result)
+#     result = pd.DataFrame.from_dict(test_fold_result)
+#     result_output_dir = os.path.join(output_dir, predict_folder)
+#     if not os.path.isdir(result_output_dir):
+#         os.makedirs(result_output_dir)
+#     result_filename = 'ensemble_result.xlsx'
+#     result.to_excel(os.path.join(result_output_dir, result_filename), index=False)
 from scipy.io import loadmat
 def load_test_data_from_file(provide_path,dataset_type):
     temp = loadmat(provide_path)
@@ -422,7 +536,7 @@ def load_test_data_from_file(provide_path,dataset_type):
     list_r_op =  None
     for dataset in datasets:
         dataset = dataset[0][0]
-        dataset_name = dataset['dataset_name']
+        dataset_name = dataset['dataset_name'][0]
         if dataset_name == dataset_type:
             target_dataset = dataset
 
@@ -458,9 +572,9 @@ def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=F
         else:
             test_data = load_dataset_A(train=False, norm=norm, selected_chans=target_channels)
             n_subjects = 2
-        test_data = np.split(test_data,n_subjects)
+        # if EA:
         print("{} subjects to split : ".format(n_subjects))
-
+        test_data = np.split(test_data,n_subjects)
     else:
         print("load test data from file ")
         test_data,list_r_op = load_test_data_from_file(provide_data_path,dataset_type=dataset_type)
@@ -468,24 +582,24 @@ def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=F
         test_EA = EuclideanAlignment(list_r_op=list_r_op)
         test_data = test_EA.convert_subjects_data_with_EA(test_data)
     test_data = np.concatenate(test_data)
-    if use_filter_bank:
-        # diff = 4
-        diff = freq_interval
-        filter_bands = []
-        # axis = 2
-        for i in range(1, 9):
-            filter_bands.append([i * diff, (i + 1) * diff])
-        print("build filter band : ", filter_bands)
-        filter = filterBank(
-            filtBank=filter_bands,
-            fs=128
-        )
-        source = [0, 1, 2, 3]
-        destination = [0, 2, 3, 1]
-        filter_data = filter(test_data)
-        test_data = np.moveaxis(filter_data, source, destination)
-        # test_data = subjects_filterbank(test_data, filter, source, destination)
-    print("before expand data shape : ",test_data.shape)
+    # if use_filter_bank:
+    #     # diff = 4
+    #     diff = freq_interval
+    #     filter_bands = []
+    #     # axis = 2
+    #     for i in range(1, 9):
+    #         filter_bands.append([i * diff, (i + 1) * diff])
+    #     print("build filter band : ", filter_bands)
+    #     filter = filterBank(
+    #         filtBank=filter_bands,
+    #         fs=128
+    #     )
+    #     source = [0, 1, 2, 3]
+    #     destination = [0, 2, 3, 1]
+    #     filter_data = filter(test_data)
+    #     test_data = np.moveaxis(filter_data, source, destination)
+    #     # test_data = subjects_filterbank(test_data, filter, source, destination)
+    # print("before expand data shape : ",test_data.shape)
     if norm:
         test_data = normalization(test_data)
     test_data = expand_data_dim(test_data)
@@ -550,7 +664,8 @@ def main(args):
     print("use cross channel norm : ",norm)
     generate_predict = args.generate_predict
     use_assemble_test_dataloader = args.use_assemble_test_dataloader
-    relabel = args.relabel
+    # relabel = args.relabel
+    relabel = False
     print("generate predict : ", generate_predict)
     dataset_type = cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
 

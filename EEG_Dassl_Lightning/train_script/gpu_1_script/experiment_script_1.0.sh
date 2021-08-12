@@ -54,16 +54,29 @@ group_datasets=("$Dataset_B_dataset")
 #group_model=("$adaptationV1_prefix")
 #group_model=("$adaptationV1_prefix" "$adaptation_prefix" "$vanilla_prefix")
 #group_model=("$FBCNET_adaptV1_prefix")
-group_model=("$adaptation_prefix")
+#group_model=("$adaptationV1_prefix" "$adaptation_prefix")
+#group_model=("$shallowcon_adaptV1_prefix")
+group_model=("$adaptationV1_prefix")
 
-#group_model=("$component_adapt_prefix" "$vanilla_prefix" "$adaptation_prefix")
 
-#run_full_multi_gpu $gpu_device_0 $experiment_2 group_aug group_norm group_model group_datasets
+run_full_multi_gpu $gpu_device_1 $final_result_11_0_3 group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $final_result_11_0_3 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
 
-#run_full_multi_gpu $gpu_device_0 $experiment_5 group_aug group_norm group_model group_datasets
-#run_full_multi_gpu $gpu_device_0 $final_result_3 group_aug group_norm group_model group_datasets
-#run_full_multi_gpu $gpu_device_0 $final_result_4 group_aug group_norm group_model group_datasets
+run_full_multi_gpu $gpu_device_1 $final_result_11_0_2 group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $final_result_11_0_2 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
 
-#run_full_multi_gpu $gpu_device_1 $experiment_4_4 group_aug group_norm group_model group_datasets
-run_full_multi_gpu $gpu_device_1 $final_result_4_5 group_aug group_norm group_model group_datasets
-run_ensemble_predict $gpu_device_1 $final_result_4_5 group_aug group_norm group_model group_datasets
+run_full_multi_gpu $gpu_device_1 $final_result_11_0_1 group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $final_result_11_0_1 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+
+
+run_full_multi_gpu $gpu_device_1 $experiment_11_0_3 group_aug group_norm group_model group_datasets
+run_ensemble_predict $gpu_device_1 $experiment_11_0_3 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $experiment_11_0_3 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+
+run_full_multi_gpu $gpu_device_1 $experiment_11_0_2 group_aug group_norm group_model group_datasets
+run_ensemble_predict $gpu_device_1 $experiment_11_0_2 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $experiment_11_0_2 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+
+run_full_multi_gpu $gpu_device_1 $experiment_11_0_1 group_aug group_norm group_model group_datasets
+run_ensemble_predict $gpu_device_1 $experiment_11_0_1 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets
+run_predict $gpu_device_1 $experiment_11_0_1 $test_case_12_microvolt_path group_aug group_norm group_model group_datasets

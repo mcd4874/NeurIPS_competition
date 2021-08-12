@@ -1,6 +1,7 @@
 from scipy.linalg import sqrtm, inv
 from scipy import signal
 import numpy as np
+from collections import defaultdict
 from dassl.data.datasets.base_dataset import EEGDatum
 
 # class EuclideanAlignment:
@@ -52,6 +53,130 @@ def relabel_target(l):
     if l == 0: return 0
     elif l == 1: return 1
     else: return 2
+
+class LabelAlignment:
+    def __init__(self,target_dataset):
+        """
+        assume target_data is (trials,channels,samples)
+        target_label is (trials)
+        """
+        self.target_data,self.target_label = target_dataset
+        self.target_r_op = self.generate_class_cov(self.target_data,self.target_label,invert=False)
+        # for k,v in self.target_r_op.items():
+        #     print("target label {} has r_op : {}".format(k,v))
+
+    def convert_source_data_with_LA(self, source_data,source_label):
+        """
+
+        Args:
+            source_data: (n_subject,(trials,channels,samples))
+            source_label: (n_subject,(trials))
+        Returns:
+
+        """
+        new_source_data = list()
+        for subject in range(len(source_data)):
+            subject_data = source_data[subject]
+            subject_label = source_label[subject]
+            # print(" subject {} is converted : ".format(subject))
+
+            category_A_m = dict()
+            new_subject_data = list()
+            subject_category_r_op = self.generate_class_cov(subject_data,subject_label,invert=True)
+            for label in sorted(list(subject_category_r_op.keys())):
+                if label not in list(self.target_r_op.keys()):
+                    print("current label {} is not in target dataset ".format(label))
+                    return
+                source_r_op = subject_category_r_op[label]
+                target_r_op = self.target_r_op[label]
+                # print("target label {}".format(label))
+                # print("source label {}".format(label))
+                # print("target r op shape : ",target_r_op.shape)
+                # print("source r op shape : ",source_r_op.shape)
+                A_m = np.matmul(target_r_op, source_r_op)
+                category_A_m[label] = A_m
+                # for k, v in self.target_r_op.items():
+
+                # print("label {} has A_m : {}".format(label, A_m))
+
+
+            for trial in range(len(subject_data)):
+                trial_data = subject_data[trial]
+                # print("trials {} with max {}".format(trial,len(subject_data)))
+                # print("subject label : ",subject_label.shape)
+                trial_label = subject_label[trial]
+                trial_A_m = category_A_m[trial_label]
+                convert_trial_data = np.matmul(trial_A_m, trial_data)
+                new_subject_data.append(convert_trial_data)
+            new_subject_data = np.array(new_subject_data)
+            new_source_data.append(new_subject_data)
+        # new_source_data = np.concatenate(new_source_data)
+        return new_source_data,source_label
+        # return source_data,source_label
+
+    def generate_class_cov(self,target_data,target_label,invert=True):
+        """
+        Use the target data to generate an inverse Covariance for each class category.
+        Args:
+            target_data: (trials,channels,samples)
+            target_label: (trials)
+
+        Returns:
+
+        """
+        category_data = defaultdict(list)
+        category_r_op = dict()
+        for data,label in zip(target_data,target_label):
+            # print("current label : ",label)
+            category_data[label].append(data)
+        for label,data in category_data.items():
+            data= np.array(data)
+            # print("data shape : ",data.shape)
+            if invert:
+                # print("calculate inv sqrt cov")
+                r_op = self.calculate_inv_sqrt_cov(data)
+            else:
+                # print("calculate sqrt cov")
+                r_op = self.calcualte_sqrt_cov(data)
+
+            category_r_op[label] = r_op
+        return category_r_op
+
+    def calculate_inv_sqrt_cov(self,data):
+        assert len(data.shape) == 3
+        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        # print("origin cov : ", r)
+        if np.iscomplexobj(r):
+            print("covariance matrix problem")
+        # print("sqrt cov : ", sqrtm(r))
+        if np.iscomplexobj(sqrtm(r)):
+            print("covariance matrix problem sqrt")
+            # print("sqrt cov : ",sqrtm(r))
+
+        r_op = inv(sqrtm(r))
+        # print("r_op shape : ", r_op.shape)
+        # print("data shape : ",x.shape)
+        # print("r_op : ", r_op)
+        if np.iscomplexobj(r_op):
+            print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
+                  "not, check data!!")
+            # print("r op : ",r_op)
+            r_op = np.real(r_op).astype(np.float32)
+        elif not np.any(np.isfinite(r_op)):
+            print("WARNING! Not finite values in R Matrix")
+        return r_op
+
+    def calcualte_sqrt_cov(self,data):
+        assert len(data.shape) == 3
+        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        if np.iscomplexobj(r):
+            print("covariance matrix problem")
+        if np.iscomplexobj(sqrtm(r)):
+            print("covariance matrix problem sqrt")
+
+        r_op = sqrtm(r)
+        return r_op
+
 
 class EuclideanAlignment:
     """
@@ -476,16 +601,17 @@ def normalization(X):
     std = np.std(X, axis=axis, keepdims=True)
     X = (X - mean) / std
     return X
-def dataset_norm(data,label):
+# def dataset_norm(data,label):
+def dataset_norm(data):
     new_data = list()
-    new_label = list()
+    # new_label = list()
     for subject_idx in range(len(data)):
         subject_data = data[subject_idx]
-        subject_label = label[subject_idx]
+        # subject_label = label[subject_idx]
         subject_data = normalization(subject_data)
         new_data.append(subject_data)
-        new_label.append(subject_label)
-    return new_data,new_label
+        # new_label.append(subject_label)
+    return new_data
 
 
 class filterBank(object):

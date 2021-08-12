@@ -8,7 +8,7 @@ from dassl.utils import count_num_param
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from dassl.engine.trainer_tmp import SimpleNet
+from dassl.engine.trainer import SimpleNet
 import numpy as np
 from dassl.modeling import build_layer
 from dassl.modeling.ops import ReverseGrad
@@ -21,7 +21,6 @@ import torchmetrics
 @TRAINER_REGISTRY.register()
 class MultiDatasetDannV1(TrainerMultiAdaptation):
     """
-
     """
     def __init__(self, cfg,require_parameter=None):
         super().__init__(cfg,require_parameter)
@@ -29,6 +28,13 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         self.lmda =cfg.LIGHTNING_MODEL.TRAINER.DANN.lmda
         self.max_epoch = self.cfg.OPTIM.MAX_EPOCH
 
+    def forward(self, input, return_feature=False):
+        f_target = self.CommonFeature(input)
+        logits_target = self.TargetClassifier(f_target)
+        probs = F.softmax(logits_target, dim=1)
+        if return_feature:
+            return probs, logits_target
+        return probs
     def configure_optimizers(self):
         params = list(self.CommonFeature.parameters()) + \
                  list(self.TargetClassifier.parameters()) + \
@@ -83,11 +89,14 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
 
     def calculate_lmda_factor(self,batch_idx,current_epoch,num_batches,max_epoch,num_pretrain_epochs=0,lmda_scale = 1.0):
         epoch = current_epoch-num_pretrain_epochs
-        total_epoch = max_epoch-num_pretrain_epochs
-        global_step = batch_idx + epoch * num_batches
-        progress = global_step / (total_epoch * num_batches)
-        lmda = 2 / (1 + np.exp(-10 * progress)) - 1
-        lmda = lmda * lmda_scale  # modify the scale of lmda
+        if epoch < 0:
+            lmda = 1.0
+        else:
+            total_epoch = max_epoch-num_pretrain_epochs
+            global_step = batch_idx + epoch * num_batches
+            progress = global_step / (total_epoch * num_batches)
+            lmda = 2 / (1 + np.exp(-10 * progress)) - 1
+            lmda = lmda * lmda_scale  # modify the scale of lmda
         return lmda
 
     def share_step(self,batch,train_mode = True,weight=None):
@@ -96,6 +105,16 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         logits_target = self.TargetClassifier(f_target)
         loss_target = self.loss_function(logits_target, label, train=train_mode,weight=weight)
         return loss_target,logits_target,label, f_target
+
+    def on_train_epoch_start(self) -> None:
+        if self.source_pretrain_epochs > self.current_epoch:
+            self.source_ratio = 1.0
+            self.target_ratio = 0.0
+            self.d_ratio = 0.0
+        else:
+            self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO
+            self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO
+            self.d_ratio = 1.0
 
     def training_step(self, batch, batch_idx):
         target_batch, unlabel_batch ,list_source_batches = self.parse_batch_train(batch)
@@ -112,10 +131,11 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
 
         loss_target, logits_target, label, feat_target = self.share_step(target_batch, train_mode=True, weight=self.class_weight)
 
+        # print("unlabel batch : ",unlabel_batch)
         feat_source = self.CommonFeature(unlabel_batch)
         # total_loss = loss_source+loss_target
 
-        lmda = self.calculate_lmda_factor(batch_idx,self.current_epoch,self.trainer.num_training_batches,self.max_epoch,num_pretrain_epochs=0,lmda_scale=self.lmda)
+        lmda = self.calculate_lmda_factor(batch_idx,self.current_epoch,self.trainer.num_training_batches,self.max_epoch,num_pretrain_epochs=self.source_pretrain_epochs,lmda_scale=self.lmda)
 
         # feat_source = torch.cat(feat_source, 0)
 
@@ -136,7 +156,7 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         self.log('Train_loss', total_loss,on_step=False,on_epoch=True, prog_bar=True, logger=True)
         self.log('Train_source_loss', loss_source, on_step=False,on_epoch=True,prog_bar=True, logger=True)
         self.log('Train_target_loss', loss_target, on_step=False,on_epoch=True,prog_bar=True, logger=True)
-        self.log('loss_d', loss_d, on_step=False,on_epoch=True,prog_bar=True, logger=True)
+        self.log('loss_d', loss_d*self.d_ratio, on_step=False,on_epoch=True,prog_bar=True, logger=True)
 
         return {'loss':total_loss}
 
