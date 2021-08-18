@@ -8,11 +8,13 @@ USE_CUDA: True
 
 DATAMANAGER:
   RESULT_FOLDER: 'result_folder'
-  MANAGER_TYPE: 'multi_dataset'
+  MANAGER_TYPE: 'multi_datasetV2'
   DATASET:
     NAME: 'MultiDataset'
     DIR: 'case_9_A'
     FILENAME: 'NeurIPS_TL.mat'
+    TEST_DIR: 'test_data_microvolt'
+    TEST_DATA_FILE: 'NeurIPS_TL.mat'
     target_dataset_relabelled: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_A'
@@ -61,6 +63,9 @@ DATAMANAGER:
     TRAIN_X:
       SAMPLER: RandomSampler
       BATCH_SIZE: 64
+    TRAIN_U:
+      SAMPLER: RandomSampler
+      BATCH_SIZE: 64
     LIST_TRAIN_U:
       SAMPLERS:
         - RandomSampler
@@ -100,7 +105,7 @@ TEST:
 
 LIGHTNING_MODEL:
   TRAINER:
-    NAME: 'MultiDatasetAdaptationV1'
+    NAME: 'MultiDatasetDannV1'
     EXTRA:
       TARGET_LOSS_RATIO: 0.8
       SOURCE_LOSS_RATIO: 0.2
@@ -130,7 +135,7 @@ EXTRA_FIELDS:
   normalize: 'no_norm'
   EA: False
   aug: 'no_aug'
-  model: 'MultiDatasetAdaptationV1'
+  model: 'MultiDatasetDannV1'
   backbone: 'eegnet'
   source_label_space: [2,3,3]
   target_label_space: 3

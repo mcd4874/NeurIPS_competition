@@ -16,6 +16,7 @@ DATAMANAGER:
     TEST_DIR: 'test_data_microvolt'
     TEST_DATA_FILE: 'NeurIPS_TL.mat'
     target_dataset_relabelled: True
+    USE_Euclidean_Aligment: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_B'
       TEST_FOLD:
@@ -89,7 +90,7 @@ OPTIM:
     NAME: exponential
     PARAMS:
       gamma: 1.0
-  MAX_EPOCH: 20
+  MAX_EPOCH: 25
 
 TRAIN:
   CHECKPOINT_FREQ: 0
@@ -106,7 +107,7 @@ LIGHTNING_MODEL:
     EXTRA:
       TARGET_LOSS_RATIO: 0.8
       SOURCE_LOSS_RATIO: 0.2
-      SOURCE_PRE_TRAIN_EPOCHS: 10
+      SOURCE_PRE_TRAIN_EPOCHS: 20
   COMPONENTS:
     LAST_FC:
       NAME: max_norm
@@ -131,7 +132,7 @@ EXTRA_FIELDS:
   target_dataset: 'dataset_B'
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
-  EA: False
+  EA: True
   aug: 'no_aug'
   model: 'MultiDatasetDannV1'
   backbone: 'eegnet'

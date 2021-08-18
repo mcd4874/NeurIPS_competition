@@ -84,7 +84,16 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         domain_label = torch.cat([domain_label_target, domain_label_source])
         domain_pred = self.DomainDiscriminator(feature)
         loss_d = self.bce(domain_pred, domain_label)
-        return loss_d
+
+        y_pred = F.sigmoid(domain_pred)
+        y_pred = y_pred > 0.5
+        # print("sigmoid predict : ",y_pred)
+        total = torch.sum(y_pred==domain_label)
+        # print("total pred : ",total)
+        acc= total/(target_feature.shape[0]+source_feature.shape[0])
+        # print("acc : ",acc)
+        return loss_d,acc
+
 
 
     def calculate_lmda_factor(self,batch_idx,current_epoch,num_batches,max_epoch,num_pretrain_epochs=0,lmda_scale = 1.0):
@@ -108,9 +117,10 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
 
     def on_train_epoch_start(self) -> None:
         if self.source_pretrain_epochs > self.current_epoch:
-            self.source_ratio = 1.0
-            self.target_ratio = 0.0
-            self.d_ratio = 0.0
+            self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO
+            self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO
+            # self.d_ratio = 0.0
+            self.d_ratio = 1.0
         else:
             self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO
             self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO
@@ -135,7 +145,8 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         feat_source = self.CommonFeature(unlabel_batch)
         # total_loss = loss_source+loss_target
 
-        lmda = self.calculate_lmda_factor(batch_idx,self.current_epoch,self.trainer.num_training_batches,self.max_epoch,num_pretrain_epochs=self.source_pretrain_epochs,lmda_scale=self.lmda)
+        # lmda = self.calculate_lmda_factor(batch_idx,self.current_epoch,self.trainer.num_training_batches,self.max_epoch,num_pretrain_epochs=self.source_pretrain_epochs,lmda_scale=self.lmda)
+        lmda = self.calculate_lmda_factor(batch_idx,self.current_epoch,self.trainer.num_training_batches,self.max_epoch,num_pretrain_epochs=0,lmda_scale=self.lmda)
 
         # feat_source = torch.cat(feat_source, 0)
 
@@ -144,7 +155,7 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         feat_source = self.revgrad(feat_source, grad_scaling=lmda)
 
         # test to combine 2 vector and calculate loss
-        loss_d = self.calculate_dann(target_feature=feat_target, source_feature=feat_source)
+        loss_d,acc_d = self.calculate_dann(target_feature=feat_target, source_feature=feat_source)
 
         total_loss = loss_source * self.source_ratio + loss_target * self.target_ratio + loss_d*self.d_ratio
 
@@ -157,6 +168,9 @@ class MultiDatasetDannV1(TrainerMultiAdaptation):
         self.log('Train_source_loss', loss_source, on_step=False,on_epoch=True,prog_bar=True, logger=True)
         self.log('Train_target_loss', loss_target, on_step=False,on_epoch=True,prog_bar=True, logger=True)
         self.log('loss_d', loss_d*self.d_ratio, on_step=False,on_epoch=True,prog_bar=True, logger=True)
+        self.log('acc_d', acc_d, on_step=False,on_epoch=True,prog_bar=True, logger=True)
+
+        self.log('lmda',lmda, on_step=False,on_epoch=True,prog_bar=True, logger=True)
 
         return {'loss':total_loss}
 

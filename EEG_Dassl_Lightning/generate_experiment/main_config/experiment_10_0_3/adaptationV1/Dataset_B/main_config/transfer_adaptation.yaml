@@ -11,7 +11,7 @@ DATAMANAGER:
   MANAGER_TYPE: 'multi_dataset'
   DATASET:
     NAME: 'MultiDataset'
-    DIR: 'case_13_B'
+    DIR: 'case_14_B'
     FILENAME: 'NeurIPS_TL.mat'
     extra_files: ['LA/dataset_1.mat','LA/dataset_2.mat']
     target_dataset_relabelled: True

@@ -1,5 +1,5 @@
 INPUT:
-  SIZE: (17, 384)
+  SIZE: (59, 384)
   TRANSFORMS: []
   NO_TRANSFORM: True
 
@@ -11,8 +11,9 @@ DATAMANAGER:
   MANAGER_TYPE: 'multi_dataset'
   DATASET:
     NAME: 'MultiDataset'
-    DIR: 'case_10_A'
+    DIR: 'case_13_A'
     FILENAME: 'NeurIPS_TL.mat'
+    extra_files: ['dataset_1.mat','dataset_2.mat']
     target_dataset_relabelled: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_A'
@@ -65,9 +66,7 @@ DATAMANAGER:
       SAMPLERS:
         - RandomSampler
         - RandomSampler
-        - RandomSampler
       BATCH_SIZES:
-        - 64
         - 64
         - 64
     VALID:
@@ -113,7 +112,7 @@ LIGHTNING_MODEL:
       NAME: 'eegnet'
       PARAMS:
         kern_legnth: 64
-        num_ch: 17
+        num_ch: 59
         samples: 384
         F1: 8
         D: 2

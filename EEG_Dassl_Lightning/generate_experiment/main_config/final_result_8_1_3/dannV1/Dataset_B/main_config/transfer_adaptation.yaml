@@ -1,5 +1,5 @@
 INPUT:
-  SIZE: (31, 384)
+  SIZE: (17, 384)
   TRANSFORMS: []
   NO_TRANSFORM: True
 
@@ -11,12 +11,13 @@ DATAMANAGER:
   MANAGER_TYPE: 'multi_datasetV2'
   DATASET:
     NAME: 'MultiDataset'
-    DIR: 'case_9_B'
+    DIR: 'case_10_B'
     FILENAME: 'NeurIPS_TL.mat'
-    TEST_DIR: 'test_data_microvolt'
+    TEST_DIR: 'test_case_10_microvolt'
     TEST_DATA_FILE: 'NeurIPS_TL.mat'
     target_dataset_relabelled: True
     USE_Euclidean_Aligment: True
+    source_dataset_LA: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_B'
       TEST_FOLD:
@@ -105,8 +106,8 @@ LIGHTNING_MODEL:
   TRAINER:
     NAME: 'MultiDatasetDannV1'
     EXTRA:
-      TARGET_LOSS_RATIO: 0.8
-      SOURCE_LOSS_RATIO: 0.2
+      TARGET_LOSS_RATIO: 1.0
+      SOURCE_LOSS_RATIO: 1.0
       SOURCE_PRE_TRAIN_EPOCHS: 20
   COMPONENTS:
     LAST_FC:
@@ -116,7 +117,7 @@ LIGHTNING_MODEL:
       NAME: 'eegnet'
       PARAMS:
         kern_legnth: 64
-        num_ch: 31
+        num_ch: 17
         samples: 384
         F1: 8
         D: 2
@@ -133,6 +134,7 @@ EXTRA_FIELDS:
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
   EA: True
+  LA: True
   aug: 'no_aug'
   model: 'MultiDatasetDannV1'
   backbone: 'eegnet'

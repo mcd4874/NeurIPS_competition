@@ -20,14 +20,13 @@ DATAMANAGER:
     SETUP:
       TARGET_DATASET_NAME: 'dataset_A'
       TEST_FOLD:
-        N_TEST_FOLDS: 1
+        N_TEST_FOLDS: 5
         TEST_FOLD_PREFIX: 'test_fold'
         START_TEST_FOLD: 1
-        END_TEST_FOLD: 1
+        END_TEST_FOLD: 5
         CURRENT_TEST_FOLD: 1
         WITHIN_SUBJECTS: True
         TRAIN_VALID_DATA_RATIO: -1
-        SAME_AS_VALID: True
       SHUFFLE_TRAIN_VALID_FOLD:
         SHUFFLE_FOLD_PREFIX: 'shuffle_fold'
         N_SHUFFLE_FOLDS: 1
@@ -45,9 +44,9 @@ DATAMANAGER:
         CURRENT_INCREMENT_FOLD: 1
       VALID_FOLD:
         VALID_FOLD_PREFIX: 'valid_fold'
-        N_VALID_FOLDS: 5
+        N_VALID_FOLDS: 4
         START_VALID_FOLD: 1
-        END_VALID_FOLD: 5
+        END_VALID_FOLD: 4
         CURRENT_VALID_FOLD: 1
         WITHIN_SUBJECTS: True
         TRAIN_DATA_RATIO: -1

@@ -89,7 +89,7 @@ OPTIM:
     NAME: exponential
     PARAMS:
       gamma: 1.0
-  MAX_EPOCH: 20
+  MAX_EPOCH: 25
 
 TRAIN:
   CHECKPOINT_FREQ: 0
@@ -104,9 +104,9 @@ LIGHTNING_MODEL:
   TRAINER:
     NAME: 'MultiDatasetAdaptationV1'
     EXTRA:
-      TARGET_LOSS_RATIO: 0.8
-      SOURCE_LOSS_RATIO: 0.2
-      SOURCE_PRE_TRAIN_EPOCHS: 10
+      TARGET_LOSS_RATIO: 1.0
+      SOURCE_LOSS_RATIO: 1.0
+      SOURCE_PRE_TRAIN_EPOCHS: 20
   COMPONENTS:
     LAST_FC:
       NAME: max_norm

@@ -163,8 +163,11 @@ class TrainerBase(pl.LightningModule):
         #need to redo the torchmetric for metrics
         self.train_acc = torchmetrics.Accuracy()
         self.valid_acc = torchmetrics.Accuracy()
-        self.test_acc = torchmetrics.Accuracy()
+        self.valid_acc_1 = torchmetrics.Accuracy()
+        self.valid_acc_2 = torchmetrics.Accuracy()
 
+        self.test_acc = torchmetrics.Accuracy()
+        self.confusion_matrix =  torchmetrics.ConfusionMatrix(num_classes=self.num_classes)
         self.train_avg_loss = torchmetrics.AverageMeter()
         self.valid_avg_loss = torchmetrics.AverageMeter()
         self.test_avg_loss = torchmetrics.AverageMeter()
@@ -404,8 +407,10 @@ class TrainerMultiAdaptation(TrainerBase):
 
     def on_train_epoch_start(self) -> None:
         if self.source_pretrain_epochs > self.current_epoch:
-            self.source_ratio = 1.0
-            self.target_ratio = 0.0
+            # self.source_ratio = 1.0
+            # self.target_ratio = 0.0
+            self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO
+            self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO
         else:
             self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO
             self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO
@@ -481,9 +486,44 @@ class TrainerMultiAdaptation(TrainerBase):
     def test_step(self, batch, batch_idx):
         loss, y_logit, y,_ = self.share_step(batch, train_mode=False)
         y_pred = F.softmax(y_logit,dim=1)
-        acc =   self.test_acc(y_pred,y)
+        # acc =   self.test_acc(y_pred,y)
+        # self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+        # self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+        # matrix = self.confusion_matrix(y_pred,y)
+        # for classes in range (self.num_classes):
+        #     class_precision=matrix[classes][classes]
+        #     classes_total = torch.sum(matrix[classes,:])
+        #     print("class ",classes)
+        #     print("class total ",classes_total)
+        #     print("class precision : ",class_precision/classes_total)
+        #     print("true labe : ",y)
+        # print("confusion matrix : ",matrix)
+        return {'loss': loss,'y_pred':y_pred,'y':y}
+        # return {'loss':loss,'y'}
+    def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
+        for batch_result in outputs:
+            batch_loss = batch_result['loss']
+            batch_y_pred = batch_result['y_pred']
+            batch_y = batch_result['y']
+            self.test_acc.update(batch_y_pred,batch_y)
+            self.test_avg_loss.update(batch_loss)
+            self.confusion_matrix.update(batch_y_pred,batch_y)
+
+        confusion_matrix = self.confusion_matrix.compute()
+        acc = self.test_acc.compute()
+        loss = self.test_avg_loss.compute()
         self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
         self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
 
-        return {'loss': loss}
+        for classes in range (self.num_classes):
+            class_precision=confusion_matrix[classes][classes]
+            classes_total = torch.sum(confusion_matrix[classes,:])
+            # print("class ",classes)
+            # print("class total ",classes_total)
+            # print("class precision : ",class_precision/classes_total)
+            class_acc = class_precision/classes_total
+            format = 'class_{}_acc'.format(classes)
+            self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
 
+            # print("true labe : ",y)
+        # print("confusion matrix : ",matrix)

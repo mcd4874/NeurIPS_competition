@@ -1,5 +1,5 @@
 INPUT:
-  SIZE: (31, 384)
+  SIZE: (17, 384)
   TRANSFORMS: []
   NO_TRANSFORM: True
 
@@ -14,6 +14,7 @@ DATAMANAGER:
     DIR: 'case_10_A'
     FILENAME: 'NeurIPS_TL.mat'
     target_dataset_relabelled: True
+    source_dataset_LA: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_A'
       TEST_FOLD:
@@ -113,7 +114,7 @@ LIGHTNING_MODEL:
       NAME: 'eegnet'
       PARAMS:
         kern_legnth: 64
-        num_ch: 31
+        num_ch: 17
         samples: 384
         F1: 8
         D: 2
@@ -129,7 +130,7 @@ EXTRA_FIELDS:
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
   EA: False
-  LA: False
+  LA: True
   aug: 'no_aug'
   model: 'MultiDatasetAdaptationV1'
   backbone: 'eegnet'

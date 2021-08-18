@@ -1,5 +1,5 @@
 INPUT:
-  SIZE: (31, 384)
+  SIZE: (17, 384)
   TRANSFORMS: []
   NO_TRANSFORM: True
 
@@ -114,7 +114,7 @@ LIGHTNING_MODEL:
       NAME: 'eegnet'
       PARAMS:
         kern_legnth: 64
-        num_ch: 31
+        num_ch: 17
         samples: 384
         F1: 8
         D: 2

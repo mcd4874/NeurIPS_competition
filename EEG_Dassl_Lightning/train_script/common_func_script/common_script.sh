@@ -21,6 +21,7 @@ test_case_12_microvolt_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/d
 
 test_case_13_microvolt_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/test_case_13_microvolt/NeurIPS_TL.mat"
 test_case_14_microvolt_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/test_case_14_microvolt/NeurIPS_TL.mat"
+test_case_16_microvolt_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/test_case_16_microvolt/NeurIPS_TL.mat"
 
 
 function run_full_multi_gpu() {
@@ -89,6 +90,43 @@ function run_predict() {
             echo $MAIN_CONFIG
             CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --test-data $test_path --generate-predict
             CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --test-data $test_path
+          done
+        done
+      done
+    done
+}
+
+function run_predict_relabel() {
+    #run a group of experiment for mroe efficient
+    #treat GPU_device, exp_type, and normalize_prefix as individual variable
+    #treat DATASET,train_model_prefix as a list
+    local GPU_device=$1
+    local EXP_TYPE=$2
+    local test_path=$3
+    local -n LIST_AUG_PREFIX=$4
+    local -n LIST_NORMALIZE_PREFIX=$5
+    local -n TRAINER_MODEL_PREFIXS=$6
+    local -n DATASETS=$7
+
+    printf '1: %q\n' "${TRAINER_MODEL_PREFIXS[@]}"
+    printf '2: %q\n' "${DATASETS[@]}"
+    echo $test_path
+
+    echo TRAINER_MODEL_PREFIXS
+    for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
+    do
+      for NORMALIZE_PREFIX in "${LIST_NORMALIZE_PREFIX[@]}";
+      do
+        for TRAINER_MODEL_PREFIX in "${TRAINER_MODEL_PREFIXS[@]}";
+        do
+          for DATASET in "${DATASETS[@]}";
+          do
+            OUTPUT_DIR="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/model"
+            MAIN_CONFIG="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/main_config/transfer_adaptation.yaml"
+            echo $OUTPUT_DIR
+            echo $MAIN_CONFIG
+            CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --test-data $test_path --generate-predict
+            CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --test-data $test_path --relabel
           done
         done
       done
@@ -206,6 +244,53 @@ final_result_10_0_3="NeurIPS_competition/final_result_10_0_3"
 final_result_11_0_1="NeurIPS_competition/final_result_11_0_1"
 final_result_11_0_2="NeurIPS_competition/final_result_11_0_2"
 final_result_11_0_3="NeurIPS_competition/final_result_11_0_3"
+final_result_11_1_3="NeurIPS_competition/final_result_11_1_3"
+final_result_11_2_3="NeurIPS_competition/final_result_11_2_3"
+final_result_11_3_3="NeurIPS_competition/final_result_11_3_3"
+
+final_result_11_4_1="NeurIPS_competition/final_result_11_4_1"
+final_result_11_4_3="NeurIPS_competition/final_result_11_4_3"
+
+final_result_11_4_1_0="NeurIPS_competition/final_result_11_4_1_0"
+final_result_11_4_1_1="NeurIPS_competition/final_result_11_4_1_1"
+final_result_11_4_1_2="NeurIPS_competition/final_result_11_4_1_2"
+
+final_result_11_4_3_0="NeurIPS_competition/final_result_11_4_3_0"
+final_result_11_4_3_1="NeurIPS_competition/final_result_11_4_3_1"
+final_result_11_4_3_2="NeurIPS_competition/final_result_11_4_3_2"
+
+final_result_12_4_1="NeurIPS_competition/final_result_12_4_1"
+final_result_12_4_1_0="NeurIPS_competition/final_result_12_4_1_0"
+final_result_12_4_1_1="NeurIPS_competition/final_result_12_4_1_1"
+final_result_12_4_1_2="NeurIPS_competition/final_result_12_4_1_2"
+final_result_12_4_3="NeurIPS_competition/final_result_12_4_3"
+final_result_12_4_3_0="NeurIPS_competition/final_result_12_4_3_0"
+final_result_12_4_3_1="NeurIPS_competition/final_result_12_4_3_1"
+final_result_12_4_3_2="NeurIPS_competition/final_result_12_4_3_2"
+
+final_result_13_4_0="NeurIPS_competition/final_result_13_4_0"
+final_result_13_4_1="NeurIPS_competition/final_result_13_4_1"
+final_result_13_4_2="NeurIPS_competition/final_result_13_4_2"
+final_result_13_4_3="NeurIPS_competition/final_result_13_4_3"
+
+final_result_14_0_1="NeurIPS_competition/final_result_14_0_1"
+final_result_14_0_1_0="NeurIPS_competition/final_result_14_0_1_0"
+final_result_14_0_1_1="NeurIPS_competition/final_result_14_0_1_1"
+final_result_14_0_1_2="NeurIPS_competition/final_result_14_0_1_2"
+
+final_result_14_0_2="NeurIPS_competition/final_result_14_0_2"
+final_result_14_0_2_0="NeurIPS_competition/final_result_14_0_2_0"
+final_result_14_0_2_1="NeurIPS_competition/final_result_14_0_2_1"
+final_result_14_0_2_2="NeurIPS_competition/final_result_14_0_2_2"
+
+final_result_14_0_3="NeurIPS_competition/final_result_14_0_3"
+final_result_14_0_3_0="NeurIPS_competition/final_result_14_0_3_0"
+final_result_14_0_3_1="NeurIPS_competition/final_result_14_0_3_1"
+final_result_14_0_3_2="NeurIPS_competition/final_result_14_0_3_2"
+
+final_result_14_3_1="NeurIPS_competition/final_result_14_3_1"
+
+final_result_14_3_3="NeurIPS_competition/final_result_14_3_3"
 
 
 T_F_aug="T_F_aug"
@@ -216,7 +301,10 @@ no_norm="no_norm"
 
 adaptation_prefix="adaptation"
 adaptationV1_prefix="adaptationV1"
+share_adaptV1_prefix="share_adaptV1"
+
 dannV1_prefix="dannV1"
+mcdV1_prefix="mcdV1"
 shallowcon_adaptV1_prefix="shallowcon_adaptV1"
 FBCNET_adaptV1_prefix="FBCNET_adaptV1"
 vanilla_prefix="vanilla"

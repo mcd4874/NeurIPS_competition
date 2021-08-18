@@ -301,6 +301,7 @@ def generate_pred_MI_label(test_fold_preds, test_fold_probs, output_dir, predict
     # print("val fold size : ",len(test_fold_preds[0]))
     # print("val pred size : ",test_fold_preds[0][0].shape)
     # print("org final pred shape : ",final_pred.shape)
+    print("generate MI label")
     for test_fold in range(len(test_fold_preds)):
         current_fold_preds = test_fold_preds[test_fold]
         current_fold_probs = test_fold_probs[test_fold]
@@ -336,6 +337,9 @@ def generate_pred_MI_label(test_fold_preds, test_fold_probs, output_dir, predict
                     best_prob = prob
         pred_output.append(best_idx)
     pred_output = np.array(pred_output)
+    if relabel:
+        pred_output = np.array([relabel_target(l) for l in pred_output])
+        print("update pred output : ",pred_output)
     combine_folder = os.path.join(output_dir, predict_folder)
     np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
 
@@ -420,6 +424,9 @@ def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels,
                         best_prob = prob
             pred_output.append(best_idx)
         pred_output = np.array(pred_output)
+        if relabel:
+            pred_output = np.array([relabel_target(l) for l in pred_output])
+            final_label = np.array([relabel_target(l) for l in final_label])
         acc = np.mean(pred_output == final_label)
 
         # test_fold_acc.append(acc)
@@ -529,6 +536,8 @@ def generate_assemble_result(test_fold_preds, test_fold_probs, test_fold_labels,
 #     result_filename = 'ensemble_result.xlsx'
 #     result.to_excel(os.path.join(result_output_dir, result_filename), index=False)
 from scipy.io import loadmat
+
+
 def load_test_data_from_file(provide_path,dataset_type):
     temp = loadmat(provide_path)
     datasets = temp['datasets'][0]
@@ -541,11 +550,37 @@ def load_test_data_from_file(provide_path,dataset_type):
             target_dataset = dataset
 
     data = target_dataset['data'].astype(np.float32)
-    if 'r_op_list' in list(target_dataset.dtype.names):
-        list_r_op = np.array(target_dataset['r_op_list']).astype(np.float32)
+
+    if dataset_type=="dataset_A":
+        potential_r_op="dataset_A_r_op.mat"
+    elif dataset_type=="dataset_B":
+        potential_r_op="dataset_B_r_op.mat"
+    # provide_path = provide_path.split("\\")[:-1]
+    # provide_path = "\\".join(provide_path)
+    provide_path = provide_path.split("/")[:-1]
+    provide_path = "/".join(provide_path)
+    # print("provide path : ",provide_path)
+    exist_r_op_file = os.path.join(provide_path,potential_r_op)
+    print("current r_op file : ",exist_r_op_file)
+    if os.path.exists(exist_r_op_file):
+        print("path {} exist ".format(exist_r_op_file))
+        temp = loadmat(exist_r_op_file)
+        dataset = temp['datasets'][0]
+        dataset = list(dataset)
+        dataset = dataset[0][0]
+        # print("dataset : ",dataset)
+        if 'r_op_list' in list(dataset.dtype.names):
+            r_op = dataset['r_op_list'][0]
+            list_r_op = np.array(r_op).astype(np.float32)
+            print("use the r-op list")
     return data,list_r_op
 
-
+def print_info(source_data,dataset_name):
+    print("current dataset {}".format(dataset_name))
+    for subject_idx in range(len(source_data)):
+        print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+            subject_idx, source_data[subject_idx].shape,
+            np.max(source_data[subject_idx]), np.min(source_data[subject_idx])))
 
 def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=False, freq_interval=4, EA=False):
     os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -578,28 +613,16 @@ def get_test_data(dataset_type, norm, provide_data_path = None,use_filter_bank=F
     else:
         print("load test data from file ")
         test_data,list_r_op = load_test_data_from_file(provide_data_path,dataset_type=dataset_type)
+        if list_r_op is None:
+            print("generate new list r op")
+        else:
+            print("use r_op")
     if EA:
         test_EA = EuclideanAlignment(list_r_op=list_r_op)
         test_data = test_EA.convert_subjects_data_with_EA(test_data)
+        print("load test predict data ------------------")
+    print_info(test_data,dataset_type)
     test_data = np.concatenate(test_data)
-    # if use_filter_bank:
-    #     # diff = 4
-    #     diff = freq_interval
-    #     filter_bands = []
-    #     # axis = 2
-    #     for i in range(1, 9):
-    #         filter_bands.append([i * diff, (i + 1) * diff])
-    #     print("build filter band : ", filter_bands)
-    #     filter = filterBank(
-    #         filtBank=filter_bands,
-    #         fs=128
-    #     )
-    #     source = [0, 1, 2, 3]
-    #     destination = [0, 2, 3, 1]
-    #     filter_data = filter(test_data)
-    #     test_data = np.moveaxis(filter_data, source, destination)
-    #     # test_data = subjects_filterbank(test_data, filter, source, destination)
-    # print("before expand data shape : ",test_data.shape)
     if norm:
         test_data = normalization(test_data)
     test_data = expand_data_dim(test_data)
@@ -611,7 +634,7 @@ def main(args):
     benchmark = False
     deterministic = False  # this can help to reproduce the result
     cfg = setup_cfg(args)
-    # setup_logger(cfg.OUTPUT_DIR)
+    setup_logger(cfg.OUTPUT_DIR)
 
     if torch.cuda.is_available() and cfg.USE_CUDA:
         print("use determinstic ")
@@ -664,8 +687,8 @@ def main(args):
     print("use cross channel norm : ",norm)
     generate_predict = args.generate_predict
     use_assemble_test_dataloader = args.use_assemble_test_dataloader
-    # relabel = args.relabel
-    relabel = False
+    relabel = args.relabel
+    # relabel = False
     print("generate predict : ", generate_predict)
     dataset_type = cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
 

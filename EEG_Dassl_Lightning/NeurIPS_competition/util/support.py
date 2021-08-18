@@ -11,6 +11,8 @@ import mne
 
 import scipy.signal as signal
 import copy
+from scipy.linalg import sqrtm, inv
+from collections import defaultdict
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 cuda = torch.cuda.is_available()
@@ -23,6 +25,12 @@ np.random.seed(seed)
 torch.backends.cudnn.deterministic = True
 rng = RandomState(seed)
 
+def print_info(source_data,dataset_name):
+    print("current dataset {}".format(dataset_name))
+    for subject_idx in range(len(source_data)):
+        print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+            subject_idx, source_data[subject_idx].shape,
+            np.max(source_data[subject_idx]), np.min(source_data[subject_idx])))
 def print_dataset_info(data,dataset_name="train dataset A"):
     print(dataset_name)
     # for subject_idx in range(len(data)):
@@ -267,11 +275,11 @@ def interpolate_BCI_IV_dataset(epoch_data,common_target_chans,montage,sfreq=128)
     print("bad chans : ",bad_chans)
     eeg_data.info['bads'] = bad_chans
 
-    eeg_data_interp = eeg_data.copy().interpolate_bads()
+    eeg_data_interp = eeg_data.copy().interpolate_bads(reset_bads=False)
 
-    print("old chans : ",current_chans)
+    print("old BCI chans : ",current_chans)
     correct_chans_order = eeg_data_interp.ch_names
-    print("new chans : ",correct_chans_order)
+    print("new BCI chans : ",correct_chans_order)
     return eeg_data_interp
 
 
@@ -377,13 +385,17 @@ def load_BCI_IV(sfreq = 128,fmin=4,fmax=36,tmin=0.5,tmax=3.5,selected_chans = No
 
     # set up the interpolation and get all the data in the same correct order
     if montage:
-        # import matplotlib
-        # matplotlib.use('TkAgg')
-        # import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.use('TkAgg')
+        import matplotlib.pyplot as plt
+        # montage.plot(show_names=True, sphere=0.07)
+
         # tmp =     epoch_X_src3.copy()
-        # tmp[0].plot()
-        # tmp.set
-        # tmp[0]
+        # tmp[0].plot(show=False)
+        # plt.show()
+        # tmp.set_montage(montage)
+        # tmp[0].plot(show=False)
+        # plt.show()
         update_epoch_src3 = interpolate_BCI_IV_dataset(epoch_X_src3, selected_chans, montage,sfreq=sfreq)
         # update_epoch_src3[0].plot(show=False)
         # plt.show()
@@ -508,8 +520,8 @@ def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq =
         X_MIA_train_data, X_MIA_train_label, dataset_A_meta = load_train_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
         X_MIA_train_data = correct_EEG_data(X_MIA_train_data, ch_names, selected_chans)
         X_MIA_train_data = modify_data(X_MIA_train_data, time=max_time_length)
-        m_tgt_A = {name: col.values for name, col in dataset_A_meta.items()}
-        return X_MIA_train_data,X_MIA_train_label,m_tgt_A
+        # m_tgt_A = {name: col.values for name, col in dataset_A_meta.items()}
+        return X_MIA_train_data,X_MIA_train_label,dataset_A_meta
     else:
         X_MIA_test_data = load_test_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
         X_MIA_test_data = correct_EEG_data(X_MIA_test_data, ch_names, selected_chans)
@@ -607,8 +619,8 @@ def load_dataset_B(path=None,train=True,norm=True,selected_chans = None,sfreq = 
         X_MIB_train_data, X_MIB_train_label, dataset_B_meta = load_train_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
         X_MIB_train_data = correct_EEG_data(X_MIB_train_data, ch_names, selected_chans)
         X_MIB_train_data = modify_data(X_MIB_train_data, time=max_time_length)
-        m_tgt_B = {name: col.values for name, col in dataset_B_meta.items()}
-        return X_MIB_train_data,X_MIB_train_label,m_tgt_B
+        # m_tgt_B = {name: col.values for name, col in dataset_B_meta.items()}
+        return X_MIB_train_data,X_MIB_train_label,dataset_B_meta
     else:
         X_MIB_test_data = load_test_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
         X_MIB_test_data = correct_EEG_data(X_MIB_test_data, ch_names, selected_chans)
@@ -625,3 +637,104 @@ def generate_data_file(list_dataset_info,folder_name='case_0',file_name = 'NeurI
     data_file = os.path.join(folder_name,data_file)
     from scipy.io import savemat
     savemat(data_file, {'datasets':list_dataset})
+
+class EuclideanAlignment:
+    """
+    convert trials of each subject to a new format with Euclidean Alignment technique
+    https://arxiv.org/pdf/1808.05464.pdf
+    """
+    def __init__(self,list_r_op=None):
+        self.list_r_op = list_r_op
+    def calculate_r_op(self,data):
+        assert len(data.shape) == 3
+        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        if np.iscomplexobj(r):
+            print("covariance matrix problem")
+        if np.iscomplexobj(sqrtm(r)):
+            print("covariance matrix problem sqrt")
+
+        r_op = inv(sqrtm(r))
+        # print("r_op shape : ", r_op.shape)
+        # print("data shape : ",x.shape)
+        # print("r_op : ", r_op)
+        if np.iscomplexobj(r_op):
+            print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
+                  "not, check data!!")
+            r_op = np.real(r_op).astype(np.float32)
+        elif not np.any(np.isfinite(r_op)):
+            print("WARNING! Not finite values in R Matrix")
+        return r_op
+    def convert_trials(self,data,r_op):
+        results = np.matmul(r_op, data)
+        return results
+    def generate_list_r_op(self,subjects_data):
+        list_r_op = list()
+        for subject_idx in range(len(subjects_data)):
+            subject_data = subjects_data[subject_idx]
+            r_op = self.calculate_r_op(subject_data)
+            list_r_op.append(r_op)
+        return list_r_op
+    def convert_subjects_data_with_EA(self,subjects_data):
+        #calculate r_op for each subject
+        if self.list_r_op is not None:
+            assert len(self.list_r_op) == len(subjects_data)
+            print("use exist r_op")
+        else:
+            print("generate new r_op")
+            self.list_r_op = self.generate_list_r_op(subjects_data)
+        new_data = list()
+        # print("size list r : ",len(self.list_r_op))
+        # print("subject dat size : ",len(subjects_data))
+        for subject_idx in range(len(subjects_data)):
+            subject_data = subjects_data[subject_idx]
+            r_op = self.list_r_op[subject_idx]
+            subject_data = self.convert_trials(subject_data,r_op)
+            new_data.append(subject_data)
+        return new_data
+
+def reduce_category_data(subject_data,subject_label,reduce_label=3):
+    category_data = defaultdict(list)
+    new_subject_data = list()
+    new_subject_label = list()
+    for data, label in zip(subject_data, subject_label):
+        # print("current label : ",label)
+        category_data[label].append(data)
+    reduce_label_size = len(category_data[reduce_label])
+    other_label_size = len(category_data[0])
+    if reduce_label_size>other_label_size:
+        reduce_data = np.array(category_data[reduce_label])
+        reduce_data = reduce_data[:other_label_size]
+        category_data[reduce_label] = reduce_data
+    for label,data in category_data.items():
+        data = np.array(data)
+        label = np.array([label]*len(data))
+        # print("label {} has data shape {} ".format(label,data.shape))
+        new_subject_data.append(data)
+        new_subject_label.append(label)
+    new_subject_data = np.concatenate(new_subject_data)
+    new_subject_label = np.concatenate(new_subject_label)
+    new_subject_data,new_subject_label = shuffle_data(new_subject_data,new_subject_label)
+    return new_subject_data,new_subject_label
+
+def reduce_dataset(data,label,meta_data):
+
+    update_data = list()
+    update_label = list()
+    update_ids = list()
+    for subject in range(len(data)):
+        subject_data = data[subject]
+        subject_label = label[subject]
+        subject_meta_data = meta_data[subject]
+        subject_data,subject_label = reduce_category_data(subject_data,subject_label)
+        # print("subject data after reduce : ",subject_data.shape)
+        subject_id = [subject+1]*len(subject_data)
+
+        update_data.append(subject_data)
+        update_label.append(subject_label)
+        update_ids.extend(subject_id)
+    update_data=np.concatenate(update_data)
+    update_label=np.concatenate(update_label)
+    dataset_meta = pd.DataFrame({"subject":update_ids,"session":["session_0"]*len(update_ids),"run":["run_0"]*len(update_ids)})
+    # print("update data shape : ",update_data.shape)
+    # print("update label shape : ",update_label.shape)
+    return update_data,update_label,dataset_meta

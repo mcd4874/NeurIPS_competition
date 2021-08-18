@@ -88,6 +88,14 @@ class MultiDataset(DatasetBase):
             extra_file_path = update_file_path
 
         self.check_dataInfo()
+
+        r_op_file = cfg.DATAMANAGER.DATASET.r_op_file
+        if r_op_file != '':
+            r_op_file_path = osp.join(self.root, self.dataset_dir, r_op_file)
+        else:
+            r_op_file_path = None
+        self._setup_r_op_list(path=r_op_file_path)
+
         read_data = self._read_data(data_path,extra_data_path=extra_file_path)
 
         train, val, test = self.process_data_format(read_data)
@@ -130,6 +138,27 @@ class MultiDataset(DatasetBase):
         test_data = [np.array(data[subject]).astype(np.float32) for subject in range(len(data))]
         return test_data
 
+    def _setup_r_op_list(self,path=None):
+        target_dataset_name=self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
+        if path is None:
+            self.r_op_list = None
+        else:
+            temp = loadmat(path)
+            dataset = temp['datasets'][0]
+            dataset = list(dataset)
+            dataset = dataset[0][0]
+            # print("dataset field name : ",dataset.dtype.names)
+            # print(" frist field name : ",('r_op_list' in list(dataset.dtype.names)))
+            dataset_name = dataset['dataset_name'][0]
+            if dataset_name == target_dataset_name:
+                if 'r_op_list' in list(dataset.dtype.names):
+                    r_op = dataset['r_op_list'][0]
+                    # print("org r_op : ",r_op)
+                    # print("size : ",len(r_op))
+                    self.r_op_list = np.array(r_op).astype(np.float32)
+                    # print("load r_op_list : ",self.r_op_list)
+            else:
+                self.r_op_list = None
 
     def _read_data(self,data_path,extra_data_path=None):
         """
@@ -166,6 +195,7 @@ class MultiDataset(DatasetBase):
 
         # target_dataset_name = 'BCI_IV'
         target_dataset_name=self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
+        source_dataset_names=self.cfg.DATAMANAGER.DATASET.SETUP.SOURCE_DATASET_NAMES
         target_data = None
         target_label = None
         target_meta_data = None
@@ -193,18 +223,28 @@ class MultiDataset(DatasetBase):
             data,label,meta_data = reformat(data,label,meta_data)
 
             if dataset_name == target_dataset_name:
-                if 'r_op_list' in list(dataset.dtype.names):
-                    self.r_op_list = np.array(dataset['r_op_list']).astype(np.float32)
-                else:
-                    self.r_op_list = None
+                # if 'r_op_list' in list(dataset.dtype.names):
+                #     self.r_op_list = np.array(dataset['r_op_list']).astype(np.float32)
+                # else:
+                #     self.r_op_list = None
                 target_data = data
                 target_label = label
                 target_meta_data = meta_data
             else:
-                list_source_data.append(data)
-                list_source_label.append(label)
-                list_source_meta_data.append(meta_data)
-
+                # if source_dataset_names is not None and isinstance(source_dataset_names,list):
+                if len(source_dataset_names) > 0:
+                    #assume we use all the source datasets, then the name lists is empty []
+                    if dataset_name in source_dataset_names:
+                        list_source_data.append(data)
+                        list_source_label.append(label)
+                        list_source_meta_data.append(meta_data)
+                    else:
+                        print("dataset {} isn't used for this experiment".format(dataset_name))
+                else:
+                    list_source_data.append(data)
+                    list_source_label.append(label)
+                    list_source_meta_data.append(meta_data)
+        print("")
 
         self.source_data_list = list_source_data
         self.source_label_list = list_source_label

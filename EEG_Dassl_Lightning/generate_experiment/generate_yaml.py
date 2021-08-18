@@ -31,6 +31,43 @@ def convert_to_dict(cfg_node, key_list):
         for k, v in cfg_dict.items():
             cfg_dict[k] = convert_to_dict(v, key_list + [k])
         return cfg_dict
+
+
+def generate_sub_experiment_config(config_path, trainer_conditions, dataset_conditions):
+    import itertools
+    def findsubsets(s, n):
+        return list(itertools.combinations(s, n))
+
+    # Driver Code
+    s = ["cho2017", "physionet", "BCI_IV"]
+    n = 2
+    out_paths = list()
+    subsets = findsubsets(s, n)
+    index = 0
+    for subset in subsets:
+        new_config_path = config_path + "_{}".format(index)
+        index += 1
+        for trainer in trainer_conditions:
+            for dataset in dataset_conditions:
+                update_config_path = os.path.join(new_config_path, trainer, dataset)
+                match_pairs = [
+                    ["DATAMANAGER.DATASET.SETUP.SOURCE_DATASET_NAMES", list(subset)],
+                    ["EXTRA_FIELDS.source_dataset", list(subset)],
+                    ["DATAMANAGER.DATALOADER.LIST_TRAIN_U.SAMPLERS", ['RandomSampler', 'RandomSampler']],
+                    ["DATAMANAGER.DATALOADER.LIST_TRAIN_U.BATCH_SIZES", [32, 32]]
+                ]
+
+                current_config_path = os.path.join(config_path, trainer, dataset, 'main_config',
+                                                   'transfer_adaptation.yaml')
+                config_f = open(current_config_path)
+                config_file = CN(new_allowed=True).load_cfg(config_f)
+                for match_pair in match_pairs:
+                    config_file.merge_from_list(match_pair)
+                generate_config_file([], config_file, current_folder_path=update_config_path,
+                                     output_file="transfer_adaptation.yaml")
+        out_paths.append(new_config_path)
+    return out_paths
+
 def generate_config_file(conditions,config_file,current_folder_path="",output_file="transfer_adaptation.yaml"):
     print("list conditions : ",conditions)
     if len(conditions) == 0:
@@ -61,7 +98,6 @@ def generate_config_file(conditions,config_file,current_folder_path="",output_fi
 
             pair_lists = current_condition_info["match_pair"]
             for pair_list in pair_lists:
-
                 current_config_file.merge_from_list(pair_list)
             generate_config_file(remain_conditions,current_config_file,update_folder_name)
 
@@ -183,6 +219,8 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
     config_f = open(config_path)
     config_file = CN(new_allowed=True).load_cfg(config_f)
 
+
+
     # aug_type = "temp_aug"
     if aug_type == "temp_aug":
         match_pair =[
@@ -228,11 +266,35 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptation"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
-    elif trainer_type == "adaptationV1" or trainer_type == "shallowcon_adaptV1":
+    elif trainer_type == "share_adaptV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiShareAdaptationV1"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiShareAdaptationV1"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "adaptationV1":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "shallowcon_adaptV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
+            ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
+            ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "dannV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetDannV1"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetDannV1"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
+        ]
+    elif trainer_type == "mcdV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetMCDV1"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetMCDV1"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
         ]
     elif trainer_type == "FBCNET_adaptV1":
         match_pair = [
@@ -282,6 +344,8 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
         dict(dir_name=dataset_type, match_pair=match_pair)
     ]
 
+
+
     generate_config_file([aug_info,norm_info, trainer_info, dataset_info], config_file,main_path)
 
 
@@ -325,6 +389,24 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/experiment_6"
 # main_path = "experiment_7"
 # config_path = "main_config/experiment_7"
+# main_path = "experiment_9_0_1"
+# config_path = "main_config/experiment_9_0_1"
+# main_path = "experiment_9_0_3"
+# config_path = "main_config/experiment_9_0_3"
+
+# main_path = "experiment_10_0_1"
+# config_path = "main_config/experiment_10_0_1"
+# main_path = "experiment_10_0_3"
+# config_path = "main_config/experiment_10_0_3"
+
+# main_path = "experiment_11_0_1"
+# config_path = "main_config/experiment_11_0_1"
+# main_path = "experiment_11_0_2"
+# config_path = "main_config/experiment_11_0_2"
+# main_path = "experiment_11_0_3"
+# config_path = "main_config/experiment_11_0_3"
+
+
 # main_path = "final_result_3"
 # config_path = "main_config/final_result_3"
 # main_path = "final_result_4"
@@ -349,31 +431,150 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/final_result_7_0_2"
 # main_path = "final_result_7_1"
 # config_path = "main_config/final_result_7_1"
-main_path = "final_result_7_1_1"
-config_path = "main_config/final_result_7_1_1"
+# main_path = "final_result_7_1_1"
+# config_path = "main_config/final_result_7_1_1"
 # main_path = "final_result_7_1_2"
 # config_path = "main_config/final_result_7_1_2"
 # main_path = "final_result_7_1_3"
 # config_path = "main_config/final_result_7_1_3"
 # main_path = "final_result_7_1_4"
 # config_path = "main_config/final_result_7_1_4"
+
+# main_path = "final_result_8"
+# config_path = "main_config/final_result_8"
+# main_path = "final_result_8_0_1"
+# config_path = "main_config/final_result_8_0_1"
+# main_path = "final_result_8_0_2"
+# config_path = "main_config/final_result_8_0_2"
+# main_path = "final_result_8_0_3"
+# config_path = "main_config/final_result_8_0_3"
+# main_path = "final_result_8_1_3"
+# config_path = "main_config/final_result_8_1_3"
+# main_path = "final_result_8_2_1"
+# config_path = "main_config/final_result_8_2_1"
+# main_path = "final_result_8_2_2"
+# config_path = "main_config/final_result_8_2_2"
+# main_path = "final_result_8_2_3"
+# config_path = "main_config/final_result_8_2_3"
+# main_path = "final_result_9"
+# config_path = "main_config/final_result_9"
+# main_path = "final_result_9_0_1"
+# config_path = "main_config/final_result_9_0_1"
+# main_path = "final_result_9_0_2"
+# config_path = "main_config/final_result_9_0_2"
+# main_path = "final_result_9_0_3"
+# config_path = "main_config/final_result_9_0_3"
+# main_path = "final_result_10_0_1"
+# config_path = "main_config/final_result_10_0_1"
+# main_path = "final_result_10_0_3"
+# config_path = "main_config/final_result_10_0_3"
+
+# main_path = "final_result_11_0_1"
+# config_path = "main_config/final_result_11_0_1"
+# main_path = "final_result_11_0_2"
+# config_path = "main_config/final_result_11_0_2"
+# main_path = "final_result_11_0_3"
+# config_path = "main_config/final_result_11_0_3"
+
+# main_path = "final_result_11_1_3"
+# config_path = "main_config/final_result_11_1_3"
+# main_path = "final_result_11_2_3"
+# config_path = "main_config/final_result_11_2_3"
+# main_path = "final_result_11_3_3"
+# config_path = "main_config/final_result_11_3_3"
+
+# main_path = "final_result_11_4_1"
+# config_path = "main_config/final_result_11_4_1"
+# main_path = "final_result_11_4_3"
+# config_path = "main_config/final_result_11_4_3"
+# main_path = "final_result_11_4_1_0"
+# config_path = "main_config/final_result_11_4_1_0"
+# main_path = "final_result_11_4_1_1"
+# config_path = "main_config/final_result_11_4_1_1"
+# main_path = "final_result_11_4_1_2"
+# config_path = "main_config/final_result_11_4_1_2"
+# main_path = "final_result_11_4_3_0"
+# config_path = "main_config/final_result_11_4_3_0"
+# main_path = "final_result_11_4_3_1"
+# config_path = "main_config/final_result_11_4_3_1"
+# main_path = "final_result_11_4_3_2"
+# config_path = "main_config/final_result_11_4_3_2"
+
+# main_path = "final_result_12_4_1"
+# config_path = "main_config/final_result_12_4_1"
+# main_path = "final_result_12_4_1_0"
+# config_path = "main_config/final_result_12_4_1_0"
+# main_path = "final_result_12_4_1_1"
+# config_path = "main_config/final_result_12_4_1_1"
+# main_path = "final_result_12_4_1_2"
+# config_path = "main_config/final_result_12_4_1_2"
+
+# main_path = "final_result_12_4_3"
+# config_path = "main_config/final_result_12_4_3"
+# main_path = "final_result_12_4_3_0"
+# config_path = "main_config/final_result_12_4_3_0"
+# main_path = "final_result_12_4_3_1"
+# config_path = "main_config/final_result_12_4_3_1"
+# main_path = "final_result_12_4_3_2"
+# config_path = "main_config/final_result_12_4_3_2"
+
+# main_path = "final_result_12_4_0"
+# config_path = "main_config/final_result_12_4_0"
+# main_path = "final_result_12_4_2"
+# config_path = "main_config/final_result_12_4_2"
+# main_path = "final_result_13_4_0"
+# config_path = "main_config/final_result_13_4_0"
+# main_path = "final_result_13_4_1"
+# config_path = "main_config/final_result_13_4_1"
+# main_path = "final_result_13_4_2"
+# config_path = "main_config/final_result_13_4_2"
+# main_path = "final_result_13_4_3"
+# config_path = "main_config/final_result_13_4_3"
+
+# main_path = "final_result_14_0_3"
+# config_path = "main_config/final_result_14_0_3"
+# main_path = "final_result_14_0_2"
+# config_path = "main_config/final_result_14_0_2"
+# main_path = "final_result_14_3_1/sub"
+# config_path = "main_config/final_result_14_3_1/sub"
+main_path = "final_result_14_3_3/sub"
+config_path = "main_config/final_result_14_3_3/sub"
 aug_conditions=["temp_aug","no_aug"]
 # aug_conditions=["no_aug"]
-
-
 # aug_conditions=["T_F_aug"]
-
 norm_conditions = ["chan_norm","no_norm"]
 # norm_conditions = ["chan_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
 # trainer_conditions = ["vanilla","adaptationV1","adaptation"]
-# trainer_conditions = ["adaptationV1"]
+# trainer_conditions = ["adaptationV1","dannV1"]
+trainer_conditions = ["mcdV1"]
 
-trainer_conditions = ["shallowcon_adaptV1"]
-
+# trainer_conditions = ["shallowcon_adaptV1"]
+# trainer_conditions = ["dannV1"]
+# trainer_conditions = ["share_adaptV1"]
 # trainer_conditions = ["FBCNET_adaptV1"]
 dataset_conditions = ["dataset_A", "dataset_B"]
-
+# dataset_conditions = ["dataset_A"]
 
 setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions)
+
+#
+# all_configs = list()
+# list_config_path = ["final_result_14_3_1/sub","final_result_14_3_3/sub"]
+# for path in list_config_path:
+#     config = os.path.join("main_config/",path)
+#     list_config_out = generate_sub_experiment_config(config, trainer_conditions, dataset_conditions)
+#     list_config_out.append(config)
+#     all_configs.extend(list_config_out)
+#
+# print("all configs : ",all_configs)
+# for config_path in all_configs:
+#     main_path = config_path.split("/")
+#     main_path = '/'.join(main_path[1:])
+#     print("main path : ",main_path)
+#     setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions)
+
+# Python Program to Print
+# all subsets of given size of a set
+

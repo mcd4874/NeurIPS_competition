@@ -11,10 +11,11 @@ DATAMANAGER:
   MANAGER_TYPE: 'multi_dataset'
   DATASET:
     NAME: 'MultiDataset'
-    DIR: 'case_10_B'
+    DIR: 'case_13_B'
     FILENAME: 'NeurIPS_TL.mat'
-    extra_files: [ 'dataset_1.mat','dataset_2.mat' ]
+    extra_files: ['LA/dataset_1.mat','LA/dataset_2.mat']
     target_dataset_relabelled: True
+    source_dataset_LA: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_B'
       TEST_FOLD:
@@ -86,7 +87,7 @@ OPTIM:
     NAME: exponential
     PARAMS:
       gamma: 1.0
-  MAX_EPOCH: 20
+  MAX_EPOCH: 25
 
 TRAIN:
   CHECKPOINT_FREQ: 0
@@ -103,7 +104,7 @@ LIGHTNING_MODEL:
     EXTRA:
       TARGET_LOSS_RATIO: 0.8
       SOURCE_LOSS_RATIO: 0.2
-      SOURCE_PRE_TRAIN_EPOCHS: 10
+      SOURCE_PRE_TRAIN_EPOCHS: 20
   COMPONENTS:
     LAST_FC:
       NAME: max_norm
@@ -126,12 +127,12 @@ LIGHTNING_MODEL:
 
 EXTRA_FIELDS:
   target_dataset: 'dataset_B'
-  source_dataset: ['cho2017','physionet','BCI_IV']
+  source_dataset: ['cho2017','physionet']
   normalize: 'no_norm'
   EA: False
-  LA: False
+  LA: True
   aug: 'no_aug'
   model: 'MultiDatasetAdaptationV1'
   backbone: 'eegnet'
-  source_label_space: [2,3,3]
+  source_label_space: [2,3]
   target_label_space: 3

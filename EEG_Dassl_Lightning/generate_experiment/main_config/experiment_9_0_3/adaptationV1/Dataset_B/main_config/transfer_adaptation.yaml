@@ -13,41 +13,40 @@ DATAMANAGER:
     NAME: 'MultiDataset'
     DIR: 'case_13_B'
     FILENAME: 'NeurIPS_TL.mat'
-    extra_files: [ 'LA\dataset_1.mat','LA\dataset_2.mat' ]
+    extra_files: ['LA/dataset_1.mat','LA/dataset_2.mat']
     target_dataset_relabelled: True
     USE_Euclidean_Aligment: True
     source_dataset_LA: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_B'
       TEST_FOLD:
-        N_TEST_FOLDS: 1
+        N_TEST_FOLDS: 5
         TEST_FOLD_PREFIX: 'test_fold'
         START_TEST_FOLD: 1
-        END_TEST_FOLD: 1
+        END_TEST_FOLD: 5
         CURRENT_TEST_FOLD: 1
         WITHIN_SUBJECTS: True
         TRAIN_VALID_DATA_RATIO: -1
-        SAME_AS_VALID: True
       SHUFFLE_TRAIN_VALID_FOLD:
         SHUFFLE_FOLD_PREFIX: 'shuffle_fold'
         N_SHUFFLE_FOLDS: 1
         START_SHUFFLE_FOLD: 1
         END_SHUFFLE_FOLD: 1
         CURRENT_SHUFFLE_FOLD: 1
-        SHUFFLE_SEED: []
+        SHUFFLE_SEED: [ ]
       INCREMENT_FOLD:
         INCREMENT_FOLD_PREFIX: 'increment_fold'
         N_INCREMENT_FOLDS: 1
-        START_NUM_TRAIN_SUGJECT: 3
+        START_NUM_TRAIN_SUGJECT: 2
         INCREMENT_TRAIN_SUGJECT: 0
         START_INCREMENT_FOLD: 1
         END_INCREMENT_FOLD: 1
         CURRENT_INCREMENT_FOLD: 1
       VALID_FOLD:
         VALID_FOLD_PREFIX: 'valid_fold'
-        N_VALID_FOLDS: 5
+        N_VALID_FOLDS: 4
         START_VALID_FOLD: 1
-        END_VALID_FOLD: 5
+        END_VALID_FOLD: 4
         CURRENT_VALID_FOLD: 1
         WITHIN_SUBJECTS: True
         TRAIN_DATA_RATIO: -1

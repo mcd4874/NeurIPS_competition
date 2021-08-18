@@ -276,15 +276,24 @@ dataset_A_channels = get_dataset_A_ch()
 dataset_B_channels = get_dataset_B_ch()
 X_src1,_,_ = load_Cho2017(subjects=[1])
 X_src2, _, _ = load_Physionet(subjects=[1])
+X_src3, _, _ = load_BCI_IV(subjects=[1])
 Cho2017_channels = X_src1.ch_names
+montage = X_src1.get_montage()
 Physionet_channels = X_src2.ch_names
+BCI_IV_channels = X_src3.ch_names
+
+# common_channel_A_B = generate_common_target_chans(target_chan=dataset_A_channels,source_chans=[dataset_B_channels,Cho2017_channels,Physionet_channels])
+# print("common chan A_B size : ",len(common_channel_A_B))
+# print("common chan A_B : ",common_channel_A_B)
+
+common_channel_A_B = generate_common_target_chans(target_chan=Cho2017_channels,source_chans=[dataset_A_channels,dataset_B_channels,Physionet_channels])
+print("common chan A_B size : ",len(common_channel_A_B))
+print("common chan A_B : ",common_channel_A_B)
+# target_channels_A = generate_common_target_chans(target_chan=dataset_A_channels,source_chans=[Cho2017_channels,Physionet_channels,BCI_IV_channels])
+# target_channels_B = generate_common_target_chans(target_chan=dataset_B_channels,source_chans=[Cho2017_channels,Physionet_channels,BCI_IV_channels])
 
 
-target_channels_A = generate_common_target_chans(target_chan=dataset_A_channels,source_chans=[Cho2017_channels,Physionet_channels])
-target_channels_B = generate_common_target_chans(target_chan=dataset_B_channels,source_chans=[Cho2017_channels,Physionet_channels])
-
-
-def load_source_data(target_channels,dataset_name="cho2017"):
+def load_source_data(target_channels,dataset_name="cho2017",montage=None):
     print("common target chans : ",target_channels)
     print("target size : ",len(target_channels))
     fmin=4
@@ -308,6 +317,12 @@ def load_source_data(target_channels,dataset_name="cho2017"):
         # src2 = correct_EEG_data_order(epoch_X_src2, target_channels)
         # X_src2 = modify_data(src2, time=max_time_length)
         # X_src2 = convert_volt_to_micro(X_src2)
+    elif dataset_name == "BCI_IV":
+        events = dict(left_hand=1, right_hand=2,feet=3)
+        epoch_X_src, label_src, m_src = load_BCI_IV(fmin=fmin, fmax=fmax, selected_chans=target_channels,
+                                                       montage=montage, subjects=[1, 2])
+        # epoch_X_src, label_src, m_src = load_BCI_IV(fmin=fmin, fmax=fmax, selected_chans=target_channels,montage=montage,events=events)
+
     src1 = correct_EEG_data_order(epoch_X_src, target_channels)
     X_src1 = modify_data(src1, time=max_time_length)
     X_src1 = convert_volt_to_micro(X_src1)
@@ -338,9 +353,14 @@ def create_epoch_array(data,label,channel_name,sampling_freq = 128,event_id=None
 
     mne_data = mne.EpochsArray(data, info, event_id=event_id, events=events, tmin=0)
     return mne_data
+# print("target channels A size : ",len(target_channels_A))
+# X_src1,y_src1,m_src1 = load_source_data(target_channels=target_channels_A,dataset_name="cho2017")
+# X_src2,y_src2,m_src2 = load_source_data(target_channels=target_channels_A,dataset_name="physionet")
+# X_src3,y_src3,m_src3 = load_source_data(target_channels=target_channels_A,dataset_name="BCI_IV")
 
-X_src1,y_src1,m_src1 = load_source_data(target_channels=target_channels_A,dataset_name="cho2017")
-X_src2,y_src2,m_src2 = load_source_data(target_channels=target_channels_A,dataset_name="physionet")
+X_src1,y_src1,m_src1 = load_source_data(target_channels=common_channel_A_B,dataset_name="cho2017")
+X_src2,y_src2,m_src2 = load_source_data(target_channels=common_channel_A_B,dataset_name="physionet")
+X_src3,y_src3,m_src3 = load_source_data(target_channels=common_channel_A_B,dataset_name="BCI_IV",montage=montage)
 
 print("before update meta data : ",m_src2)
 # X_src2,y_src2,m_src2 = reformat(X_src2,y_src2,m_src2)
@@ -348,25 +368,38 @@ print("before update meta data : ",m_src2)
 
 print("update meta data : ",m_src2)
 
-X_MIA_train_data,X_MIA_train_label,m_tgt_A,X_MIA_test_data = load_target_data(target_channels=target_channels_A,dataset_name="dataset_A")
+# X_MIA_train_data,X_MIA_train_label,m_tgt_A,X_MIA_test_data = load_target_data(target_channels=target_channels_A,dataset_name="dataset_A")
+X_MIA_train_data,X_MIA_train_label,m_tgt_A,X_MIA_test_data = load_target_data(target_channels=common_channel_A_B,dataset_name="dataset_A")
 
 print("dataset a meta data : ",m_tgt_A)
 
 #conduct label alignment
 tmp_X_src1,tmp_y_src1, tmp_m_src1 = reformat(X_src1,y_src1,m_src1)
 tmp_X_src2,tmp_y_src2,tmp_m_src2 = reformat(X_src2,y_src2,m_src2)
+tmp_X_src3,tmp_y_src3,tmp_m_src3 = reformat(X_src3,y_src3,m_src3)
+
 LA_A = LabelAlignment(target_dataset=(X_MIA_train_data,X_MIA_train_label))
 
 update_X_src1, update_y_src1 = LA_A.convert_source_data_with_LA(tmp_X_src1,tmp_y_src1)
 update_X_src2, update_y_src2 = LA_A.convert_source_data_with_LA(tmp_X_src2,tmp_y_src2)
-train_A = np.split(X_MIA_train_data,2)
+update_X_src3, update_y_src3 = LA_A.convert_source_data_with_LA(tmp_X_src3,tmp_y_src3)
 
 print_info(update_X_src1,dataset_name="Cho2017")
 print_info(update_X_src2,dataset_name="Physionet")
-print_info(train_A,dataset_name="dataset A")
+print_info(update_X_src3,dataset_name="BCI_IV")
 
 LA_X_src1,LA_y_src1,LA_m_src1 = combine(update_X_src1, update_y_src1,tmp_m_src1)
 LA_X_src2,LA_y_src2,LA_m_src2 = combine(update_X_src2, update_y_src2,tmp_m_src2)
+LA_X_src3,LA_y_src3,LA_m_src3 = combine(update_X_src3, update_y_src3,tmp_m_src3)
+import matplotlib.pyplot as plt
+def plot(data,label,channel_name,event_id=None):
+    print("plot")
+    epoch_array_1 = create_epoch_array(data[0]*1e-6,label[0],channel_name,event_id=event_id)
+    epoch_array_1['left_hand'][0].plot()
+    # epoch_array_1['right_hand'][0].plot()
+    # epoch_array_1['rest'][3].plot()
+    plt.savefig("plots/pic.png")
+
 
 
 def plot_before_vs_after_LA(dataset1,dataset2,channel_name,event_id =None):
@@ -379,23 +412,55 @@ def plot_before_vs_after_LA(dataset1,dataset2,channel_name,event_id =None):
     print_dataset_info(x_1[0]*1e-6,"before update")
     print_dataset_info(x_2[0]*1e-6,"after update")
 
-    epoch_array_1 = create_epoch_array(x_1[0]*1e-6,y_1[0],channel_name,event_id=event_id)
-    epoch_array_2 = create_epoch_array(x_2[0]*1e-6,y_2[0],channel_name,event_id=event_id)
+    plot(x_1,y_1,channel_name,event_id=event_id)
+    plot(x_2,y_2,channel_name,event_id=event_id)
+    # epoch_array_1 = create_epoch_array(x_1[0]*1e-6,y_1[0],channel_name,event_id=event_id)
+    # epoch_array_2 = create_epoch_array(x_2[0]*1e-6,y_2[0],channel_name,event_id=event_id)
+    #
+    # epoch_array_1['left_hand'][0].plot()
+    # epoch_array_2['left_hand'][0].plot()
 
-    epoch_array_1['left_hand'][0].plot()
-    epoch_array_2['left_hand'][0].plot()
+
+# event_id = dict(left_hand=0, right_hand=1)
+# plot_before_vs_after_LA((X_src1,y_src1,m_src1),(LA_X_src1,LA_y_src1,LA_m_src1),channel_name=target_channels_A,event_id=event_id)
+#
+# # event_id = dict(left_hand=0, right_hand=1)
+# event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
+# plot_before_vs_after_LA((X_src2,y_src2,m_src2),(LA_X_src2,LA_y_src2,LA_m_src2),channel_name=target_channels_A,event_id=event_id)
+# #
+# event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
+# plot_before_vs_after_LA((X_src3,y_src3,m_src3),(LA_X_src3,LA_y_src3,LA_m_src3),channel_name=target_channels_A,event_id=event_id)
+# #
+# #
+# train_A,label_A = np.split(X_MIA_train_data,2),np.split(X_MIA_train_label,2)
+# event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
+# plot(train_A,label_A,target_channels_A,event_id=event_id)
+
+event_id = dict(left_hand=0, right_hand=1)
+plot_before_vs_after_LA((X_src1,y_src1,m_src1),(LA_X_src1,LA_y_src1,LA_m_src1),channel_name=common_channel_A_B,event_id=event_id)
 
 # event_id = dict(left_hand=0, right_hand=1)
 event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
-plot_before_vs_after_LA((X_src2,y_src2,m_src2),(LA_X_src2,LA_y_src2,LA_m_src2),channel_name=target_channels_A,event_id=event_id)
+plot_before_vs_after_LA((X_src2,y_src2,m_src2),(LA_X_src2,LA_y_src2,LA_m_src2),channel_name=common_channel_A_B,event_id=event_id)
 
-event_id = dict(left_hand=0, right_hand=1)
-plot_before_vs_after_LA((X_src1,y_src1,m_src1),(LA_X_src1,LA_y_src1,LA_m_src1),channel_name=target_channels_A,event_id=event_id)
+event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
+plot_before_vs_after_LA((X_src3,y_src3,m_src3),(LA_X_src3,LA_y_src3,LA_m_src3),channel_name=common_channel_A_B,event_id=event_id)
+
+
+train_A,label_A = np.split(X_MIA_train_data,2),np.split(X_MIA_train_label,2)
+event_id = dict(left_hand=0, right_hand=1, feet=2, rest=3)
+plot(train_A,label_A,common_channel_A_B,event_id=event_id)
+#
+
 m_src1 = {name: col.values for name, col in m_src1.items()}
 m_src2 = {name: col.values for name, col in m_src2.items()}
+m_src3 = {name: col.values for name, col in m_src3.items()}
+
 
 LA_m_src1 = {name: col.values for name, col in LA_m_src1.items()}
 LA_m_src2 = {name: col.values for name, col in LA_m_src2.items()}
+LA_m_src3 = {name: col.values for name, col in LA_m_src3.items()}
+
 dataset_1 = {
     'data': X_src1,
     'label': y_src1,
@@ -408,6 +473,13 @@ dataset_2 = {
     'label': y_src2,
     'meta_data': m_src2,
     'dataset_name': 'physionet'
+}
+
+dataset_3 = {
+    'data': X_src3,
+    'label': y_src3,
+    'meta_data': m_src3,
+    'dataset_name': 'BCI_IV'
 }
 
 LA_dataset_1 = {
@@ -424,6 +496,13 @@ LA_dataset_2 = {
     'dataset_name': 'physionet'
 }
 
+LA_dataset_3 = {
+    'data': LA_X_src3,
+    'label': LA_y_src3,
+    'meta_data': LA_m_src3,
+    'dataset_name': 'BCI_IV'
+}
+
 target_dataset_A = {
     'data': X_MIA_train_data,
     'label': X_MIA_train_label,
@@ -437,39 +516,47 @@ test_dataset_A = {
     'dataset_name': 'dataset_A'
 }
 
-# print_dataset_info(X_MIA_train_data,"train dataset A")
+print_dataset_info(X_MIA_train_data,"train dataset A")
 # print_dataset_info(X_MIA_test_data,"test dataset A")
 # print_dataset_info(X_src1,"source 1 ")
 # print_dataset_info(X_src2,"source 2 ")
 #
 # print_dataset_info(np.concatenate(update_X_src1),"update source 1 ")
 # print_dataset_info(np.concatenate(update_X_src2),"update source 2 ")
-#
-# generate_data_file([target_dataset_A],folder_name='case_14_A',file_name = 'NeurIPS_TL')
-# generate_data_file([dataset_1],folder_name='case_14_A',file_name = 'dataset_1')
-# generate_data_file([dataset_2],folder_name='case_14_A',file_name = 'dataset_2')
-#
-# generate_data_file([LA_dataset_1],folder_name='case_14_A/LA',file_name = 'dataset_1')
-# generate_data_file([LA_dataset_2],folder_name='case_14_A/LA',file_name = 'dataset_2')
 
-
-
-#set up dataset B
-# X_src1,y_src1,m_src1 = load_source_data(target_channels=target_channels_B,dataset_name="cho2017")
-# X_src2,y_src2,m_src2 = load_source_data(target_channels=target_channels_B,dataset_name="physionet")
+# generate_data_file([target_dataset_A],folder_name='case_12_A',file_name = 'NeurIPS_TL')
+# generate_data_file([dataset_1],folder_name='case_12_A',file_name = 'dataset_1')
+# generate_data_file([dataset_2],folder_name='case_12_A',file_name = 'dataset_2')
+# generate_data_file([dataset_3],folder_name='case_12_A',file_name = 'dataset_3')
 #
-# X_MIB_train_data,X_MIB_train_label,m_tgt_B,X_MIB_test_data = load_target_data(target_channels=target_channels_B,dataset_name="dataset_B")
 #
-# X_src2,y_src2,m_src2 = reformat(X_src2,y_src2,m_src2)
-# X_src2,y_src2,m_src2 = reduce_dataset(X_src2,y_src2,m_src2)
+# generate_data_file([LA_dataset_1],folder_name='case_12_A/LA',file_name = 'dataset_1')
+# generate_data_file([LA_dataset_2],folder_name='case_12_A/LA',file_name = 'dataset_2')
+# generate_data_file([LA_dataset_3],folder_name='case_12_A/LA',file_name = 'dataset_3')
+#
+#
+#
+# #set up dataset B
+# X_src1,y_src1,m_src1 = load_source_data(target_channels=common_channel_A_B,dataset_name="cho2017")
+# X_src2,y_src2,m_src2 = load_source_data(target_channels=common_channel_A_B,dataset_name="physionet")
+# X_src3,y_src3,m_src3 = load_source_data(target_channels=common_channel_A_B,dataset_name="BCI_IV",montage=montage)
+#
+#
+#
+# X_MIB_train_data,X_MIB_train_label,m_tgt_B,X_MIB_test_data = load_target_data(target_channels=common_channel_A_B,dataset_name="dataset_B")
+# #
+#
 #
 # tmp_X_src1,tmp_y_src1,tmp_m_src1 = reformat(X_src1,y_src1,m_src1)
 # tmp_X_src2,tmp_y_src2,tmp_m_src2 = reformat(X_src2,y_src2,m_src2)
+# tmp_X_src3,tmp_y_src3,tmp_m_src3 = reformat(X_src3,y_src3,m_src3)
 #
 # LA_B = LabelAlignment(target_dataset=(X_MIB_train_data,X_MIB_train_label))
 #
 # update_X_src1, update_y_src1 = LA_B.convert_source_data_with_LA(tmp_X_src1,tmp_y_src1)
 # update_X_src2, update_y_src2 = LA_B.convert_source_data_with_LA(tmp_X_src2,tmp_y_src2)
+# update_X_src3, update_y_src3 = LA_B.convert_source_data_with_LA(tmp_X_src3,tmp_y_src3)
+#
 # train_B = np.split(X_MIB_train_data,3)
 #
 #
@@ -479,13 +566,17 @@ test_dataset_A = {
 #
 # LA_X_src1,LA_y_src1,LA_m_src1 = combine(update_X_src1, update_y_src1,tmp_m_src1)
 # LA_X_src2,LA_y_src2,LA_m_src2 = combine(update_X_src2, update_y_src2,tmp_m_src2)
+# LA_X_src3,LA_y_src3,LA_m_src3 = combine(update_X_src3, update_y_src3,tmp_m_src3)
 #
 #
 # m_src1 = {name: col.values for name, col in m_src1.items()}
 # m_src2 = {name: col.values for name, col in m_src2.items()}
+# m_src3 = {name: col.values for name, col in m_src3.items()}
+#
 #
 # LA_m_src1 = {name: col.values for name, col in LA_m_src1.items()}
 # LA_m_src2 = {name: col.values for name, col in LA_m_src2.items()}
+# LA_m_src3 = {name: col.values for name, col in LA_m_src3.items()}
 #
 #
 # dataset_1 = {
@@ -502,6 +593,13 @@ test_dataset_A = {
 #     'dataset_name': 'physionet'
 # }
 #
+# dataset_3 = {
+#     'data': X_src3,
+#     'label': y_src3,
+#     'meta_data': m_src3,
+#     'dataset_name': 'BCI_IV'
+# }
+#
 # LA_dataset_1 = {
 #     'data': LA_X_src1,
 #     'label': LA_y_src1,
@@ -516,6 +614,12 @@ test_dataset_A = {
 #     'dataset_name': 'physionet'
 # }
 #
+# LA_dataset_3 = {
+#     'data': LA_X_src3,
+#     'label': LA_y_src3,
+#     'meta_data': LA_m_src3,
+#     'dataset_name': 'BCI_IV'
+# }
 #
 # target_dataset_B = {
 #     'data': X_MIB_train_data,
@@ -536,12 +640,18 @@ test_dataset_A = {
 #
 # print_dataset_info(X_src1,"source 1 ")
 # print_dataset_info(X_src2,"source 2 ")
-# #
-# generate_data_file([target_dataset_B],folder_name='case_14_B',file_name = 'NeurIPS_TL')
-# generate_data_file([dataset_1],folder_name='case_14_B',file_name = 'dataset_1')
-# generate_data_file([dataset_2],folder_name='case_14_B',file_name = 'dataset_2')
+# print_dataset_info(X_src3,"source 3 ")
 #
-# generate_data_file([LA_dataset_1],folder_name='case_14_B/LA',file_name = 'dataset_1')
-# generate_data_file([LA_dataset_2],folder_name='case_14_B/LA',file_name = 'dataset_2')
-# generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_case_14_microvolt')
+# # #
+# generate_data_file([target_dataset_B],folder_name='case_12_B',file_name = 'NeurIPS_TL')
+# generate_data_file([dataset_1],folder_name='case_12_B',file_name = 'dataset_1')
+# generate_data_file([dataset_2],folder_name='case_12_B',file_name = 'dataset_2')
+# generate_data_file([dataset_3],folder_name='case_12_B',file_name = 'dataset_3')
+#
+#
+# generate_data_file([LA_dataset_1],folder_name='case_12_B/LA',file_name = 'dataset_1')
+# generate_data_file([LA_dataset_2],folder_name='case_12_B/LA',file_name = 'dataset_2')
+# generate_data_file([LA_dataset_3],folder_name='case_12_B/LA',file_name = 'dataset_3')
+#
+# generate_data_file([test_dataset_A,test_dataset_B],folder_name='test_case_12_microvolt')
 

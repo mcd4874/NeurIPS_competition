@@ -13,10 +13,9 @@ DATAMANAGER:
     NAME: 'MultiDataset'
     DIR: 'case_12_B'
     FILENAME: 'NeurIPS_TL.mat'
-    extra_files: [ 'LA/dataset_1.mat','LA/dataset_2.mat','LA/dataset_3.mat']
+    extra_files: [ 'dataset_1.mat','dataset_2.mat','dataset_3.mat']
     target_dataset_relabelled: True
     USE_Euclidean_Aligment: True
-    source_dataset_LA: True
     SETUP:
       TARGET_DATASET_NAME: 'dataset_B'
       TEST_FOLD:
@@ -133,7 +132,7 @@ EXTRA_FIELDS:
   source_dataset: ['cho2017','physionet','BCI_IV']
   normalize: 'no_norm'
   EA: True
-  LA: True
+  LA: False
   aug: 'no_aug'
   model: 'MultiDatasetAdaptationV1'
   backbone: 'eegnet'

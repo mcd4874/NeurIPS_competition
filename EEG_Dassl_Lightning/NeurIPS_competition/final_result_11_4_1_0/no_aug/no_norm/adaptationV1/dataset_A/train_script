@@ -1,0 +1,7 @@
+--root
+C:\wduong_folder\Dassl.pytorch-master\NeurIPS_competition\EEG_Dassl_Lightning\da_dataset\NeurIPS_competition
+--output-dir
+C:\wduong_folder\Dassl.pytorch-master\NeurIPS_competition\EEG_Dassl_Lightning\NeurIPS_competition\final_result_7\no_aug\chan_norm\adaptationV1\dataset_A\model
+--main-config-file
+C:\wduong_folder\Dassl.pytorch-master\NeurIPS_competition\EEG_Dassl_Lightning\NeurIPS_competition\final_result_7\no_aug\chan_norm\adaptationV1\dataset_A\main_config\transfer_adaptation.yaml
+--train-k-folds
