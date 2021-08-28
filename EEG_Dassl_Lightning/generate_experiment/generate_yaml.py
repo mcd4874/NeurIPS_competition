@@ -296,6 +296,18 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetMCDV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
         ]
+    elif trainer_type == "SRDA":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetSRDA"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetSRDA"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
+        ]
+    elif trainer_type == "addaV1":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetADDAV1"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetADDAV1"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
+        ]
     elif trainer_type == "FBCNET_adaptV1":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
@@ -531,24 +543,44 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # main_path = "final_result_13_4_3"
 # config_path = "main_config/final_result_13_4_3"
 
+
+# main_path = "final_result_12_3_1/sub"
+# config_path = "main_config/final_result_12_3_1/sub"
+# main_path = "final_result_12_3_3/sub"
+# config_path = "main_config/final_result_12_3_3/sub"
+
 # main_path = "final_result_14_0_3"
 # config_path = "main_config/final_result_14_0_3"
 # main_path = "final_result_14_0_2"
 # config_path = "main_config/final_result_14_0_2"
-# main_path = "final_result_14_3_1/sub"
-# config_path = "main_config/final_result_14_3_1/sub"
-main_path = "final_result_14_3_3/sub"
-config_path = "main_config/final_result_14_3_3/sub"
+# main_path = "final_result_14_3_1/sub_20"
+# config_path = "main_config/final_result_14_3_1/sub_20"
+main_path = "final_result_14_3_1/sub_30"
+config_path = "main_config/final_result_14_3_1/sub_30"
+# main_path = "final_result_14_3_1/pretrain_0"
+# config_path = "main_config/final_result_14_3_1/pretrain_0"
+# main_path = "final_result_14_3_3/sub"
+# config_path = "main_config/final_result_14_3_3/sub"
+
+# main_path = "private_exp_14_3_1/sub_5"
+# config_path = "main_config/private_exp_14_3_1/sub_5"
+# main_path = "private_exp_14_3_3/sub"
+# config_path = "main_config/private_exp_14_3_3/sub"
+# dataset_conditions = ["BCI_IV"]
+
 aug_conditions=["temp_aug","no_aug"]
 # aug_conditions=["no_aug"]
 # aug_conditions=["T_F_aug"]
-norm_conditions = ["chan_norm","no_norm"]
-# norm_conditions = ["chan_norm"]
+# norm_conditions = ["chan_norm","no_norm"]
+norm_conditions = ["no_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
-# trainer_conditions = ["vanilla","adaptationV1","adaptation"]
+# trainer_conditions = ["adaptationV1","dannV1","mcdV1","vanilla"]
 # trainer_conditions = ["adaptationV1","dannV1"]
-trainer_conditions = ["mcdV1"]
+trainer_conditions = ["mcdV1","adaptationV1"]
+# trainer_conditions = ["addaV1"]
+# trainer_conditions = ["SRDA","addaV1"]
+
 
 # trainer_conditions = ["shallowcon_adaptV1"]
 # trainer_conditions = ["dannV1"]

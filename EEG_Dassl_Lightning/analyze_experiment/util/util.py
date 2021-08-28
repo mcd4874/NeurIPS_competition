@@ -8,6 +8,7 @@ import json
 
 def generate_data_paths(common_path, prefix_lists, append_dir):
     if (len(prefix_lists) == 0):
+        # print("append dir : ",append_dir)
         new_path = common_path.format(*append_dir)
         if not os.path.exists(new_path):
             return []

@@ -27,8 +27,8 @@ source "${DIR}/common_script.sh"
 group_aug=("$temp_aug")
 #group_aug=("$no_aug")
 
-group_norm=("$chan_norm")
-#group_norm=("$no_norm")
+#group_norm=("$chan_norm")
+group_norm=("$no_norm")
 
 #group_datasets=("$BCI_IV_dataset")
 #group_datasets=("$Cho2017_dataset")
@@ -47,20 +47,25 @@ group_datasets=("$Dataset_A_dataset")
 #run_full_multi_gpu $gpu_device_0 $final_result_9_0_1 group_aug group_norm group_model group_datasets
 #run_predict $gpu_device_0 $final_result_9_0_1 $test_case_13_microvolt_path group_aug group_norm group_model group_datasets
 #group_model=("$share_adaptV1_prefix")
-LIST_EXP_TYPE=("$final_result_14_3_1" "$final_result_14_3_3")
+LIST_EXP_TYPE=("$final_result_14_3_1")
 #sub_list=("sub" "sub_0" "sub_1" "sub_2")
 #group_model=("$adaptationV1_prefix" "$dannV1_prefix")
-sub_list=("sub")
+sub_list=("sub_30")
+#sub_list=("pretrain_0")
+#group_model=("$adaptationV1_prefix")
 group_model=("$mcdV1_prefix")
-
+#group_model=("$SRDA_prefix")
+PRETRAIN_EXP_TYPE="NeurIPS_competition/final_result_14_3_1/pretrain_0"
 #LIST_EXP_TYPE=("$final_result_14_0_1" "$final_result_14_0_1_0" "$final_result_14_0_1_1" "$final_result_14_0_1_2" "$final_result_14_0_2" "$final_result_14_0_2_0" "$final_result_14_0_2_1" "$final_result_14_0_2_2" "$final_result_14_0_3" "$final_result_14_0_3_0" "$final_result_14_0_3_1" "$final_result_14_0_3_2")
 for EXP_TYPE in "${LIST_EXP_TYPE[@]}";
 do
   for sub in "${sub_list[@]}";
   do
     NEW_TYPE="${EXP_TYPE}/${sub}"
-    run_full_multi_gpu $gpu_device_0 $NEW_TYPE group_aug group_norm group_model group_datasets
-  #  run_predict $gpu_device_0 $EXP_TYPE $test_data_path group_aug group_norm group_model group_datasets
+#    run_train_only $gpu_device_0 $NEW_TYPE group_aug group_norm group_model group_datasets
+    run_pretrain $gpu_device_0 $NEW_TYPE $PRETRAIN_EXP_TYPE group_aug group_norm group_model group_datasets
+#    run_al_full $gpu_device_0 $NEW_TYPE $test_case_16_microvolt_path group_aug group_norm group_model group_datasets
+#    run_full_multi_gpu $gpu_device_0 $NEW_TYPE group_aug group_norm group_model group_datasets
     run_predict_relabel $gpu_device_0 $NEW_TYPE $test_case_16_microvolt_path group_aug group_norm group_model group_datasets
   done
 done

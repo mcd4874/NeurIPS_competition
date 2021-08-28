@@ -19,7 +19,9 @@ from .multi_dataset_adaptation import MultiDatasetAdaptation
 from .multi_dataset_adaptation_v1 import MultiDatasetAdaptationV1
 from .multi_dataset_dann_v1 import MultiDatasetDannV1
 from .multi_dataset_mcd_v1 import MultiDatasetMCDV1
+from .multi_dataset_adda_v1 import MultiDatasetADDAV1
 from .multi_share_adaptation_v1 import MultiShareAdaptationV1
+from .multi_dataset_SRDA import MultiDatasetSRDA
 # from .multi_dataset_dann import MultiDatasetDann
 # from .multi_dataset_dan import MultiDatasetDan
 # from .multi_dataset_cdan import MultiDatasetCdan

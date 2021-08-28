@@ -81,6 +81,9 @@ class DatasetBase:
     def train_x(self):
         return self._train_x
 
+    def set_train_x(self, train_x):
+        self._train_x = train_x
+
     @property
     def train_u(self):
         return self._train_u

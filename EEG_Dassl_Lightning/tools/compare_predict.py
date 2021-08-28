@@ -150,6 +150,36 @@ dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competi
 pred_A_14 = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
 pred_B_14 = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
 
+# #case 14-3-1
+dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_14_3_1\\sub_30\\no_aug\\no_norm\\mcdV1\dataset_A\model\\predict_folder"
+dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_14_3_1\\sub_30\\no_aug\\no_norm\\mcdV1\dataset_B\model\\predict_folder"
+
+pred_A_15 = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
+pred_B_15 = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
+
+# #case 14-3-1 case 14-3-1 ensemble
+# dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\ensemble_results\\case1\\dataset_A"
+# dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\ensemble_results\\case1\\dataset_B"
+#
+# pred_A_16 = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
+# pred_B_16 = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
+
+#case 12-3-1
+dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_12_3_1\\sub\\temp_aug\\no_norm\\mcdV1\dataset_A\model\\predict_folder"
+dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_12_3_1\\sub\\temp_aug\\no_norm\\mcdV1\dataset_B\model\\predict_folder"
+
+
+pred_A_12_3_1 = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
+pred_B_12_3_1 = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
+
+#case 12-3-3
+dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_12_3_3\\sub\\no_aug\\no_norm\\mcdV1\dataset_A\model\\predict_folder"
+dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_12_3_3\\sub\\no_aug\\no_norm\\mcdV1\dataset_B\model\\predict_folder"
+
+
+pred_A_12_3_3 = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
+pred_B_12_3_3 = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
+
 
 def count(label,name=""):
     count_0 = len(np.where(label == 0)[0])
@@ -284,12 +314,12 @@ def combine_result(best_pred,list_pred):
             pred_output.append(final_label)
     return np.array(pred_output)
 
-# new_A = combine_result(pred_A_14,[pred_A_5])
-# count(new_A,name="new_A")
-# new_B = combine_result(pred_B_14,[pred_B_5])
-# count(new_B,name="new_B")
-# count_similar = np.sum(pred_A_5 == new_A)
-# print("count simibar A : ",count_similar)
+new_A = combine_result(pred_A_14,[pred_A_15])
+count(new_A,name="new_A")
+new_B = combine_result(pred_B_14,[pred_B_15])
+count(new_B,name="new_B")
+count_similar = np.sum(pred_A_14 == new_A)
+print("count simibar A : ",count_similar)
 # count(pred_A_5,name="A_5")
 # count(new_A,name="new_A")
 #
@@ -375,3 +405,33 @@ count_similar = np.sum(pred_B_5 == pred_B_14)
 print("count simibar B : ",count_similar)
 count(pred_B_5,name="B_5")
 count(pred_B_14,name="B_14")
+
+count_similar = np.sum(pred_A_14 == pred_A_15)
+print("count simibar A : ",count_similar)
+count(pred_A_14,name="A_14")
+count(pred_A_15,name="A_15")
+
+count_similar = np.sum(pred_B_14 == pred_B_15)
+print("count simibar B : ",count_similar)
+count(pred_B_14,name="B_14")
+count(pred_B_15,name="B_15")
+
+# count_similar = np.sum(pred_A_14 == pred_A_12_3_1)
+# print("count simibar A : ",count_similar)
+# count(pred_A_14,name="A_14")
+# count(pred_A_12_3_1,name="A_12_3_1")
+#
+# count_similar = np.sum(pred_B_14 == pred_B_12_3_1)
+# print("count simibar B : ",count_similar)
+# count(pred_B_14,name="B_14")
+# count(pred_B_12_3_1,name="B_12_3_1")
+
+# count_similar = np.sum(pred_A_14 == pred_A_12_3_3)
+# print("count simibar A : ",count_similar)
+# count(pred_A_14,name="A_14")
+# count(pred_A_12_3_3,name="A_12_3_3")
+#
+# count_similar = np.sum(pred_B_14 == pred_B_12_3_3)
+# print("count simibar B : ",count_similar)
+# count(pred_B_14,name="B_14")
+# count(pred_B_12_3_3,name="B_12_3_3")

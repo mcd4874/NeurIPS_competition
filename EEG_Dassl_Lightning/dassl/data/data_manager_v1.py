@@ -52,6 +52,8 @@ class DataManagerV1(LightningDataModule):
         self.useFilterBank = self.cfg.DATAMANAGER.DATASET.FILTERBANK.USE_FILTERBANK
         self.relabel = self.cfg.DATAMANAGER.DATASET.target_dataset_relabelled
         self.label_alignment = self.cfg.DATAMANAGER.DATASET.source_dataset_LA
+
+        self.view_test_subject_result = True
         super(DataManagerV1, self).__init__()
 
 
@@ -60,6 +62,7 @@ class DataManagerV1(LightningDataModule):
         require_parameter['num_classes'] = self.num_classes
         require_parameter['total_subjects'] = self.total_subjects
         require_parameter['target_domain_class_weight'] = self.whole_class_weight
+        require_parameter['num_test_subjects'] = len(self.subject_test)
 
 
         return require_parameter
@@ -78,8 +81,12 @@ class DataManagerV1(LightningDataModule):
     def dataset(self):
         return self._dataset
 
+    def update_dataset(self,dataset):
+        self._dataset = dataset
+
     def setup(self, stage: Optional[str] = None) -> None:
-        self._dataset = build_dataset(self.cfg)
+        if self._dataset is None:
+            self._dataset = build_dataset(self.cfg)
         self._label_name_map = self._dataset.label_name_map
         train_x_dataset = self._dataset.train_x
         val_dataset = self._dataset.val
@@ -128,9 +135,9 @@ class DataManagerV1(LightningDataModule):
         if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
             print("run custom EA")
             if self._dataset.r_op_list is not None:
-                self.train_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
-                self.val_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
-                self.test_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+                self.train_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list,subject_ids=self._dataset.pick_train_subjects)
+                self.val_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list,subject_ids=self._dataset.pick_valid_subjects)
+                self.test_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list,subject_ids=self._dataset.pick_test_subjects)
             else:
                 self.train_EA = EuclideanAlignment()
                 self.val_EA = EuclideanAlignment()
@@ -187,6 +194,8 @@ class DataManagerV1(LightningDataModule):
         valid_items = generate_datasource(val_data, val_label, label_name_map=self._label_name_map)
         test_items = generate_datasource(test_data, test_label, label_name_map=self._label_name_map)
 
+        list_subject_test_item = [generate_datasource([test_data[subject_idx]], [test_label[subject_idx]], label_name_map=self._label_name_map) for subject_idx in range(len(test_label))]
+
         #get num_classes and lab2cname
         self._num_classes = get_num_classes(train_items)
         self._lab2cname = get_label_classname_mapping(train_items)
@@ -197,6 +206,7 @@ class DataManagerV1(LightningDataModule):
         self.train_x = train_items
         self.val = valid_items
         self.test = test_items
+        self.subject_test = list_subject_test_item
 
         self._total_subjects = self._dataset.data_domains
 
@@ -251,10 +261,8 @@ class DataManagerV1(LightningDataModule):
         # )
         # return [val_loader,train_loader_x]
         # return val_loader
-
-    def test_dataloader(self) :
-        test = self.dataset_wrapper(self.cfg, self.test,is_train=False)
-
+    def predict_dataloader(self):
+        test = self.dataset_wrapper(self.cfg, self.test, is_train=False)
         test_loader = build_data_loader(
             self.cfg,
             sampler_type=self.cfg.DATAMANAGER.DATALOADER.TEST.SAMPLER,
@@ -262,8 +270,32 @@ class DataManagerV1(LightningDataModule):
             batch_size=self.cfg.DATAMANAGER.DATALOADER.TEST.BATCH_SIZE,
             is_train=False
         )
-        print("size of test loader : ",len(test_loader))
-
+        print("size of test loader : ", len(test_loader))
+        return test_loader
+    def test_dataloader(self) :
+        if not self.view_test_subject_result:
+            test = self.dataset_wrapper(self.cfg, self.test,is_train=False)
+            test_loader = build_data_loader(
+                self.cfg,
+                sampler_type=self.cfg.DATAMANAGER.DATALOADER.TEST.SAMPLER,
+                data_source=test,
+                batch_size=self.cfg.DATAMANAGER.DATALOADER.TEST.BATCH_SIZE,
+                is_train=False
+            )
+            print("size of test loader : ",len(test_loader))
+        else:
+            test_loader = list()
+            for test in self.subject_test:
+                test = self.dataset_wrapper(self.cfg, test, is_train=False)
+                subject_test_loader = build_data_loader(
+                    self.cfg,
+                    sampler_type=self.cfg.DATAMANAGER.DATALOADER.TEST.SAMPLER,
+                    data_source=test,
+                    batch_size=self.cfg.DATAMANAGER.DATALOADER.TEST.BATCH_SIZE,
+                    is_train=False
+                )
+                test_loader.append(subject_test_loader)
+            print("size of test loader : ", len(test_loader))
         return test_loader
 
     def _expand_data_dim(self, data):
@@ -518,15 +550,25 @@ class MultiDomainDataManagerV2(MultiDomainDataManagerV1):
     def setup(self, stage: Optional[str] = None) :
         super().setup(stage)
         train_u_data = self._dataset.train_u
+        # train_u_same_as_test = False
         if train_u_data is None:
+            print("there is no provide unlabel data. We need to use test data as unlabel")
             test_dataset = self._dataset.test
             test_data, _ = test_dataset
             train_u_data = test_data
+            # train_u_same_as_test = True
+            subject_ids = self._dataset.pick_test_subjects
+        else:
+            subject_ids = [i for i in range(len(train_u_data))]
+
         # train_u_data = self.train_u
 
         if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
             if self._dataset.r_op_list is not None:
-                self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+                # if train_u_same_as_test:
+                self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list,subject_ids=subject_ids)
+                # else:
+                #     self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
             else:
                 self.train_u_EA = EuclideanAlignment()
             train_u_data = self.train_u_EA.convert_subjects_data_with_EA(train_u_data)
@@ -537,8 +579,8 @@ class MultiDomainDataManagerV2(MultiDomainDataManagerV1):
             if normalization == 'cross_channel_norm':
                 train_u_data = dataset_norm(train_u_data)
         for subject_idx in range(len(train_u_data)):
-            print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
-                subject_idx, train_u_data[subject_idx].shape,
+            print("unlabel data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+                subject_ids[subject_idx], train_u_data[subject_idx].shape,
                 np.max(train_u_data[subject_idx]), np.min(train_u_data[subject_idx])))
 
         train_u_data = self._expand_data_dim(train_u_data)

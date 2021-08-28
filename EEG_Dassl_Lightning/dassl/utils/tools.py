@@ -190,7 +190,7 @@ def generate_path_for_multi_sub_model(cfg,test_fold_prefix="",shuffle_fold_prefi
     # for path in list_original_dir:
     # if TEST_K_FOLD:
     path = ""
-    path = osp.join(path, test_fold_prefix)
+
     # if not osp.isdir(path):
     #     os.makedirs(path)
     if SHUFFLE_FOLD:
@@ -202,7 +202,7 @@ def generate_path_for_multi_sub_model(cfg,test_fold_prefix="",shuffle_fold_prefi
         path = osp.join(path, increment_fold_prefix)
         # if not osp.isdir(path):
         #     os.makedirs(path)
-
+    path = osp.join(path, test_fold_prefix)
     # generate a folder for validate k fold
     path = osp.join(path, valid_fold_prefix)
     # if not osp.isdir(path):

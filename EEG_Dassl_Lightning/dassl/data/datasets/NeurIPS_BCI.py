@@ -35,10 +35,6 @@ def reformat(data,label,meta_data):
             new_data.append(subject_data)
             new_label.append(subject_label)
             new_meta_data.append(subject_meta_data)
-            # print("current meta : ",subject_meta_data)
-            # print("len meta : ",len(subject_meta_data))
-            # print("len subject size : ",len(subject_data))
-            # print("len label size : ",len(subject_label))
             start = end
     return new_data,new_label,new_meta_data
 
@@ -51,35 +47,27 @@ class MultiDataset(DatasetBase):
 
     def __init__(self, cfg):
         self.cfg = cfg
+        self.parse_config()
 
         self._n_domain = 0
-        self.root = osp.abspath(osp.expanduser(cfg.DATAMANAGER.DATASET.ROOT))
-        print("data root : ",self.root)
-        self.dataset_dir = self.dataset_dir if not cfg.DATAMANAGER.DATASET.DIR else cfg.DATAMANAGER.DATASET.DIR
-        self.file_name = self.file_name if not cfg.DATAMANAGER.DATASET.FILENAME else cfg.DATAMANAGER.DATASET.FILENAME
 
-        test_dir = cfg.DATAMANAGER.DATASET.TEST_DIR
-        test_file_path =  cfg.DATAMANAGER.DATASET.TEST_DATA_FILE
-        test_file_path = os.path.join(test_dir,test_file_path)
+        test_file_path = os.path.join(self._test_dir,self._test_file_path)
         if test_file_path !='':
             test_file_path = os.path.join(self.root,test_file_path)
 
-
-
         self._label_name_map = None
-        print("root : ",self.root)
-        print("dataset dir : ",self.dataset_dir)
-        print("file name : ",self.file_name)
+
         data_path = osp.join(self.root,self.dataset_dir, self.file_name)
         if not osp.isfile(data_path):
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), data_path)
 
-        extra_file_names = cfg.DATAMANAGER.DATASET.extra_files
+
+
         extra_file_path = None
-        if extra_file_names is not None and isinstance(extra_file_names, list):
+        if self._extra_file_names is not None and isinstance(self._extra_file_names, list):
             update_file_path =list()
-            for file_name in extra_file_names:
+            for file_name in self._extra_file_names:
                 file_path = osp.join(self.root, self.dataset_dir, file_name)
                 if not osp.isfile(file_path):
                     raise FileNotFoundError(
@@ -89,21 +77,52 @@ class MultiDataset(DatasetBase):
 
         self.check_dataInfo()
 
-        r_op_file = cfg.DATAMANAGER.DATASET.r_op_file
-        if r_op_file != '':
-            r_op_file_path = osp.join(self.root, self.dataset_dir, r_op_file)
+        if self._r_op_file != '':
+            r_op_file_path = osp.join(self.root, self.dataset_dir, self._r_op_file)
         else:
             r_op_file_path = None
+        print("r_op file path : ",r_op_file_path)
         self._setup_r_op_list(path=r_op_file_path)
 
         read_data = self._read_data(data_path,extra_data_path=extra_file_path)
 
         train, val, test = self.process_data_format(read_data)
         multi_dataset_u = (self.source_data_list,self.source_label_list)
-        train_u = self.load_train_u_data(test_file_path)
+        train_u,_,_ = self.load_train_u_data(test_file_path)
+        # print("size of u {},{}".format(len(train_u),train_u[0].shape))
         super().__init__(train_x=train, train_u=train_u, val=val, test=test,multi_dataset_u=multi_dataset_u)
 
-    # def set_up(self):
+    def parse_config(self):
+        self.root = osp.abspath(osp.expanduser(self.cfg.DATAMANAGER.DATASET.ROOT))
+        self.dataset_dir = self.dataset_dir if not self.cfg.DATAMANAGER.DATASET.DIR else self.cfg.DATAMANAGER.DATASET.DIR
+        self.file_name = self.file_name if not self.cfg.DATAMANAGER.DATASET.FILENAME else self.cfg.DATAMANAGER.DATASET.FILENAME
+        print("data root : ",self.root)
+        print("dataset dir : ",self.dataset_dir)
+        print("file name : ",self.file_name)
+
+        self._test_dir = self.cfg.DATAMANAGER.DATASET.TEST_DIR
+        self._test_file_path =  self.cfg.DATAMANAGER.DATASET.TEST_DATA_FILE
+        self._test_set_filename = self.cfg.DATAMANAGER.DATASET.TEST_SET_FILENAME
+
+        self._extra_file_names = self.cfg.DATAMANAGER.DATASET.extra_files
+
+        self._r_op_file = self.cfg.DATAMANAGER.DATASET.r_op_file
+
+        self._target_dataset_name = self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
+        self._source_dataset_names = self.cfg.DATAMANAGER.DATASET.SETUP.SOURCE_DATASET_NAMES
+
+        self._train_valid_ratio = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.TRAIN_VALID_DATA_RATIO
+        self._within_subject_test_split = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.WITHIN_SUBJECTS
+        self._n_test_folds = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.N_TEST_FOLDS
+        self._current_test_fold = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.CURRENT_TEST_FOLD
+        self._test_same_as_valid = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.SAME_AS_VALID
+
+        self._train_ratio = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.TRAIN_DATA_RATIO
+        self._within_subject_valid_split = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.WITHIN_SUBJECTS
+        self._n_valid_folds = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.N_VALID_FOLDS
+        self._current_valid_fold = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.CURRENT_VALID_FOLD
+
+
 
     @property
     def data_domains(self):
@@ -122,24 +141,29 @@ class MultiDataset(DatasetBase):
         target_dataset = None
         if test_file_path == '':
             print("there is no test file ")
-            return target_dataset
+            return target_dataset,None,None
         print("there is test file ")
-        target_dataset_name = self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
         temp = loadmat(test_file_path)
         datasets = temp['datasets'][0]
         for dataset in datasets:
             dataset = dataset[0][0]
             dataset_name = dataset['dataset_name']
-            if dataset_name == target_dataset_name:
+            if dataset_name == self._target_dataset_name:
                 target_dataset = dataset
         if target_dataset is None:
             raise FileNotFoundError
-        data = target_dataset['data']
-        test_data = [np.array(data[subject]).astype(np.float32) for subject in range(len(data))]
-        return test_data
+        data = target_dataset['data'].astype(np.float32)
+        label = np.squeeze(target_dataset['label']).astype(int)
+        meta_data = target_dataset['meta_data'][0][0]
+        new_meta_data = {}
+        new_meta_data['subject'] = meta_data['subject'][0]
+        new_meta_data['session'] = [session[0] for session in meta_data['session'][0]]
+        new_meta_data['run'] = [run[0] for run in meta_data['run'][0]]
+        meta_data = pd.DataFrame.from_dict(new_meta_data)
+        test_data, test_label, meta_data = reformat(data, label, meta_data)
+        return test_data,test_label,meta_data
 
     def _setup_r_op_list(self,path=None):
-        target_dataset_name=self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
         if path is None:
             self.r_op_list = None
         else:
@@ -147,16 +171,11 @@ class MultiDataset(DatasetBase):
             dataset = temp['datasets'][0]
             dataset = list(dataset)
             dataset = dataset[0][0]
-            # print("dataset field name : ",dataset.dtype.names)
-            # print(" frist field name : ",('r_op_list' in list(dataset.dtype.names)))
             dataset_name = dataset['dataset_name'][0]
-            if dataset_name == target_dataset_name:
+            if dataset_name == self._target_dataset_name:
                 if 'r_op_list' in list(dataset.dtype.names):
                     r_op = dataset['r_op_list'][0]
-                    # print("org r_op : ",r_op)
-                    # print("size : ",len(r_op))
                     self.r_op_list = np.array(r_op).astype(np.float32)
-                    # print("load r_op_list : ",self.r_op_list)
             else:
                 self.r_op_list = None
 
@@ -194,8 +213,6 @@ class MultiDataset(DatasetBase):
                 datasets = datasets +list(temp_datasets)
 
         # target_dataset_name = 'BCI_IV'
-        target_dataset_name=self.cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
-        source_dataset_names=self.cfg.DATAMANAGER.DATASET.SETUP.SOURCE_DATASET_NAMES
         target_data = None
         target_label = None
         target_meta_data = None
@@ -222,7 +239,7 @@ class MultiDataset(DatasetBase):
             #     print("new meta : ",meta_data)
             data,label,meta_data = reformat(data,label,meta_data)
 
-            if dataset_name == target_dataset_name:
+            if dataset_name == self._target_dataset_name:
                 # if 'r_op_list' in list(dataset.dtype.names):
                 #     self.r_op_list = np.array(dataset['r_op_list']).astype(np.float32)
                 # else:
@@ -232,9 +249,9 @@ class MultiDataset(DatasetBase):
                 target_meta_data = meta_data
             else:
                 # if source_dataset_names is not None and isinstance(source_dataset_names,list):
-                if len(source_dataset_names) > 0:
+                if len(self._source_dataset_names) > 0:
                     #assume we use all the source datasets, then the name lists is empty []
-                    if dataset_name in source_dataset_names:
+                    if dataset_name in self._source_dataset_names:
                         list_source_data.append(data)
                         list_source_label.append(label)
                         list_source_meta_data.append(meta_data)
@@ -268,17 +285,58 @@ class MultiDataset(DatasetBase):
 
     # def train_whole_dataset(self):
 
+    def set_up_test_data(self,train_data,train_label,train_subjects):
+        # test_set_filename = self.cfg.DATAMANAGER.DATASET.TEST_SET_FILENAME
+        data_path = osp.join(self.root,self.dataset_dir, self._test_set_filename)
+        if osp.isfile(data_path):
+            test_data,test_label,test_meta = self.load_train_u_data(data_path)
+            test_subject_idx = list()
+            for subject_meta in test_meta:
+                unique_subject_id = np.unique(subject_meta['subject'])
+                print("unique subject id : ",unique_subject_id)
+                assert len(unique_subject_id) == 1
+                test_subject_idx.append(unique_subject_id[0]-1)
+
+            train_valid_data = train_data
+            train_valid_label = train_label
+            train_valid_subject_idx = train_subjects
+
+        else:
+            # train_valid_ratio= self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.TRAIN_VALID_DATA_RATIO
+            # within_subject_test_split = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.WITHIN_SUBJECTS
+            # n_test_folds = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.N_TEST_FOLDS
+            # current_test_fold = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.CURRENT_TEST_FOLD
+            #
+            # test_same_as_valid = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.SAME_AS_VALID
+            if self._n_test_folds > 1:
+                #multiple test folds split, we need to shfufle the trials before we split the data
+                test_fold_seeds = np.random.choice(100, self._n_test_folds, replace=False)
+                test_fold_seed = test_fold_seeds[self._current_test_fold - 1]
+            else:
+                #only 1 test fold, no need to shuffle the trials to generate test fold
+                test_fold_seed = -1
+            if not self._test_same_as_valid:
+                train_valid_data, train_valid_label, train_valid_subject_idx, test_data, test_label, test_subject_idx = self.generate_test_data(
+                    train_data,train_label,train_subjects, self._current_test_fold, self._n_test_folds,
+                    shuffle_test_seed=test_fold_seed, within_subject_split=self._within_subject_test_split,
+                    train_valid_ratio=self._train_valid_ratio)
+            else:
+                test_data = None
+                test_label = None
+                test_subject_idx = None
+                train_valid_data = train_data
+                train_valid_label = train_label
+                train_valid_subject_idx = train_subjects
+        return test_data, test_label, test_subject_idx,train_valid_data, train_valid_label, train_valid_subject_idx
     def process_data_format(self,target_dataset):
         target_data, target_label, target_meta_data = target_dataset
-
+        # unique_subject_id = np.unique(subject_meta['subject'])
         # print("size of target dataset : ",len(target_data))
 
         #set up shuffle data fold
         current_shuffle_fold = self.cfg.DATAMANAGER.DATASET.SETUP.SHUFFLE_TRAIN_VALID_FOLD.CURRENT_SHUFFLE_FOLD
         shuffle_seeds = self.cfg.DATAMANAGER.DATASET.SETUP.SHUFFLE_TRAIN_VALID_FOLD.SHUFFLE_SEED
         if len(shuffle_seeds) == 0:
-            # no shuffle
-            # shuffle_seed = -1
             available_subject_ids = np.arange(len(target_data))
         else:
             #shuffle order of subjects
@@ -309,34 +367,12 @@ class MultiDataset(DatasetBase):
         # data,test = input_data
 
         #generate test data
-        train_valid_ratio= self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.TRAIN_VALID_DATA_RATIO
-        within_subject_test_split = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.WITHIN_SUBJECTS
-        n_test_folds = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.N_TEST_FOLDS
-        current_test_fold = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.CURRENT_TEST_FOLD
-
-        test_same_as_valid = self.cfg.DATAMANAGER.DATASET.SETUP.TEST_FOLD.SAME_AS_VALID
-
-        test_fold_seeds = np.random.choice(100, n_test_folds, replace=False)
-        test_fold_seed = test_fold_seeds[current_test_fold - 1]
-
-        if not test_same_as_valid:
-            train_valid_data,train_valid_label, train_valid_subject_idx, test_data, test_label, test_subject_idx = self.generate_test_data(use_target_data,use_target_label,use_target_subjects,current_test_fold,n_test_folds,shuffle_test_seed=test_fold_seed,within_subject_split=within_subject_test_split,train_valid_ratio=train_valid_ratio)
-        else:
-            train_valid_data = use_target_data
-            train_valid_label = use_target_label
-            train_valid_subject_idx = use_target_subjects
-
-
+        test_data, test_label, test_subject_idx, train_valid_data,train_valid_label, train_valid_subject_idx = self.set_up_test_data(use_target_data,use_target_label,use_target_subjects)
 
         # generate train and valid data
-        train_ratio = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.TRAIN_DATA_RATIO
-        within_subject_valid_split = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.WITHIN_SUBJECTS
-        n_valid_folds = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.N_VALID_FOLDS
-        current_valid_fold = self.cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.CURRENT_VALID_FOLD
+        train_data, train_label, train_subject_idx, valid_data, valid_label, valid_subject_idx = self.generate_valid_data(train_valid_data,train_valid_label,train_valid_subject_idx,self._current_valid_fold,self._n_valid_folds,shuffle_valid_seed=-1,within_subject_split=self._within_subject_valid_split,train_ratio=self._train_ratio)
 
-        train_data, train_label, train_subject_idx, valid_data, valid_label, valid_subject_idx = self.generate_valid_data(train_valid_data,train_valid_label,train_valid_subject_idx,current_valid_fold,n_valid_folds,shuffle_valid_seed=-1,within_subject_split=within_subject_valid_split,train_ratio=train_ratio)
-
-        if test_same_as_valid:
+        if self._test_same_as_valid:
             test_data = valid_data.copy()
             test_label = valid_label.copy()
             test_subject_idx = valid_subject_idx.copy()
@@ -352,10 +388,11 @@ class MultiDataset(DatasetBase):
         valid_items = (valid_data, valid_label)
         test_items = (test_data, test_label)
 
-        print("label before split data subject 1 : ",use_target_label[0])
-        print("label train split data subject 1 : ",train_label[0])
-        print("label valid split data subject 1 : ",valid_label[0])
-        print("label test split data subject 1 : ",test_label[0])
+        # print("label before split data subject 1 : ",use_target_label[0])
+        # print("label train split data subject 1 : ",train_label[0])
+        # print("label valid split data subject 1 : ",valid_label[0])
+        # print("label test split data subject 1 : ",test_label[0])
+
 
         return train_items, valid_items, test_items
 
@@ -368,7 +405,7 @@ class MultiDataset(DatasetBase):
         if split_ratio < 0.0:
             train_data, train_label, test_data, test_label = self.fold_split_data(data,label,n_folds=n_folds,current_fold=current_fold)
         else:
-            train_data, train_label, test_data, test_label = self.shuffle_split_data(data,labeo,split_ratio=split_ratio,shuffle_trial_seed=shuffle_trial_seed)
+            train_data, train_label, test_data, test_label = self.shuffle_split_data(data,label,split_ratio=split_ratio,shuffle_trial_seed=shuffle_trial_seed)
         return train_data, train_label, test_data, test_label
     def shuffle_split_data(self,data,label,split_ratio=0.3,shuffle_trial_seed=-1):
         train_data = list()

@@ -183,8 +183,12 @@ class EuclideanAlignment:
     convert trials of each subject to a new format with Euclidean Alignment technique
     https://arxiv.org/pdf/1808.05464.pdf
     """
-    def __init__(self,list_r_op=None):
+    def __init__(self,list_r_op=None,subject_ids=None):
         self.list_r_op = list_r_op
+        if subject_ids is not None:
+            update_list_r_op = [self.list_r_op[subject_id] for subject_id in subject_ids]
+            print("only use r-op for subjects {}".format(subject_ids))
+            self.list_r_op = update_list_r_op
     def calculate_r_op(self,data):
         assert len(data.shape) == 3
         r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
