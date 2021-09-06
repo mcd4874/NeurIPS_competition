@@ -353,7 +353,7 @@ class MultiDatasetSRDA(TrainerMultiAdaptation):
 
         return {'loss': loss}
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
         loss,y_logit,y = self.share_step(batch,train_mode=False)
         y_pred = F.softmax(y_logit,dim=1)
         return {'loss': loss,'y_pred':y_pred,'y':y}

@@ -22,74 +22,9 @@ from train_util import (
 )
 
 
-from dassl.utils import (
-    MetricMeter, AverageMeter, tolist_if_not, count_num_param, load_checkpoint,
-    save_checkpoint, resume_from_checkpoint, load_pretrained_weights, generate_path_for_multi_sub_model
-)
-from pytorch_lightning import LightningModule,Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import NeptuneLogger,TensorBoardLogger
-from pytorch_lightning.loggers.csv_logs import CSVLogger,ExperimentWriter
-from pytorch_lightning.callbacks import EarlyStopping
-from dassl.data.data_manager_v1 import DataManagerV1, MultiDomainDataManagerV1,MultiDomainDataManagerV2
-
-
 from dassl.data.datasets.data_util import EuclideanAlignment
 from collections import defaultdict
 from numpy.random import RandomState
-import scipy.signal as signal
-import copy
-
-# def generate_pred_MI_label(test_fold_preds, test_fold_probs, output_dir, predict_folder="predict_folder",
-#                            relabel=False):
-#     final_pred = np.zeros(test_fold_preds[0][0].shape)
-#     final_prob = np.zeros(test_fold_probs[0][0].shape)
-#     # print("test fold preds : ",test_fold_preds)
-#     # print("len test fold : ",len(test_fold_preds))
-#     # print("val fold size : ",len(test_fold_preds[0]))
-#     # print("val pred size : ",test_fold_preds[0][0].shape)
-#     # print("org final pred shape : ",final_pred.shape)
-#     print("generate MI label")
-#     for test_fold in range(len(test_fold_preds)):
-#         current_fold_preds = test_fold_preds[test_fold]
-#         current_fold_probs = test_fold_probs[test_fold]
-#         for valid_fold in range(len(current_fold_preds)):
-#             current_valid_pred = current_fold_preds[valid_fold]
-#             current_valid_prob = current_fold_probs[valid_fold]
-#             # print("current valid pred shape : ",current_valid_pred.shape)
-#             # print("final pred shape : ",final_pred.shape)
-#             final_pred = final_pred + current_valid_pred
-#             final_prob = final_prob + current_valid_prob
-#
-#
-#         # valid_fold_pred = test_fold_preds[test_fold]
-#
-#     # print("result current pred : ", current_pred)
-#     pred_output = list()
-#     for trial_idx in range(len(final_pred)):
-#         trial_pred = final_pred[trial_idx]
-#         trial_prob = final_prob[trial_idx]
-#         best_idx = -1
-#         best_pred = -1
-#         best_prob = -1
-#         for idx in range(len(trial_pred)):
-#             pred = trial_pred[idx]
-#             prob = trial_prob[idx]
-#             if pred > best_pred:
-#                 best_pred = pred
-#                 best_idx = idx
-#                 best_prob = prob
-#             elif pred == best_pred:
-#                 if prob > best_prob:
-#                     best_idx = idx
-#                     best_prob = prob
-#         pred_output.append(best_idx)
-#     pred_output = np.array(pred_output)
-#     if relabel:
-#         pred_output = np.array([relabel_target(l) for l in pred_output])
-#         print("update pred output : ",pred_output)
-#     combine_folder = os.path.join(output_dir, predict_folder)
-#     np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
 
 def generate_pred_MI_label(fold_predict_results, output_dir, predict_folder="predict_folder",
                            relabel=False):
@@ -220,11 +155,12 @@ def load_test_data_from_file(provide_path,dataset_type):
     new_meta_data['run'] = [run[0] for run in meta_data['run'][0]]
     meta_data = pd.DataFrame.from_dict(new_meta_data)
     test_data, test_label, meta_data = reformat(data, label, meta_data)
+    potential_r_op = dataset_type + '_r_op.mat'
 
-    if dataset_type=="dataset_A":
-        potential_r_op="dataset_A_r_op.mat"
-    elif dataset_type=="dataset_B":
-        potential_r_op="dataset_B_r_op.mat"
+    # if dataset_type=="dataset_A":
+    #     potential_r_op="dataset_A_r_op.mat"
+    # elif dataset_type=="dataset_B":
+    #     potential_r_op="dataset_B_r_op.mat"
     # provide_path = provide_path.split("\\")[:-1]
     # provide_path = "\\".join(provide_path)
     provide_path = provide_path.split("/")[:-1]
@@ -281,7 +217,7 @@ def get_test_data(dataset_type, norm, provide_data_path = None,EA=False):
         print("{} subjects to split : ".format(n_subjects))
         test_data = np.split(test_data,n_subjects)
     else:
-        print("load test data from file ")
+        print("load test data from file {}".format(provide_data_path))
         test_data,list_r_op = load_test_data_from_file(provide_data_path,dataset_type=dataset_type)
         if list_r_op is None:
             print("generate new list r op")

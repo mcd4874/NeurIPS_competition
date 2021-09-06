@@ -4,50 +4,6 @@ import numpy as np
 from collections import defaultdict
 from dassl.data.datasets.base_dataset import EEGDatum
 
-# class EuclideanAlignment:
-#     def __init__(self):
-#
-#     def
-
-# def euclidean_alignment(x):
-#         """
-#         convert trials in data with EA technique
-#         """
-#
-#         assert len(x.shape) == 3
-#
-#         r = np.matmul(x, x.transpose((0, 2, 1))).mean(0)
-#         if np.iscomplexobj(r):
-#             print("covariance matrix problem")
-#         if np.iscomplexobj(sqrtm(r)):
-#             print("covariance matrix problem sqrt")
-#
-#         r_op = inv(sqrtm(r))
-#         # print("r_op shape : ",r_op.shape)
-#         # print("data shape : ",x.shape)
-#         # print("r_op : ",r_op)
-#         if np.iscomplexobj(r_op):
-#             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
-#                   "not, check data!!")
-#             r_op = np.real(r_op).astype(np.float32)
-#         elif not np.any(np.isfinite(r_op)):
-#             print("WARNING! Not finite values in R Matrix")
-#
-#         results = np.matmul(r_op, x)
-#         # print("r_op shape : ",r_op.shape)
-#         # print("data shape : ",x.shape)
-#         # print("r_op : ",r_op)
-#         # print("result shape : ",results.shape)
-#         # print("a trial before convert : ",x[0,:,:])
-#         # print("a trial after convert : ",results[0,:,:])
-#         return results
-# def convert_subjects_data_with_EA(subjects_data):
-#     new_data = list()
-#     for subject_idx in range(len(subjects_data)):
-#         subject_data = subjects_data[subject_idx]
-#         subject_data = euclidean_alignment(subject_data)
-#         new_data.append(subject_data)
-#     return new_data
 
 def relabel_target(l):
     if l == 0: return 0
@@ -236,41 +192,6 @@ class EuclideanAlignment:
             new_data.append(subject_data)
         return new_data
 
-# def generate_datasource(data, label, test_data=False,label_name_map= None):
-#     total_subjects = 1
-#     if not test_data:
-#         total_subjects = len(data)
-#
-#     subjects_item = []
-#     for subject in range(total_subjects):
-#         items = []
-#         current_subject_data = data[subject]
-#         current_subject_label = label[subject]
-#         domain = subject
-#         for i in range(current_subject_data.shape[0]):
-#             trial_data = current_subject_data[i]
-#             trial_label = int(current_subject_label[i])
-#             label_name = ''
-#             if label_name_map is not None and trial_label in label_name_map.keys():
-#                 label_name = label_name_map[trial_label]
-#             item = EEGDatum(eeg_data= trial_data, label= trial_label, domain=domain,classname=label_name)
-#             items.append(item)
-#         subjects_item.append(items)
-#     return subjects_item
-#
-# def get_num_classes(data_source):
-#     label_set = set()
-#     for subject_item in data_source:
-#         for item in subject_item:
-#             label_set.add(item.label)
-#     return max(label_set) + 1
-# def get_label_classname_mapping(data_source):
-#     tmp = set()
-#     for subject_item in data_source:
-#         for item in subject_item:
-#             tmp.add((item.label, item.classname))
-#     mapping = {label: classname for label, classname in tmp}
-#     return mapping
 
 def generate_datasource(data, label, test_data=False,label_name_map= None):
     items = []
@@ -587,7 +508,7 @@ class DataAugmentation:
             update_label.append(new_subject_label)
         return update_data,update_label
 
-def normalization(X):
+def normalization_channels(X):
     # assert len(X) == len(y)
     # Normalised, you could choose other normalisation strategy
     if len(X.shape)==3:
@@ -605,16 +526,36 @@ def normalization(X):
     std = np.std(X, axis=axis, keepdims=True)
     X = (X - mean) / std
     return X
-# def dataset_norm(data,label):
-def dataset_norm(data):
+
+def normalization_time(X):
+    # assert len(X) == len(y)
+    # Normalised, you could choose other normalisation strategy
+    if len(X.shape)==3:
+        #assume the data in format (trials,channels,samples)
+        axis=2
+    elif len(X.shape)==4:
+        # assume the data in format (trials,filter,channels,samples)
+        axis=3
+    else:
+        axis=-1
+        raise ValueError("there is problem with data format")
+
+    mean = np.mean(X,axis=axis,keepdims=True)
+    # here normalise across channels as an example, unlike the in the sleep kit
+    std = np.std(X, axis=axis, keepdims=True)
+    X = (X - mean) / std
+    return X
+
+def dataset_norm(data,norm_channels = True):
     new_data = list()
     # new_label = list()
     for subject_idx in range(len(data)):
         subject_data = data[subject_idx]
-        # subject_label = label[subject_idx]
-        subject_data = normalization(subject_data)
+        if norm_channels:
+            subject_data = normalization_channels(subject_data)
+        else:
+            subject_data =  normalization_time(subject_data)
         new_data.append(subject_data)
-        # new_label.append(subject_label)
     return new_data
 
 

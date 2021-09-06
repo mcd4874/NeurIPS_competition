@@ -155,28 +155,6 @@ def load_test_data_from_file(provide_path,dataset_type):
     test_data, test_label, test_meta_data = data, label, meta_data
     return test_data,test_label,test_meta_data
 
-# model_list_prefix = [
-#     # 'adaptationV1',
-#     # 'dannV1',
-#     'mcdV1',
-#     # 'addaV1',
-#     # 'SRDA'
-# #
-# ]
-# target_dataset_list_prefix = [
-#     "dataset_A",
-#     # "dataset_B",
-# ]
-# augmentation_list_prefix = [
-#     'no_aug',
-# ]
-# norm_list_prefix = [
-#     'no_norm',
-# ]
-#
-#
-# experiment_type=["final_result_14_3_1"]
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\sub\\{}\\{}\\{}\\{}\\model"
 
 
 

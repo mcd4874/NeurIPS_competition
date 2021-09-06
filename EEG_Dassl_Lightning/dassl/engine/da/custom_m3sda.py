@@ -205,18 +205,6 @@ class CustomM3SDA(TrainerXU):
         return [total_loss,losses.dict_results(),results]
         # return total_loss
 
-    # def after_epoch(self):
-    #     """
-    #     save the best model for given validation loss
-    #     """
-    #     epoch_total_loss = self.validate()
-    #     if self._best_epoch_val_loss > epoch_total_loss:
-    #         print("save best model at epoch %f , Improve loss from %4f -> %4f" % (
-    #             self.epoch, self._best_epoch_val_loss, epoch_total_loss))
-    #         self._best_epoch_val_loss = epoch_total_loss
-    #         self.save_model(epoch=self.epoch, directory=self.output_dir, is_best=True)
-    #     super().after_epoch()
-
     def moment_distance(self, x, u):
         # x (list): a list of feature matrix.
         # u (torch.Tensor): feature matrix.

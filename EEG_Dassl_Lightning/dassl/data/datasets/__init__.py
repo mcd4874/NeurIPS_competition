@@ -14,3 +14,4 @@ from .increment_adaptation_v1 import INCREMENT_ADAPTATION_DATASET_V1
 # from .general_dataset_temp import GENERAL_DATASET
 from .increment_database_setup import INCREMENT_DATASET_SETUP
 from .NeurIPS_BCI import MultiDataset
+from .NeurIPS_Sleep import MultiDatasetV1

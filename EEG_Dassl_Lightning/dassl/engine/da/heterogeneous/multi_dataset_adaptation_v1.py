@@ -32,6 +32,12 @@ class MultiDatasetAdaptationV1(TrainerMultiAdaptation):
         # backbone_params = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.copy()
 
         self.CommonFeature = SimpleNet(backbone_info,FC_info, 0, **cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS)
+        freeze_common_feature = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.CommonFeature.parameters():
+                parameter.requires_grad = False
+            print("freeze feature extractor : ")
+
         self.fdim = self.CommonFeature.fdim
 
         print('Building Target Classifier')
@@ -68,11 +74,19 @@ class MultiDatasetAdaptationV1(TrainerMultiAdaptation):
             # print("check range for source data : {} - {}".format(u.max(),u.min()))
             f = self.CommonFeature(u)
             logits = self.SourceClassifiers[d](f)
-            domain_weight = self.source_domains_class_weight[d]
+            if not self.no_source_weight:
+                domain_weight = self.source_domains_class_weight[d]
+            else:
+                domain_weight = None
             loss_source += self.loss_function(logits, y, train=True, weight=domain_weight)
         loss_source /= len(domain_u)
 
-        loss_target, logits_target, label, _ = self.share_step(target_batch, train_mode=True, weight=self.class_weight)
+        if self.no_target_weight:
+            # print("no target weight")
+            loss_target, logits_target, label, _ = self.share_step(target_batch, train_mode=True)
+        else:
+            loss_target, logits_target, label, _ = self.share_step(target_batch, train_mode=True, weight=self.class_weight)
+        # loss_target, logits_target, label, _ = self.share_step(target_batch, train_mode=True)
 
         total_loss = loss_source * self.source_ratio + loss_target * self.target_ratio
 

@@ -215,11 +215,12 @@ def generate_config_file(conditions,config_file,current_folder_path="",output_fi
 #         type_param =
 #
 
-def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,trainer_type,dataset_type):
+def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,trainer_type,dataset_type,extra_merge=None):
     config_f = open(config_path)
     config_file = CN(new_allowed=True).load_cfg(config_f)
-
-
+    if extra_merge:
+        for pair_list in extra_merge:
+            config_file.merge_from_list(pair_list)
 
     # aug_type = "temp_aug"
     if aug_type == "temp_aug":
@@ -247,6 +248,12 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
             ["EXTRA_FIELDS.normalize", "chan_norm"],
              ["INPUT.TRANSFORMS", ["cross_channel_norm"]],
              ["INPUT.NO_TRANSFORM", False]
+        ]
+    elif norm_type == "time_norm":
+        match_pair = [
+            ["EXTRA_FIELDS.normalize", "time_norm"],
+            ["INPUT.TRANSFORMS", ["time_norm"]],
+            ["INPUT.NO_TRANSFORM", False]
         ]
     else:
         match_pair = [
@@ -278,6 +285,12 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
+    elif trainer_type == "adaptationV2":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV2"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptationV2"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
     elif trainer_type == "shallowcon_adaptV1":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetAdaptationV1"],
@@ -296,6 +309,13 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetMCDV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
         ]
+    elif trainer_type == "m3sda":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiDatasetM3SDA"],
+            ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetM3SDA"],
+            ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
+        ]
+
     elif trainer_type == "SRDA":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiDatasetSRDA"],
@@ -348,9 +368,13 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
         match_pair = [
             ["EXTRA_FIELDS.target_dataset", "dataset_B"],
         ]
-    else:
+    elif dataset_type == "physionet":
         match_pair = [
             ["EXTRA_FIELDS.target_dataset", "physionet"],
+        ]
+    else:
+        match_pair = [
+            ["EXTRA_FIELDS.target_dataset", dataset_type],
         ]
     dataset_info = [
         dict(dir_name=dataset_type, match_pair=match_pair)
@@ -361,7 +385,7 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
     generate_config_file([aug_info,norm_info, trainer_info, dataset_info], config_file,main_path)
 
 
-def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, trainer_conditions, dataset_conditions):
+def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, trainer_conditions, dataset_conditions,extra_merge=None):
     # config_path = "main_config/data_augmentation/{}/{}/transfer_adaptation.yaml"
     # main_path = "test_mdd/eegnet_1_1/{}"
 
@@ -371,7 +395,7 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
             for aug in aug_conditions:
                 for norm in norm_conditions:
                     generate_transfer_learning_config(main_path, current_config_path, aug_type=aug, norm_type=norm,
-                                                      trainer_type=trainer, dataset_type=dataset)
+                                                      trainer_type=trainer, dataset_type=dataset,extra_merge=extra_merge)
 # import os
 # os.path.exists()
 # os.makedirs()
@@ -555,29 +579,63 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/final_result_14_0_2"
 # main_path = "final_result_14_3_1/sub_20"
 # config_path = "main_config/final_result_14_3_1/sub_20"
-main_path = "final_result_14_3_1/sub_30"
-config_path = "main_config/final_result_14_3_1/sub_30"
+# main_path = "final_result_14_3_1/sub_30"
+# config_path = "main_config/final_result_14_3_1/sub_30"
 # main_path = "final_result_14_3_1/pretrain_0"
 # config_path = "main_config/final_result_14_3_1/pretrain_0"
+# main_path = "final_result_14_3_1/main_model_0"
+# config_path = "main_config/final_result_14_3_1/main_model_0"
+# main_path = "final_result_14_3_1/al_model_0"
+# config_path = "main_config/final_result_14_3_1/al_model_0"
+# main_path = "final_result_14_3_1/main_model_1"
+# config_path = "main_config/final_result_14_3_1/main_model_1"
+# main_path = "final_result_14_3_1/al_model_1"
+# config_path = "main_config/final_result_14_3_1/al_model_1"
+# main_path = "final_result_14_3_1/al_model_1_1"
+# config_path = "main_config/final_result_14_3_1/al_model_1_1"
 # main_path = "final_result_14_3_3/sub"
 # config_path = "main_config/final_result_14_3_3/sub"
 
+# main_path = "final_result_15_3_1/al_model_2_1"
+# config_path = "main_config/final_result_15_3_1/al_model_2_1"
+# main_path = "final_result_15_3_1/al_model_2_2"
+# config_path = "main_config/final_result_15_3_1/al_model_2_2"
+
+# main_path = "final_result_15_3_1/main_model_3"
+# config_path = "main_config/final_result_15_3_1/main_model_3"
+# main_path = "final_result_15_3_1/main_model_3_2"
+# config_path = "main_config/final_result_15_3_1/main_model_3_2"
+# main_path = "final_result_15_3_1/main_model_4"
+# config_path = "main_config/final_result_15_3_1/main_model_4"
 # main_path = "private_exp_14_3_1/sub_5"
 # config_path = "main_config/private_exp_14_3_1/sub_5"
 # main_path = "private_exp_14_3_3/sub"
 # config_path = "main_config/private_exp_14_3_3/sub"
 # dataset_conditions = ["BCI_IV"]
-
-aug_conditions=["temp_aug","no_aug"]
+# main_path = "final_result_14_3_1/tune_batch/main_model_2"
+# config_path = "main_config/final_result_14_3_1/main_model_2"
+# main_path = "task_1_exp_1"
+# config_path = "main_config/task_1_exp_1"
+# main_path = "task_1_exp_2"
+# config_path = "main_config/task_1_exp_2"
+main_path = "task_1_exp_3"
+config_path = "main_config/task_1_exp_3"
+# aug_conditions=["temp_aug","no_aug"]
+aug_conditions=["no_aug"]
 # aug_conditions=["no_aug"]
 # aug_conditions=["T_F_aug"]
 # norm_conditions = ["chan_norm","no_norm"]
-norm_conditions = ["no_norm"]
+norm_conditions = ["no_norm","time_norm"]
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
 # trainer_conditions = ["adaptationV1","dannV1","mcdV1","vanilla"]
 # trainer_conditions = ["adaptationV1","dannV1"]
-trainer_conditions = ["mcdV1","adaptationV1"]
+# trainer_conditions = ["adaptationV1"]
+# trainer_conditions = ["mcdV1","adaptationV1"]
+# trainer_conditions = ["adaptationV2"]
+trainer_conditions = ["vanilla","adaptationV1","mcdV1","dannV1"]
+# trainer_conditions = ["m3sda"]
+
 # trainer_conditions = ["addaV1"]
 # trainer_conditions = ["SRDA","addaV1"]
 
@@ -586,10 +644,55 @@ trainer_conditions = ["mcdV1","adaptationV1"]
 # trainer_conditions = ["dannV1"]
 # trainer_conditions = ["share_adaptV1"]
 # trainer_conditions = ["FBCNET_adaptV1"]
-dataset_conditions = ["dataset_A", "dataset_B"]
+# dataset_conditions = ["dataset_A", "dataset_B"]
 # dataset_conditions = ["dataset_A"]
+# dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
+# dataset_conditions = ["full_dataset"]
+dataset_conditions = ["full_dataset"]
+
+
 
 setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions)
+# config_path = "main_config/final_result_15_3_1/main_model_3"
+# dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
+
+#deal with different pretrain setup
+# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/6"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",6,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 0.2,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
+#
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/8"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 0.4,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
+#
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/10"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",10,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
+#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
+#
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+
 
 #
 # all_configs = list()
@@ -610,3 +713,5 @@ setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_c
 # Python Program to Print
 # all subsets of given size of a set
 
+# main_path = "final_result_14_3_1/main_model_1"
+# config_path = "main_config/final_result_14_3_1/main_model_1"

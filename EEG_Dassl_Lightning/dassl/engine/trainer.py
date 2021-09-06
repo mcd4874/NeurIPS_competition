@@ -91,12 +91,22 @@ class TrainerBase(pl.LightningModule):
         self.history_dir = cfg.history_dir
         self.output_dir = cfg.output_dir
         self.class_weight = require_parameter['target_domain_class_weight']
-        self.view_test_subject_result = True
+        self.view_test_subject_result = False
         super(TrainerBase, self).__init__()
 
 
         self.build_model()
         self.build_metrics()
+
+        # self.no_target_weight = True
+        # self.no_source_weight = True
+        self.no_target_weight = False
+        self.no_source_weight = False
+        if self.no_target_weight:
+            print("do not use class weight for target dataset")
+        if self.no_source_weight:
+            print("do not use class weight for source dataset")
+
 
 
         # self.load_from_checkpoint()
@@ -128,21 +138,7 @@ class TrainerBase(pl.LightningModule):
         print('# params: {:,}'.format(count_num_param(self.model)))
         # print("hyper params : ",self.hparams)
 
-    # def parse_batch_test(self, batch):
-    #     input = batch['eeg_data']
-    #     label = batch['label']
-    #     # domain = batch['domain']
-    #     return input, label
-
-    # def parse_batch_train(self, batch):
-    #     input = batch['eeg_data']
-    #     label = batch['label']
-    #     domain = batch['domain']
-    #     return input, label,domain
     def parse_batch_train(self, batch):
-        # input = batch['eeg_data']
-        # label = batch['label']
-        # domain = batch['domain']
         input, label, domain = batch
         return input, label,domain
 
@@ -233,67 +229,100 @@ class TrainerBase(pl.LightningModule):
 
         return {'loss': loss,'log':log}
 
-    # def validation_step(self, batch, batch_idx):
-    #     loss,y_logit,y = self.share_step(batch,train_mode=False)
-    #     y_pred = F.softmax(y_logit, dim=1)
-    #     acc = self.valid_acc(y_pred, y)
-    #     log = {
-    #         "val_loss": loss,
-    #         "val_acc": acc
-    #     }
-    #     self.log_dict(log, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-    #
-    #     return {'loss': loss}
-
-    # def test_step(self, batch,batch_idx):
-    #     loss, y_logit, y = self.share_step(batch, train_mode=False)
-    #     y_pred = F.softmax(y_logit,dim=1)
-    #     acc =   self.test_acc(y_pred,y)
-    #     self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #     self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx,dataset_idx: Optional[int] = None):
         loss, y_logit, y, = self.share_step(batch, train_mode=False)
         y_pred = F.softmax(y_logit,dim=1)
 
         return {'loss': loss,'y_pred':y_pred,'y':y}
-    def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        for batch_result in outputs:
-            batch_loss = batch_result['loss']
-            batch_y_pred = batch_result['y_pred']
-            batch_y = batch_result['y']
-            self.test_acc.update(batch_y_pred,batch_y)
-            self.test_avg_loss.update(batch_loss)
-            self.test_avg_class_acc.update(batch_y_pred,batch_y)
-            self.test_class_acc.update(batch_y_pred,batch_y)
-            # self.test_F1.update(batch_y_pred,batch_y)
-            # self.confusion_matrix.update(batch_y_pred,batch_y)
+    # def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
+    #     for batch_result in outputs:
+    #         batch_loss = batch_result['loss']
+    #         batch_y_pred = batch_result['y_pred']
+    #         batch_y = batch_result['y']
+    #         self.test_acc.update(batch_y_pred,batch_y)
+    #         self.test_avg_loss.update(batch_loss)
+    #         self.test_avg_class_acc.update(batch_y_pred,batch_y)
+    #         self.test_class_acc.update(batch_y_pred,batch_y)
+    #         # self.test_F1.update(batch_y_pred,batch_y)
+    #         # self.confusion_matrix.update(batch_y_pred,batch_y)
+    #
+    #     # confusion_matrix = self.confusion_matrix.compute()
+    #     acc = self.test_acc.compute()
+    #     avg_class_acc = self.test_avg_class_acc.compute()
+    #     classes_acc = self.test_class_acc.compute()
+    #     F1 = self.test_F1.compute()
+    #     loss = self.test_avg_loss.compute()
+    #     self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+    #     self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+    #     # self.log('test_F1', F1, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+    #
+    #     self.log('test_classes_avg_acc', avg_class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+    #     print("individual classes acc : ",classes_acc)
+    #     for label in range (self.num_classes):
+    #         # class_precision=confusion_matrix[classes][classes]
+    #         # classes_total = torch.sum(confusion_matrix[classes,:])
+    #         # print("class ",classes)
+    #         # print("class total ",classes_total)
+    #         # print("class precision : ",class_precision/classes_total)
+    #         # class_acc = class_precision/classes_total
+    #         class_acc = classes_acc[label]
+    #         format = 'class_{}_acc'.format(label)
+    #         self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+    #
+    #         # print("true labe : ",y)
+    #     # print("confusion matrix : ",matrix)
 
-        # confusion_matrix = self.confusion_matrix.compute()
+    def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
+        print("in test epoch end")
+        if self.num_test_subjects >1:
+            subject_id = 0
+            for output in outputs:
+                self.subject_test_acc = torchmetrics.Accuracy().to(self.device)
+                self.subject_test_class_acc = torchmetrics.Accuracy(average='none', num_classes=self.num_classes).to(self.device)
+                for batch_result in output:
+                    batch_loss = batch_result['loss']
+                    batch_y_pred = batch_result['y_pred']
+                    batch_y = batch_result['y']
+                    self.test_acc.update(batch_y_pred,batch_y)
+                    self.test_avg_loss.update(batch_loss)
+                    self.test_avg_class_acc.update(batch_y_pred,batch_y)
+                    self.test_class_acc.update(batch_y_pred,batch_y)
+
+                    self.subject_test_acc.update(batch_y_pred,batch_y)
+                    self.subject_test_class_acc.update(batch_y_pred,batch_y)
+                if self.view_test_subject_result:
+                    subject_acc = self.subject_test_acc.compute()
+                    self.log('sub_{}_test_acc'.format(subject_id), subject_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+                    subject_classes_acc = self.subject_test_class_acc.compute()
+                    for label in range(self.num_classes):
+                        class_acc = subject_classes_acc[label]
+                        format = 'sub_{}_class_{}_acc'.format(subject_id,label)
+                        self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
+                subject_id +=1
+        else:
+            for batch_result in outputs:
+                batch_loss = batch_result['loss']
+                batch_y_pred = batch_result['y_pred']
+                batch_y = batch_result['y']
+
+                self.test_acc.update(batch_y_pred, batch_y)
+                self.test_avg_loss.update(batch_loss)
+                self.test_avg_class_acc.update(batch_y_pred, batch_y)
+                self.test_class_acc.update(batch_y_pred, batch_y)
+
         acc = self.test_acc.compute()
         avg_class_acc = self.test_avg_class_acc.compute()
         classes_acc = self.test_class_acc.compute()
-        F1 = self.test_F1.compute()
         loss = self.test_avg_loss.compute()
         self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
         self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-        # self.log('test_F1', F1, on_step=False, on_epoch=True, prog_bar=True, logger=False)
 
         self.log('test_classes_avg_acc', avg_class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-        print("individual classes acc : ",classes_acc)
         for label in range (self.num_classes):
-            # class_precision=confusion_matrix[classes][classes]
-            # classes_total = torch.sum(confusion_matrix[classes,:])
-            # print("class ",classes)
-            # print("class total ",classes_total)
-            # print("class precision : ",class_precision/classes_total)
-            # class_acc = class_precision/classes_total
             class_acc = classes_acc[label]
             format = 'class_{}_acc'.format(label)
             self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
 
-            # print("true labe : ",y)
-        # print("confusion matrix : ",matrix)
 
 class TrainerMultiAdaptation(TrainerBase):
     def __init__(self,cfg,require_parameter=None):
@@ -309,6 +338,9 @@ class TrainerMultiAdaptation(TrainerBase):
         #this is a trick to deal with pretrain source model without saving the target model
         #only save the target model after finish pretrain
         self.non_save_ratio = 1.0
+
+
+
     def build_temp_layer(self, layer_info):
         embedding_layer_info = layer_info
         layer_name = embedding_layer_info.NAME
@@ -532,7 +564,7 @@ class TrainerMultiAdaptation(TrainerBase):
         return {'loss': loss}
 
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx,dataset_idx: Optional[int] = None):
         loss, y_logit, y,_ = self.share_step(batch, train_mode=False)
         y_pred = F.softmax(y_logit,dim=1)
         # acc =   self.test_acc(y_pred,y)
@@ -587,58 +619,3 @@ class TrainerMultiAdaptation(TrainerBase):
     #         # print("true labe : ",y)
     #     # print("confusion matrix : ",matrix)
 
-    def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        # print("current output : ",outputs)
-        # print("current output dataset : ",outputs[dataset_idx])
-        # n_test_subjects = len(outputs)
-        # self.test_acc = torchmetrics.Accuracy()
-        # self.test_class_acc = torchmetrics.Accuracy(average='none',num_classes=self.num_classes)
-
-        subject_id = 0
-        for output in outputs:
-            self.subject_test_acc = torchmetrics.Accuracy().to(self.device)
-            self.subject_test_class_acc = torchmetrics.Accuracy(average='none', num_classes=self.num_classes).to(self.device)
-            for batch_result in output:
-        # for batch_result in outputs:
-                batch_loss = batch_result['loss']
-                batch_y_pred = batch_result['y_pred']
-                batch_y = batch_result['y']
-                self.test_acc.update(batch_y_pred,batch_y)
-                self.test_avg_loss.update(batch_loss)
-                self.test_avg_class_acc.update(batch_y_pred,batch_y)
-                self.test_class_acc.update(batch_y_pred,batch_y)
-
-                self.subject_test_acc.update(batch_y_pred,batch_y)
-                self.subject_test_class_acc.update(batch_y_pred,batch_y)
-            # self.test_F1.update(batch_y_pred,batch_y)
-            # self.confusion_matrix.update(batch_y_pred,batch_y)
-
-            if self.view_test_subject_result:
-                subject_acc = self.subject_test_acc.compute()
-                # print("subject acc :",subject_acc)
-                self.log('sub_{}_test_acc'.format(subject_id), subject_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-                subject_classes_acc = self.subject_test_class_acc.compute()
-                for label in range(self.num_classes):
-                    class_acc = subject_classes_acc[label]
-                    format = 'sub_{}_class_{}_acc'.format(subject_id,label)
-                    self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-            subject_id +=1
-        # confusion_matrix = self.confusion_matrix.compute()
-        acc = self.test_acc.compute()
-        avg_class_acc = self.test_avg_class_acc.compute()
-        classes_acc = self.test_class_acc.compute()
-        F1 = self.test_F1.compute()
-        loss = self.test_avg_loss.compute()
-        self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-        self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-        # self.log('test_F1', F1, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-
-        self.log('test_classes_avg_acc', avg_class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-        # print("individual classes acc : ",classes_acc)
-        for label in range (self.num_classes):
-            class_acc = classes_acc[label]
-            format = 'class_{}_acc'.format(label)
-            self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-
-            # print("true labe : ",y)
-        # print("confusion matrix : ",matrix)

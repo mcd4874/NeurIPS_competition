@@ -198,7 +198,7 @@ class CustomModelCheckPoint(ModelCheckpoint):
 
 
 
-def trainer_setup(output_dir,cfg,benchmark=False,deterministic=False,seed=42):
+def trainer_setup(output_dir,cfg,benchmark=False,deterministic=False,seed=42,update_dataset=None):
 
     # experiments = generate_setup(org_cfg)
     # for experiment in experiments:
@@ -218,7 +218,10 @@ def trainer_setup(output_dir,cfg,benchmark=False,deterministic=False,seed=42):
     else:
         print("check multi process")
         data_manager = MultiDomainDataManagerV1(cfg)
+    if update_dataset:
 
+        data_manager.update_dataset(dataset=update_dataset)
+        print("update data manager with customize dataset")
     data_manager.prepare_data()
     data_manager.setup()
     require_parameter = data_manager.get_require_parameter()
@@ -353,3 +356,58 @@ def generate_setup(org_cfg):
                         "output_dir":output_dir
                     })
     return experiments
+
+def train_full_experiment(cfg,experiments_setup,update_dataset_func=None,benchmark=False,deterministic=True,eval=False,use_best_model_pretrain=True,pretrain_dir="",seed=42):
+    print("cfg file setup : ",cfg)
+    pl.seed_everything(seed)
+# def train_full_experiment(cfg,experiments_setup,benchmark=False,deterministic=True,eval=False,use_best_model_pretrain=True,pretrain_dir="",seed=42):
+    fold_results = list()
+    common_dir = cfg.OUTPUT_DIR
+    for experiment in experiments_setup:
+        sub_exp_path = experiment["generate_sub_exp_path"]
+        output_dir = experiment["output_dir"]
+        combine_prefix = experiment["sub_exp_prefix"]
+        cfg = experiment["cfg"]
+        if update_dataset_func is not None:
+            update_dataset = update_dataset_func(cfg, experiments_setup)
+        else:
+            update_dataset = None
+        # trainer_model,trainer_lightning,data_manager = trainer_setup(output_dir,cfg,benchmark,deterministic,seed=seed)
+        trainer_model,trainer_lightning,data_manager = trainer_setup(output_dir,cfg,benchmark,deterministic,seed=seed,update_dataset=update_dataset)
+
+
+        if eval:
+            model_state = torch.load(os.path.join(output_dir, 'checkpoint.ckpt'), map_location='cuda:0')
+            print("save checkpoint keys : ", model_state.keys())
+            # print("state dict : ", model['state_dict'])
+            best_epoch = model_state['epoch']
+            trainer_model.load_state_dict(model_state['state_dict'])
+            test_result = trainer_lightning.test(trainer_model, datamodule=data_manager)[0]
+            if len(test_result) > 1 and isinstance(test_result, list):
+                test_result = test_result[0]
+            print("test result : ", test_result)
+            test_result.update(combine_prefix)
+            test_result.update({
+                'epoch':best_epoch
+            })
+            fold_results.append(test_result)
+        else:
+            if pretrain_dir != "":
+                current_pretrain_dir = os.path.join(pretrain_dir, sub_exp_path)
+                print("current potential pretrain dir : ",current_pretrain_dir)
+                if os.path.exists(current_pretrain_dir):
+                    print("path exist")
+                    if use_best_model_pretrain:
+                        current_pretrain_file = os.path.join(current_pretrain_dir, 'checkpoint.ckpt')
+                    else:
+                        current_pretrain_file = os.path.join(current_pretrain_dir, 'last.ckpt')
+                    pretrain_model_state = torch.load(current_pretrain_file, map_location='cuda:0')
+                    trainer_model.load_state_dict(pretrain_model_state['state_dict'])
+                    # require_parameter = data_manager.get_require_parameter()
+                    # trainer_model.load_from_checkpoint(pretrain_dir,cfg=cfg,require_parameter=require_parameter)
+                    print("load pretrain model from {}".format(current_pretrain_file))
+            trainer_lightning.fit(trainer_model, datamodule=data_manager)
+
+    if eval:
+        generate_excel_report(fold_results, common_dir, result_folder='result_folder')
+        generate_model_info_config(cfg, common_dir, result_folder='result_folder')

@@ -52,6 +52,8 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
 
         F_params = list(self.CommonFeature.parameters())
         F_opt = build_optimizer(F_params,opt_cfg)
+        # optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=0.1)
+
         F_scheduler = build_lr_scheduler(optimizer=F_opt,optim_cfg=opt_cfg)
 
 
@@ -85,8 +87,15 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
         backbone_info = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE
         FC_info = cfg.LIGHTNING_MODEL.COMPONENTS.LAST_FC
         # backbone_params = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.copy()
+        FREEZE: True
 
         self.CommonFeature = SimpleNet(backbone_info, FC_info, 0, **cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS)
+        freeze_common_feature = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.CommonFeature.parameters():
+                parameter.requires_grad = False
+            print("freeze feature extractor : ",)
+
         self.fdim = self.CommonFeature.fdim
 
         print('Building Target Classifier')
@@ -143,16 +152,33 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
             # print("check range for source data : {} - {}".format(u.max(),u.min()))
             f = self.CommonFeature(u)
             logits = self.SourceClassifiers[d](f)
-            domain_weight = self.source_domains_class_weight[d]
+            # domain_weight = self.source_domains_class_weight[d]
+            if not self.no_source_weight:
+                domain_weight = self.source_domains_class_weight[d]
+            else:
+                domain_weight = None
             loss_source += self.loss_function(logits, y, train=True, weight=domain_weight)
         loss_source /= len(domain_u)
 
-        loss_target,logit_1,logit_2,label,_= self.share_step(target_batch, train_mode=True, weight=self.class_weight)
+        if self.no_target_weight:
+            loss_target, logit_1, logit_2, label, _ = self.share_step(target_batch, train_mode=True)
+        else:
+            loss_target,logit_1,logit_2,label,_= self.share_step(target_batch, train_mode=True, weight=self.class_weight)
         ensemble_logit = logit_1+logit_2
         y_pred = F.softmax(ensemble_logit, dim=1)
         y = label
         acc = self.train_acc(y_pred, y)
 
+        # ## visualize very few params
+        # print("check params update extractor before ")
+        # for param in self.CommonFeature.parameters():
+        #     print(param[0])
+        #     break
+        #
+        # print("check params update classifier before ")
+        # for param in self.TargetClassifier_1.parameters():
+        #     print(param[0])
+        #     break
         #step A
         loss_A = self.source_ratio*loss_source+self.target_ratio*loss_target
         F_opt.zero_grad()
@@ -164,15 +190,17 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
         C1_opt.step()
         C2_opt.step()
         C_S_opt.step()
+
         #step B
-        # loss_x,_,_,_ = self.share_step(target_batch, train_mode=True)
-        loss_x,_,_,_,_ = self.share_step(target_batch, train_mode=True,weight=self.class_weight)
+        loss_x,_,_,_,_ = self.share_step(target_batch, train_mode=True)
+        # loss_x,_,_,_,_ = self.share_step(target_batch, train_mode=True,weight=self.class_weight)
 
         #try to use with torch.no_grad():
         f_target = self.CommonFeature(unlabel_batch)
         logit_u_1 = self.TargetClassifier_1(f_target)
         logit_u_2 = self.TargetClassifier_2(f_target)
         loss_dis = self.discrepancy(logit_u_1, logit_u_2)
+
 
         loss_B = loss_x-loss_dis
         F_opt.zero_grad()
@@ -193,8 +221,6 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
             C2_opt.zero_grad()
             self.manual_backward(loss_C)
             F_opt.step()
-
-
 
         self.log('Train_acc', acc, on_step=False,on_epoch=True,prog_bar=True, logger=True)
         self.log('Train_loss_A', loss_A,on_step=False,on_epoch=True, prog_bar=True, logger=True)
@@ -245,65 +271,3 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
         y_logit = logit_1+logit_2
         y_pred = F.softmax(y_logit,dim=1)
         return {'loss': loss,'y_pred':y_pred,'y':y}
-
-    # def test_step(self, batch, batch_idx):
-    #     loss,logit_1,logit_2,y,subject_ids = self.share_step(batch,train_mode=False)
-    #     y_logit = logit_1+logit_2
-    #     y_pred = F.softmax(y_logit,dim=1)
-    #     return {'loss': loss,'y_pred':y_pred,'y':y}
-
-    # def test_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-    #     # print("current output : ",outputs)
-    #     # print("current output dataset : ",outputs[dataset_idx])
-    #     # n_test_subjects = len(outputs)
-    #     # self.test_acc = torchmetrics.Accuracy()
-    #     # self.test_class_acc = torchmetrics.Accuracy(average='none',num_classes=self.num_classes)
-    #
-    #     subject_id = 0
-    #     for output in outputs:
-    #         self.subject_test_acc = torchmetrics.Accuracy().to(self.device)
-    #         self.subject_test_class_acc = torchmetrics.Accuracy(average='none', num_classes=self.num_classes).to(self.device)
-    #         for batch_result in output:
-    #     # for batch_result in outputs:
-    #             batch_loss = batch_result['loss']
-    #             batch_y_pred = batch_result['y_pred']
-    #             batch_y = batch_result['y']
-    #             self.test_acc.update(batch_y_pred,batch_y)
-    #             self.test_avg_loss.update(batch_loss)
-    #             self.test_avg_class_acc.update(batch_y_pred,batch_y)
-    #             self.test_class_acc.update(batch_y_pred,batch_y)
-    #
-    #             self.subject_test_acc.update(batch_y_pred,batch_y)
-    #             self.subject_test_class_acc.update(batch_y_pred,batch_y)
-    #         # self.test_F1.update(batch_y_pred,batch_y)
-    #         # self.confusion_matrix.update(batch_y_pred,batch_y)
-    #
-    #         if self.view_test_subject_result:
-    #             subject_acc = self.subject_test_acc.compute()
-    #             # print("subject acc :",subject_acc)
-    #             self.log('sub_{}_test_acc'.format(subject_id), subject_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #             subject_classes_acc = self.subject_test_class_acc.compute()
-    #             for label in range(self.num_classes):
-    #                 class_acc = subject_classes_acc[label]
-    #                 format = 'sub_{}_class_{}_acc'.format(subject_id,label)
-    #                 self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #         subject_id +=1
-    #     # confusion_matrix = self.confusion_matrix.compute()
-    #     acc = self.test_acc.compute()
-    #     avg_class_acc = self.test_avg_class_acc.compute()
-    #     classes_acc = self.test_class_acc.compute()
-    #     F1 = self.test_F1.compute()
-    #     loss = self.test_avg_loss.compute()
-    #     self.log('test_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #     self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #     # self.log('test_F1', F1, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #
-    #     self.log('test_classes_avg_acc', avg_class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #     # print("individual classes acc : ",classes_acc)
-    #     for label in range (self.num_classes):
-    #         class_acc = classes_acc[label]
-    #         format = 'class_{}_acc'.format(label)
-    #         self.log(format, class_acc, on_step=False, on_epoch=True, prog_bar=True, logger=False)
-    #
-    #         # print("true labe : ",y)
-    #     # print("confusion matrix : ",matrix)

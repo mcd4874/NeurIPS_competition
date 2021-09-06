@@ -3,7 +3,7 @@ from torch.utils.data import Dataset as TorchDataset
 from torch.utils.data import TensorDataset
 from dassl.data.datasets.data_util import (generate_datasource,EuclideanAlignment,LabelAlignment,
                                            DataAugmentation,get_num_classes,get_label_classname_mapping,
-                                           normalization,dataset_norm,subjects_filterbank,filterBank,relabel_target)
+                                           dataset_norm,subjects_filterbank,filterBank,relabel_target)
 from .datasets import build_dataset
 from .samplers import build_sampler
 import numpy as np
@@ -179,6 +179,10 @@ class DataManagerV1(LightningDataModule):
                 train_x_data = dataset_norm(train_x_data)
                 val_data = dataset_norm(val_data)
                 test_data = dataset_norm(test_data)
+            elif normalization == 'time_norm':
+                train_x_data = dataset_norm(train_x_data,norm_channels=False)
+                val_data = dataset_norm(val_data,norm_channels=False)
+                test_data = dataset_norm(test_data,norm_channels=False)
 
 
         train_x_data = self._expand_data_dim(train_x_data)
@@ -464,6 +468,8 @@ class MultiDomainDataManagerV1(DataManagerV1):
                 normalization = self.cfg.INPUT.TRANSFORMS[0]
                 if normalization == 'cross_channel_norm':
                     source_data= dataset_norm(source_data)
+                elif normalization == 'time_norm':
+                    source_data= dataset_norm(source_data, norm_channels=False)
             for subject_idx in range(len(source_data)):
                 print("source_data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
                     subject_idx, source_data[subject_idx].shape,
@@ -578,6 +584,8 @@ class MultiDomainDataManagerV2(MultiDomainDataManagerV1):
             normalization = self.cfg.INPUT.TRANSFORMS[0]
             if normalization == 'cross_channel_norm':
                 train_u_data = dataset_norm(train_u_data)
+            elif normalization == 'time_norm':
+                train_u_data= dataset_norm(train_u_data, norm_channels=False)
         for subject_idx in range(len(train_u_data)):
             print("unlabel data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
                 subject_ids[subject_idx], train_u_data[subject_idx].shape,

@@ -1,0 +1,120 @@
+INPUT:
+  SIZE: (2, 3000)
+  TRANSFORMS:
+    - time_norm
+  NO_TRANSFORM: false
+USE_CUDA: true
+DATAMANAGER:
+  RESULT_FOLDER: result_folder
+  MANAGER_TYPE: single_dataset
+  DATASET:
+    NAME: MultiDatasetV1
+    DIR: task_1_case_1
+    FILENAME: target_sleep_1.mat
+    extra_files:
+      - target_sleep_2.mat
+      - source_sleep_0.mat
+      - source_sleep_1.mat
+      - source_sleep_2.mat
+      - source_sleep_3.mat
+      - source_sleep_4.mat
+    SETUP:
+      TARGET_DATASET_NAME: ''
+      SOURCE_DATASET_NAMES: []
+      TEST_FOLD:
+        N_TEST_FOLDS: 4
+        TEST_FOLD_PREFIX: test_fold
+        START_TEST_FOLD: 1
+        END_TEST_FOLD: 4
+        CURRENT_TEST_FOLD: 1
+        WITHIN_SUBJECTS: false
+        TRAIN_VALID_DATA_RATIO: 0.9
+        SAME_AS_VALID: false
+      SHUFFLE_TRAIN_VALID_FOLD:
+        SHUFFLE_FOLD_PREFIX: shuffle_fold
+        N_SHUFFLE_FOLDS: 1
+        START_SHUFFLE_FOLD: 1
+        END_SHUFFLE_FOLD: 1
+        CURRENT_SHUFFLE_FOLD: 1
+        SHUFFLE_SEED: []
+      INCREMENT_FOLD:
+        INCREMENT_FOLD_PREFIX: increment_fold
+        N_INCREMENT_FOLDS: 1
+        START_INCREMENT_FOLD: 1
+        END_INCREMENT_FOLD: 1
+        CURRENT_INCREMENT_FOLD: 1
+      VALID_FOLD:
+        VALID_FOLD_PREFIX: valid_fold
+        N_VALID_FOLDS: 5
+        START_VALID_FOLD: 1
+        END_VALID_FOLD: 5
+        CURRENT_VALID_FOLD: 1
+        WITHIN_SUBJECTS: false
+        TRAIN_DATA_RATIO: -1
+        TOTAL_CLASS_WEIGHT: true
+    AUGMENTATION:
+      NAME: ''
+      PARAMS:
+        N_SEGMENT: 4
+        MAX_TRIAL_MUL: 3
+        MAX_FIX_TRIAL: -1
+        DATASET_NAME: BCI_IV
+  DATALOADER:
+    NUM_WORKERS: 0
+    TRAIN_X:
+      SAMPLER: RandomSampler
+      BATCH_SIZE: 64
+    VALID:
+      SAMPLER: SequentialSampler
+      BATCH_SIZE: 64
+    TEST:
+      SAMPLER: SequentialSampler
+      BATCH_SIZE: 64
+OPTIM:
+  OPTIMIZER:
+    NAME: adam
+    PARAMS:
+      lr: 0.001
+      weight_decay: 0.0
+  SCHEDULER:
+    NAME: exponential
+    PARAMS:
+      gamma: 1.0
+  MAX_EPOCH: 60
+TRAIN:
+  CHECKPOINT_FREQ: 0
+  PRINT_FREQ: 10
+TEST:
+  EVALUATOR: Classification
+  PER_CLASS_RESULT: true
+LIGHTNING_MODEL:
+  TRAINER:
+    NAME: BaseModel
+  COMPONENTS:
+    LAST_FC:
+      NAME: max_norm
+      max_norm: 0.5
+    BACKBONE:
+      NAME: eegnet
+      PARAMS:
+        kern_legnth: 200
+        num_ch: 2
+        samples: 3000
+        F1: 8
+        D: 2
+        F2: 16
+        drop_prob: 0.25
+        avg_pool_1: 8
+        avg_pool_2: 5
+        sep_kern_length: 25
+EXTRA_FIELDS:
+  target_dataset: full_dataset
+  source_dataset: []
+  normalize: time_norm
+  EA: true
+  LA: false
+  aug: no_aug
+  model: BaseModel
+  backbone: eegnet
+  source_label_space: []
+  target_label_space: 4

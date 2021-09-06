@@ -128,21 +128,7 @@ class MultiDatasetADDAV1(TrainerMultiAdaptation):
             self.non_save_ratio = 10.0
         else:
             self.non_save_ratio = 1.0
-    # def calculate_dann(self,target_feature,source_feature):
-    #     #there is a problem need to concern. We assume that label target batch size is same as source batch size
-    #     domain_label_target = torch.ones(target_feature.shape[0], 1,device=self.device)
-    #     domain_label_source = torch.zeros(source_feature.shape[0], 1,device=self.device)
-    #     feature = torch.cat([target_feature, source_feature])
-    #     domain_label = torch.cat([domain_label_target, domain_label_source])
-    #     domain_pred = self.DomainDiscriminator(feature)
-    #     loss_d = self.bce(domain_pred, domain_label)
-    #
-    #     y_pred = F.sigmoid(domain_pred)
-    #     y_pred = y_pred > 0.5
-    #     total = torch.sum(y_pred==domain_label)
-    #     acc= total/(target_feature.shape[0]+source_feature.shape[0])
-    #     # print("acc : ",acc)
-    #     return loss_d,acc
+
 
     def training_step(self, batch, batch_idx):
         target_batch, unlabel_batch ,list_source_batches = self.parse_batch_train(batch)
@@ -258,7 +244,7 @@ class MultiDatasetADDAV1(TrainerMultiAdaptation):
 
         return {'loss': loss}
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
         loss,y_logit,y = self.share_step(batch,train_mode=False)
         y_pred = F.softmax(y_logit,dim=1)
         return {'loss': loss,'y_pred':y_pred,'y':y}
