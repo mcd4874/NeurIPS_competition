@@ -273,11 +273,17 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiDatasetAdaptation"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
         ]
-    elif trainer_type == "share_adaptV1":
+    elif trainer_type == "share_adaptV1" or trainer_type == "deepsleep_share_adaptV1":
         match_pair = [
             ["EXTRA_FIELDS.model", "MultiShareAdaptationV1"],
              ["LIGHTNING_MODEL.TRAINER.NAME", "MultiShareAdaptationV1"],
              ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "deepsleep_share_mcd":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MultiShareMCD"],
+             ["LIGHTNING_MODEL.TRAINER.NAME", "MultiShareMCD"],
+             ["DATAMANAGER.MANAGER_TYPE", 'multi_datasetV2']
         ]
     elif trainer_type == "adaptationV1":
         match_pair = [
@@ -340,6 +346,18 @@ def generate_transfer_learning_config(main_path,config_path,aug_type,norm_type,t
             ["EXTRA_FIELDS.model", "ComponentAdaptation"],
             ["LIGHTNING_MODEL.TRAINER.NAME", "ComponentAdaptation"],
             ["DATAMANAGER.MANAGER_TYPE", 'multi_dataset']
+        ]
+    elif trainer_type == "dann" or trainer_type == "deepsleep_dann":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "DANN"],
+            ["LIGHTNING_MODEL.TRAINER.NAME", "DANN"],
+            ["DATAMANAGER.MANAGER_TYPE", 'single_datasetV2']
+        ]
+    elif trainer_type == "mcd" or trainer_type == "deepsleep_mcd":
+        match_pair = [
+            ["EXTRA_FIELDS.model", "MCD"],
+            ["LIGHTNING_MODEL.TRAINER.NAME", "MCD"],
+            ["DATAMANAGER.MANAGER_TYPE", 'single_datasetV2']
         ]
     else:
         match_pair = [
@@ -602,7 +620,7 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # config_path = "main_config/final_result_15_3_1/al_model_2_2"
 
 # main_path = "final_result_15_3_1/main_model_3"
-# config_path = "main_config/final_result_15_3_1/main_model_3"
+config_path = "main_config/final_result_15_3_1/main_model_3"
 # main_path = "final_result_15_3_1/main_model_3_2"
 # config_path = "main_config/final_result_15_3_1/main_model_3_2"
 # main_path = "final_result_15_3_1/main_model_4"
@@ -614,18 +632,42 @@ def setup_experiments(main_path, config_path, aug_conditions, norm_conditions, t
 # dataset_conditions = ["BCI_IV"]
 # main_path = "final_result_14_3_1/tune_batch/main_model_2"
 # config_path = "main_config/final_result_14_3_1/main_model_2"
+
+# main_path = "task_2_final_1"
+# config_path = "main_config/task_2_final_1"
+
+# main_path = "task_2_final_2"
+# config_path = "main_config/task_2_final_2"
+
 # main_path = "task_1_exp_1"
 # config_path = "main_config/task_1_exp_1"
 # main_path = "task_1_exp_2"
 # config_path = "main_config/task_1_exp_2"
-main_path = "task_1_exp_3"
-config_path = "main_config/task_1_exp_3"
+# main_path = "task_1_exp_3"
+# config_path = "main_config/task_1_exp_3"
+# main_path = "task_1_exp_4"
+# config_path = "main_config/task_1_exp_4"
+# main_path = "task_1_exp_5/quick_ver"
+# config_path = "main_config/task_1_exp_5"
+# main_path = "task_1_final_1/quick_ver"
+# config_path = "main_config/task_1_final_1/quick_ver"
+# main_path = "task_1_final_1"
+# config_path = "main_config/task_1_final_1"
+
+main_path = "task_1_final_2/quick_ver"
+config_path = "main_config/task_1_final_2/quick_ver"
+
+# main_path = "task_1_final_2/quick_ver_2"
+# config_path = "main_config/task_1_final_2/quick_ver_2"
+
 # aug_conditions=["temp_aug","no_aug"]
 aug_conditions=["no_aug"]
 # aug_conditions=["no_aug"]
 # aug_conditions=["T_F_aug"]
 # norm_conditions = ["chan_norm","no_norm"]
 norm_conditions = ["no_norm","time_norm"]
+# norm_conditions = ["no_norm"]
+
 # dataset_conditions = ["BCI_IV", "Cho2017", "Physionet"]
 # trainer_conditions = ["vanilla", "adaptation", "component_adapt"]
 # trainer_conditions = ["adaptationV1","dannV1","mcdV1","vanilla"]
@@ -633,8 +675,17 @@ norm_conditions = ["no_norm","time_norm"]
 # trainer_conditions = ["adaptationV1"]
 # trainer_conditions = ["mcdV1","adaptationV1"]
 # trainer_conditions = ["adaptationV2"]
-trainer_conditions = ["vanilla","adaptationV1","mcdV1","dannV1"]
-# trainer_conditions = ["m3sda"]
+# trainer_conditions = ["vanilla"]
+# trainer_conditions = ["deepsleep_vanilla","vanilla","deepsleep_share_adaptV1","share_adaptV1"]
+# trainer_conditions = ["deepsleep_share_adaptV1","share_adaptV1"]
+
+# trainer_conditions = ["mcd","dann"]
+
+# trainer_conditions = ["deepsleep_share_adaptV1"]
+trainer_conditions = ["deepsleep_share_mcd"]
+
+
+# trainer_conditions = ["deepsleep_vanilla"]
 
 # trainer_conditions = ["addaV1"]
 # trainer_conditions = ["SRDA","addaV1"]
@@ -647,8 +698,9 @@ trainer_conditions = ["vanilla","adaptationV1","mcdV1","dannV1"]
 # dataset_conditions = ["dataset_A", "dataset_B"]
 # dataset_conditions = ["dataset_A"]
 # dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
-# dataset_conditions = ["full_dataset"]
+# dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
 dataset_conditions = ["full_dataset"]
+# dataset_conditions = ["full_dataset"]
 
 
 
@@ -656,43 +708,167 @@ setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_c
 # config_path = "main_config/final_result_15_3_1/main_model_3"
 # dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
 
-#deal with different pretrain setup
-# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/6"
+# deal with different pretrain setup
+# main_path = "task_1_exp_5/tune_params/1"
+# trainer_conditions = ["deepsleep_mcd","deepsleep_dann"]
+# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
 # extra_merge= list()
 # extra_merge.append([
-#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",6,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 0.2,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
-#
-# ])
-# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
-#
-# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/8"
-# extra_merge= list()
-# extra_merge.append([
-#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 0.4,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
-#
-# ])
-# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
-#
-# main_path = "final_result_15_3_1/main_model_3/pretrain_tune/10"
-# extra_merge= list()
-# extra_merge.append([
-#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",10,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO", 1.0,
-#     # "LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO", 1.0
-#
+#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT",False,
+#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER","WeightRandomSampler",
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",200,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",100,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "OPTIM.MAX_EPOCH",40
 # ])
 # setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
 
+# main_path = "task_1_exp_5/tune_params/2"
+# trainer_conditions = ["deepsleep_vanilla"]
+# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT", False,
+#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER", "WeightRandomSampler",
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",300,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",100,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "task_1_exp_5/tune_params/3"
+# trainer_conditions = ["deepsleep_vanilla"]
+# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT", False,
+#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER", "WeightRandomSampler",
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",50,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",50,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+#
+# main_path = "task_1_exp_5/tune_params/4"
+# trainer_conditions = ["deepsleep_vanilla"]
+# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT", False,
+#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER", "WeightRandomSampler",
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",100,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",100,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",16,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",16,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+
+
+#
+# main_path = "task_1_exp_4/tune_n_temp/5"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",200,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",32,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 64,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",5,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",25,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+#
+#
+# main_path = "task_1_exp_4/tune_n_temp/6"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",400,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",16,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 32,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",5,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",25,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "task_1_exp_4/tune_n_temp/7"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",400,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",32,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 64,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",5,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",25,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "task_1_exp_4/temp_pool_kern/1"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",50,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 16,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",50,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "task_1_exp_4/temp_pool_kern/2"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",100,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 16,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",100,
+#     "OPTIM.MAX_EPOCH",80
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+
+
+#
+# main_path = "task_1_exp_2/tune_both_kern/5"
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",400,
+#     # "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
+#     # "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.D",2,
+#     # "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2", 8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",8,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",5,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",50,
+#     "OPTIM.MAX_EPOCH", 80
+#
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
 
 #
 # all_configs = list()
@@ -715,3 +891,112 @@ setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_c
 
 # main_path = "final_result_14_3_1/main_model_1"
 # config_path = "main_config/final_result_14_3_1/main_model_1"
+
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/1"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/1"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'adam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.0,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/2"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/2"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'adam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.001,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/3"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/3"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'adamW',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.1,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/4"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/4"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'adamW',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.01,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/5"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/5"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'adamW',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.001,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/6"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/6"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'EAdam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.1,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/7"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/7"
+# extra_merge= list()
+# extra_merge.append([
+#
+#     "OPTIM.OPTIMIZER.NAME",'EAdam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.01,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/8"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/8"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'EAdam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.001,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# main_path = "final_result_15_3_1/main_model_3/tune_opt/9"
+# # main_path = "final_result_14_3_1/main_model_2/tune_opt/8"
+# extra_merge= list()
+# extra_merge.append([
+#     "OPTIM.OPTIMIZER.NAME",'EAdam',
+#     "OPTIM.OPTIMIZER.PARAMS.lr", 0.001,
+#     "OPTIM.OPTIMIZER.PARAMS.weight_decay", 0.0001,
+#     "OPTIM.MAX_EPOCH",15,
+#     "LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_PRE_TRAIN_EPOCHS",8
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)

@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
 from NeurIPS_competition.util.support import (
-    expand_data_dim, normalization, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
+    expand_data_dim, normalization_time,normalization_channels, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
     correct_EEG_data_order, relabel, process_target_data, relabel_target, load_dataset_A, load_dataset_B, modify_data,reformat,
     filterBank
 )
@@ -229,19 +229,22 @@ def get_test_data(dataset_type, norm, provide_data_path = None,EA=False):
         print("load test predict data ------------------")
     print_info(test_data,dataset_type)
     test_data = np.concatenate(test_data)
-    if norm:
-        test_data = normalization(test_data)
+    if norm == 'cross_channel_norm':
+        print("normalize across channels ")
+        test_data = normalization_channels(test_data)
+    elif norm == 'time_norm':
+        print("normalize across time in each channel ")
+        test_data = normalization_time(test_data)
     test_data = expand_data_dim(test_data)
     print("data shape before predict : ",test_data.shape)
     return test_data
 
 def generate_ensemble_predict(cfg,experiments_setup,benchmark=False,deterministic=True,generate_predict=False,use_assemble_test_dataloader=False,relabel=False,seed=42):
     """Apply data transformation/normalization"""
-    norm = False
-    if not cfg.INPUT.NO_TRANSFORM:
-        normalization = cfg.INPUT.TRANSFORMS[0]
-        if normalization == 'cross_channel_norm':
-            norm = True
+    if len(cfg.INPUT.TRANSFORMS) > 0:
+        norm = cfg.INPUT.TRANSFORMS[0]
+    else:
+        norm = "none"
     EA = cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment
     print("use cross channel norm : ", norm)
     print("generate predict : ", generate_predict)

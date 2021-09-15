@@ -11,7 +11,7 @@ import mne
 
 from NeurIPS_1.util.support import (
     reformat,load_source_sleep,load_target_sleep,load_test_sleep,print_info,print_dataset_info,convert_volt_to_micro,generate_data_file,
-    combine,load_test_sleep_combine
+    combine,load_test_sleep_combine,load_full_target_sleep
 )
 
 from NeurIPS_competition.util.setup_dataset import (
@@ -79,20 +79,24 @@ target_test_data_1, target_test_label_1, test_meta_1, target_test_data_2, target
 target_test_data_1 = convert_volt_to_micro(target_test_data_1)
 target_test_data_2 = convert_volt_to_micro(target_test_data_2)
 
+full_target_data,ful_target_label,full_target_meta = load_full_target_sleep()
+full_target_data = convert_volt_to_micro(full_target_data)
+
+
 combine_test_data,combine_test_label,combine_test_meta = load_test_sleep_combine()
 combine_test_data = convert_volt_to_micro(combine_test_data)
 
 
-print_dataset_info(source_data,"source sleep")
-print_dataset_info(target_data_1,"target data 1")
-print_dataset_info(target_data_2,"target data 2")
-print_dataset_info(target_test_data_1,"target test data 1")
-print_dataset_info(target_test_data_2,"target test data 2")
+# print_dataset_info(source_data,"source sleep")
+# print_dataset_info(target_data_1,"target data 1")
+# print_dataset_info(target_data_2,"target data 2")
+# print_dataset_info(target_test_data_1,"target test data 1")
+# print_dataset_info(target_test_data_2,"target test data 2")
 
 # print("source meta : ",source_meta)
 # source_data,source_label,source_meta = reformat(source_data,source_label,source_meta)
-# target_data_1,target_label_1,train_meta_1 = reformat(target_data_1,target_label_1,train_meta_1)
-# target_data_2,target_label_2,train_meta_2 = reformat(target_data_2,target_label_2,train_meta_2)
+temp_target_data_1,temp_target_label_1,temp_train_meta_1 = reformat(target_data_1,target_label_1,train_meta_1)
+temp_target_data_2,temp_target_label_2,temp_train_meta_2 = reformat(target_data_2,target_label_2,train_meta_2)
 # target_test_data_1, target_test_label_1,test_meta_1 = reformat(target_test_data_1, target_test_label_1,test_meta_1)
 # target_test_data_2, target_test_label_2, test_meta_2 = reformat(target_test_data_2, target_test_label_2, test_meta_2)
 # print_info(source_data,"subject source data info sleep ")
@@ -100,7 +104,35 @@ print_dataset_info(target_test_data_2,"target test data 2")
 # print_info(target_data_2,"subject target data 2 info sleep ")
 # print_info(target_test_data_1,"subject test data 1 info sleep ")
 # print_info(target_test_data_2,"subject test data 2 info sleep ")
+temp_full_target_data,temp_ful_target_label,temp_full_target_meta=reformat(full_target_data,ful_target_label,full_target_meta)
 
+
+def generate_class_weight(label):
+    """
+    generate the weight ratio based on total labels of every subjects
+    label : [subject_1,subject_2,..] and subject = (trials)
+    """
+    total = len(label)
+    print("unique label : ",np.unique(label))
+    class_sample_count = np.array([len(np.where(label == t)[0]) for t in np.unique(label)])
+    weight = total / class_sample_count
+    return weight
+
+def print_label_info(subject_labels,dataset_name=""):
+    print("dataset {}".format(dataset_name))
+    for subject_id in range(len(subject_labels)):
+        subject_label = subject_labels[subject_id]
+        # print("subject label shape : ",subject_label.shape)
+        subject_class_weight = generate_class_weight(subject_label)
+        print("subject {} has class weight {}".format(subject_id,subject_class_weight))
+
+
+print_label_info(temp_target_label_1,"session_1_data")
+print_label_info(temp_target_label_2,"session_2_data")
+
+print_label_info(temp_ful_target_label,"full_target_data")
+
+print("full target label ",generate_class_weight(ful_target_label))
 
 
 # source_meta = {name: col.values for name, col in source_meta.items()}
@@ -132,7 +164,7 @@ for subset_idx in range(len(subset_data)):
         'dataset_name': dataset_name,
     }
     file_name = dataset_name
-    generate_data_file([source_dataset], folder_name=save_folder, file_name=file_name)
+    # generate_data_file([source_dataset], folder_name=save_folder, file_name=file_name)
 
 
 target_dataset_1 = {
@@ -170,11 +202,11 @@ combine_test_dataset = {
     'dataset_name': "full_test_sleep",
 }
 
-save_folder = "task_1_case_1"
-generate_data_file([target_dataset_1], folder_name=save_folder, file_name='target_sleep_1')
-generate_data_file([target_dataset_2], folder_name=save_folder, file_name='target_sleep_2')
-#
-save_folder = "task_1_test_case_1"
-generate_data_file([test_dataset_1], folder_name=save_folder, file_name='test_sleep_1')
-generate_data_file([test_dataset_2], folder_name=save_folder, file_name='test_sleep_2')
-generate_data_file([combine_test_dataset], folder_name=save_folder, file_name='full_test_sleep')
+# save_folder = "task_1_case_1"
+# generate_data_file([target_dataset_1], folder_name=save_folder, file_name='target_sleep_1')
+# generate_data_file([target_dataset_2], folder_name=save_folder, file_name='target_sleep_2')
+# #
+# save_folder = "task_1_test_case_1"
+# generate_data_file([test_dataset_1], folder_name=save_folder, file_name='test_sleep_1')
+# generate_data_file([test_dataset_2], folder_name=save_folder, file_name='test_sleep_2')
+# generate_data_file([combine_test_dataset], folder_name=save_folder, file_name='full_test_sleep')

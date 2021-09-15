@@ -7,7 +7,7 @@ from dassl.engine import build_trainer
 import numpy as np
 from dassl.data.datasets.build import build_dataset
 from NeurIPS_competition.util.support import (
-    expand_data_dim, normalization, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
+    expand_data_dim, normalization_channels,normalization_time, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
     correct_EEG_data_order, relabel, process_target_data, relabel_target, load_dataset_A, load_dataset_B, modify_data,reformat
 )
 
@@ -95,7 +95,7 @@ from util_AL import load_test_data_from_file,load_prediction
 #     return pred_output
 #
 
-def generate_bag_experiment_MI_label(fold_predict_results,only_count_best=False,confidence_level=5):
+def generate_bag_experiment_MI_label(fold_predict_results,only_count_best=False,confidence_level=-1):
 
     probs = fold_predict_results[0]["probs"]
     preds = fold_predict_results[0]["preds"]
@@ -103,7 +103,8 @@ def generate_bag_experiment_MI_label(fold_predict_results,only_count_best=False,
     final_pred = np.zeros(probs.shape)
     final_prob = np.zeros(preds.shape)
     total_sub_exp = len(fold_predict_results)
-    if confidence_level > total_sub_exp:
+    # if confidence_level > total_sub_exp:
+    if confidence_level == -1:
         confidence_level = total_sub_exp
 
     for predict_result in fold_predict_results:
@@ -145,7 +146,7 @@ def generate_bag_experiment_MI_label(fold_predict_results,only_count_best=False,
     print("There are {} predictions match level {} confidence".format(count_best,confidence_level))
     return pred_output
 
-def load_prediction(experiments_setup,model_update_dir,confidence_level=5):
+def load_prediction(experiments_setup,model_update_dir,confidence_level=-1):
     fold_predict_results = list()
     for experiment in experiments_setup:
         sub_exp_path = experiment["generate_sub_exp_path"]
@@ -214,7 +215,54 @@ def load_prediction(experiments_setup,model_update_dir,confidence_level=5):
 #     count(pred,name=dataset_type)
 #     return pred
 
-def generate_update_dataset_func(test_file_path,model_update_dir,confidence_level=5):
+def generate_update_dataset_func(test_file_path,model_update_dir,confidence_level=-1,update_within_subject=True):
+
+    def combine_within_subject_data(train_x_data,train_x_label,test_data,query_pred_label):
+        #check if number of subject in train_x similar to test data
+        assert len(train_x_data) == len(test_data)
+        update_x_data = list()
+        update_x_label = list()
+        new_test_data = list()
+        for subject_idx in range(len(train_x_data)):
+            subject_train_x_data, subject_train_x_label = train_x_data[subject_idx], train_x_label[subject_idx]
+            subject_test_data, subject_query_pred_label = test_data[subject_idx], query_pred_label[subject_idx]
+            # print("subject query label : ",subject_query_pred_label)
+            pred_indices = np.where(subject_query_pred_label > -1)[0]
+            remain_indices = np.where(subject_query_pred_label == -1)[0]
+
+            update_test_data = subject_test_data[pred_indices]
+            update_query_label = subject_query_pred_label[pred_indices]
+
+            remain_test_data = subject_test_data[remain_indices]
+            new_test_data.append(remain_test_data)
+            combine_subject_data = np.concatenate([subject_train_x_data, update_test_data])
+            combine_subject_label = np.concatenate([subject_train_x_label, update_query_label])
+            update_x_data.append(combine_subject_data)
+            update_x_label.append(combine_subject_label)
+            print("new train x data : ", combine_subject_data.shape)
+            print("new test data : ", remain_test_data.shape)
+        return update_x_data,update_x_label,new_test_data
+
+    def combine_cross_subject_data(train_x_data,train_x_label,test_data,query_pred_label):
+        new_test_data = list()
+        add_train_data = list()
+        add_train_label = list()
+        for subject_idx in range(len(query_pred_label)):
+            subject_test_data, subject_query_pred_label = test_data[subject_idx], query_pred_label[subject_idx]
+            pred_indices = np.where(subject_query_pred_label > -1)[0]
+            remain_indices = np.where(subject_query_pred_label == -1)[0]
+
+            update_test_data = subject_test_data[pred_indices]
+            update_query_label = subject_query_pred_label[pred_indices]
+
+            remain_test_data = subject_test_data[remain_indices]
+            new_test_data.append(remain_test_data)
+            add_train_data.append(update_test_data)
+            add_train_label.append(update_query_label)
+
+        update_x_data = train_x_data + add_train_data
+        update_x_label = train_x_label + add_train_label
+        return update_x_data,update_x_label,new_test_data
 
     def update_dataset_with_active_learning(cfg,experiments_setup,exclude_subject_test_trial=None):
         dataset_type = cfg.DATAMANAGER.DATASET.SETUP.TARGET_DATASET_NAME
@@ -232,46 +280,11 @@ def generate_update_dataset_func(test_file_path,model_update_dir,confidence_leve
         dataset = build_dataset(cfg)
 
         train_x_data, train_x_label = dataset.train_x
-        update_x_data = list()
-        update_x_label = list()
-        new_test_data = list()
-        for subject_idx in range(len(train_x_data)):
-            subject_train_x_data, subject_train_x_label = train_x_data[subject_idx], train_x_label[subject_idx]
-            subject_test_data, subject_query_pred_label = test_data[subject_idx], query_pred_label[subject_idx]
-            # print("subject query label : ",subject_query_pred_label)
-            pred_indices = np.where(subject_query_pred_label > -1)[0]
-            remain_indices = np.where(subject_query_pred_label == -1)[0]
 
-            update_test_data = subject_test_data[pred_indices]
-            update_query_label = subject_query_pred_label[pred_indices]
-
-            remain_test_data = subject_test_data[remain_indices]
-            new_test_data.append(remain_test_data)
-            # update_test_data, update_query_label = list(), list()
-            # for trial in range(len(subject_test_data)):
-            #     trial_test_data = subject_test_data[trial]
-            #     trial_test_label = subject_query_pred_label[trial]
-            #     if trial_test_label > -1:
-            #         update_test_data.append(trial_test_data)
-            #         update_query_label.append(trial_test_label)
-            # update_test_data = np.array(update_test_data)
-            # update_query_label = np.array(update_query_label)
-
-            # print("update query label : ",update_query_label)
-            # print("shape test data {}, shape test label {}".format(update_test_data.shape,update_query_label.shape))
-            # print("shape train data {}, shape train label {}".format(subject_train_x_data.shape,subject_train_x_label.shape))
-
-            combine_subject_data = np.concatenate([subject_train_x_data, update_test_data])
-            combine_subject_label = np.concatenate([subject_train_x_label, update_query_label])
-            update_x_data.append(combine_subject_data)
-            update_x_label.append(combine_subject_label)
-            print("new train x data : ",combine_subject_data.shape)
-            print("new test data : ",remain_test_data.shape)
-
-        # return update_x_data, update_x_label,new_test_data,new_test_label
-        # new_test_data = list()
-        # new_test_label = list()
-
+        if update_within_subject:
+            update_x_data,update_x_label,new_test_data = combine_within_subject_data(train_x_data,train_x_label,test_data,query_pred_label)
+        else:
+            update_x_data,update_x_label,new_test_data = combine_cross_subject_data(train_x_data,train_x_label,test_data,query_pred_label)
         dataset.set_train_x((update_x_data, update_x_label))
         dataset.set_train_u(new_test_data)
         return dataset
@@ -600,7 +613,8 @@ def main(args):
         update_dataset_func = None
     else:
         confidence_level = cfg.LIGHTNING_MODEL.ACTIVE_LEARNING.ensemble_confidence_level
-        update_dataset_func= generate_update_dataset_func(test_file_path,model_update_dir)
+        within_subject_experiment = cfg.DATAMANAGER.DATASET.SETUP.VALID_FOLD.WITHIN_SUBJECTS
+        update_dataset_func= generate_update_dataset_func(test_file_path,model_update_dir,update_within_subject=within_subject_experiment,confidence_level=confidence_level)
             # update_dataset_with_active_learning(cfg, test_file_path,model_update_dir, experiments_setup)
     train_full_experiment(cfg, experiments_setup,update_dataset_func=update_dataset_func,benchmark=benchmark ,deterministic=deterministic,eval=eval, use_best_model_pretrain=use_best_model_pretrain, pretrain_dir=pretrain_dir,seed=seed)
 

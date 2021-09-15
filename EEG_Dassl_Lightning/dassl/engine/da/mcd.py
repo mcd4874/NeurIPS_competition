@@ -1,109 +1,212 @@
+from dassl.engine import TRAINER_REGISTRY
+from dassl.engine.trainer import TrainerBase
+from dassl.data import DataManager
+from dassl.utils import MetricMeter
+from torch.utils.data import Dataset as TorchDataset
+from dassl.optim import build_optimizer, build_lr_scheduler
+from dassl.utils import count_num_param
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+from dassl.engine.trainer import SimpleNet
+import numpy as np
+from dassl.modeling import build_layer
+from dassl.modeling.ops import ReverseGrad
+from typing import Any, Dict, List, Optional, Union
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT, STEP_OUTPUT
 
-from dassl.optim import build_optimizer, build_lr_scheduler
-from dassl.utils import count_num_param
-from dassl.engine import TRAINER_REGISTRY, TrainerXU
-from dassl.engine.trainer_tmp import SimpleNet
+
+import torchmetrics
+
 
 
 @TRAINER_REGISTRY.register()
-class MCD(TrainerXU):
-    """Maximum Classifier Discrepancy.
-
-    https://arxiv.org/abs/1712.02560.
+class MCD(TrainerBase):
     """
+    https://arxiv.org/abs/1712.02560
+    """
+    def __init__(self, cfg,require_parameter=None):
+        super().__init__(cfg,require_parameter)
+        self.n_step_F = 5
+        self.automatic_optimization = False
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.n_step_F = cfg.TRAINER.MCD.N_STEP_F
+    def build_metrics(self):
+        super(MCD, self).build_metrics()
+        self.valid_acc_1 = torchmetrics.Accuracy()
+        self.valid_acc_2 = torchmetrics.Accuracy()
+
+
+    def forward(self, input, return_feature=False):
+        f_target = self.CommonFeature(input)
+        logits_target_1 = self.TargetClassifier_1(f_target)
+        logits_target_2 = self.TargetClassifier_2(f_target)
+        ensemble_logit = logits_target_1+logits_target_2
+        probs = F.softmax(ensemble_logit, dim=1)
+        if return_feature:
+            return probs, ensemble_logit
+        return probs
+    def configure_optimizers(self):
+        opt_cfg = self.cfg.OPTIM
+
+
+        F_params = list(self.CommonFeature.parameters())
+        F_opt = build_optimizer(F_params,opt_cfg)
+
+        F_scheduler = build_lr_scheduler(optimizer=F_opt,optim_cfg=opt_cfg)
+
+
+        C1_params = list(self.TargetClassifier_1.parameters())
+        C1_opt = build_optimizer(C1_params,opt_cfg)
+        C1_scheduler = build_lr_scheduler(optimizer=C1_opt,optim_cfg=opt_cfg)
+
+
+        C2_params = list(self.TargetClassifier_2.parameters())
+        C2_opt = build_optimizer(C2_params,opt_cfg)
+        C2_scheduler = build_lr_scheduler(optimizer=C2_opt,optim_cfg=opt_cfg)
+
+
+        optimizers = [F_opt,C1_opt,C2_opt]
+        return optimizers
+        # lr_schedulers=[F_scheduler,C1_scheduler,C2_scheduler,C_S_scheduler]
+        # return optimizers, lr_schedulers
 
     def build_model(self):
         cfg = self.cfg
-
+        print("Params : ", cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE)
         print('Building F')
-        self.F = SimpleNet(cfg, cfg.MODEL, 0)
-        self.F.to(self.device)
-        print('# params: {:,}'.format(count_num_param(self.F)))
-        self.optim_F = build_optimizer(self.F, cfg.OPTIM)
-        self.sched_F = build_lr_scheduler(self.optim_F, cfg.OPTIM)
-        self.register_model('F', self.F, self.optim_F, self.sched_F)
-        fdim = self.F.fdim
 
-        print('Building C1')
-        print("fdim : ",fdim)
-        print("num_classes : ",self.num_classes)
-        self.C1 = nn.Linear(fdim, self.num_classes)
-        self.C1.to(self.device)
-        print('# params: {:,}'.format(count_num_param(self.C1)))
-        self.optim_C1 = build_optimizer(self.C1, cfg.OPTIM)
-        self.sched_C1 = build_lr_scheduler(self.optim_C1, cfg.OPTIM)
-        self.register_model('C1', self.C1, self.optim_C1, self.sched_C1)
+        print('Building CommonFeature')
+        backbone_info = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE
+        FC_info = cfg.LIGHTNING_MODEL.COMPONENTS.LAST_FC
+        # backbone_params = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.copy()
+        FREEZE: True
 
-        print('Building C2')
-        self.C2 = nn.Linear(fdim, self.num_classes)
-        self.C2.to(self.device)
-        print('# params: {:,}'.format(count_num_param(self.C2)))
-        self.optim_C2 = build_optimizer(self.C2, cfg.OPTIM)
-        self.sched_C2 = build_lr_scheduler(self.optim_C2, cfg.OPTIM)
-        self.register_model('C2', self.C2, self.optim_C2, self.sched_C2)
+        self.CommonFeature = SimpleNet(backbone_info, FC_info, 0, **cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS)
+        freeze_common_feature = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.CommonFeature.parameters():
+                parameter.requires_grad = False
+            print("freeze feature extractor : ",)
 
-    def forward_backward(self, batch_x, batch_u):
-        parsed = self.parse_batch_train(batch_x, batch_u)
-        input_x, label_x, input_u = parsed
+        self.fdim = self.CommonFeature.fdim
 
-        # Step A
-        feat_x = self.F(input_x)
-        logit_x1 = self.C1(feat_x)
-        logit_x2 = self.C2(feat_x)
-        loss_x1 = F.cross_entropy(logit_x1, label_x)
-        loss_x2 = F.cross_entropy(logit_x2, label_x)
-        loss_step_A = loss_x1 + loss_x2
-        self.model_backward_and_update(loss_step_A)
+        print('Building Target Classifier')
+        self.TargetClassifier_1 = self.create_classifier(self.fdim, self.num_classes, FC_info=FC_info)
+        self.TargetClassifier_2 = self.create_classifier(self.fdim, self.num_classes, FC_info=FC_info)
 
-        # Step B
-        with torch.no_grad():
-            feat_x = self.F(input_x)
-        logit_x1 = self.C1(feat_x)
-        logit_x2 = self.C2(feat_x)
-        loss_x1 = F.cross_entropy(logit_x1, label_x)
-        loss_x2 = F.cross_entropy(logit_x2, label_x)
-        loss_x = loss_x1 + loss_x2
+    def share_step(self,batch,train_mode = True,weight=None):
+        input, label, domain = self.parse_target_batch(batch)
 
-        with torch.no_grad():
-            feat_u = self.F(input_u)
-        pred_u1 = F.softmax(self.C1(feat_u), 1)
-        pred_u2 = F.softmax(self.C2(feat_u), 1)
-        loss_dis = self.discrepancy(pred_u1, pred_u2)
+        f_target = self.CommonFeature(input)
+        logits_target_1 = self.TargetClassifier_1(f_target)
+        logits_target_2 = self.TargetClassifier_2(f_target)
 
-        loss_step_B = loss_x - loss_dis
-        self.model_backward_and_update(loss_step_B, ['C1', 'C2'])
+        loss_target_1 = self.loss_function(logits_target_1, label, train=train_mode,weight=weight)
+        loss_target_2 = self.loss_function(logits_target_2, label, train=train_mode,weight=weight)
+        loss_target = loss_target_1+loss_target_2
 
-        # Step C
+        return loss_target,logits_target_1,logits_target_2,label
+
+    def discrepancy(self,out1,out2):
+        return torch.mean(torch.abs(F.softmax(out1,dim=1) - F.softmax(out2,dim=1)))
+
+    def training_step(self, batch, batch_idx):
+        target_batch, unlabel_batch  = self.parse_batch_train(batch)
+        F_opt,C1_opt,C2_opt = self.optimizers()
+
+
+        loss_target,logit_1,logit_2,label = self.share_step(target_batch, train_mode=True, weight=self.class_weight)
+        ensemble_logit = logit_1+logit_2
+        y_pred = F.softmax(ensemble_logit, dim=1)
+        y = label
+        acc = self.train_acc(y_pred, y)
+
+        #step A
+        loss_A = loss_target
+        F_opt.zero_grad()
+        C1_opt.zero_grad()
+        C2_opt.zero_grad()
+        self.manual_backward(loss_A)
+        F_opt.step()
+        C1_opt.step()
+        C2_opt.step()
+
+        #step B
+        # loss_x,_,_,_, = self.share_step(target_batch, train_mode=True)
+        loss_x,_,_,_, = self.share_step(target_batch, train_mode=True,weight=self.class_weight)
+
+        #try to use with torch.no_grad():
+        f_target = self.CommonFeature(unlabel_batch)
+        logit_u_1 = self.TargetClassifier_1(f_target)
+        logit_u_2 = self.TargetClassifier_2(f_target)
+        loss_dis = self.discrepancy(logit_u_1, logit_u_2)
+
+
+        loss_B = loss_x-loss_dis
+        F_opt.zero_grad()
+        C1_opt.zero_grad()
+        C2_opt.zero_grad()
+        self.manual_backward(loss_B)
+        C1_opt.step()
+        C2_opt.step()
+
+        #step C
         for _ in range(self.n_step_F):
-            feat_u = self.F(input_u)
-            pred_u1 = F.softmax(self.C1(feat_u), 1)
-            pred_u2 = F.softmax(self.C2(feat_u), 1)
-            loss_step_C = self.discrepancy(pred_u1, pred_u2)
-            self.model_backward_and_update(loss_step_C, 'F')
+            f_target = self.CommonFeature(unlabel_batch)
+            logit_u_1 = self.TargetClassifier_1(f_target)
+            logit_u_2 = self.TargetClassifier_2(f_target)
+            loss_C = self.discrepancy(logit_u_1, logit_u_2)
+            F_opt.zero_grad()
+            C1_opt.zero_grad()
+            C2_opt.zero_grad()
+            self.manual_backward(loss_C)
+            F_opt.step()
 
-        loss_summary = {
-            'loss_step_A': loss_step_A.item(),
-            'loss_step_B': loss_step_B.item(),
-            'loss_step_C': loss_step_C.item()
-        }
+        self.log('Train_acc', acc, on_step=False,on_epoch=True,prog_bar=True, logger=True)
+        self.log('Train_loss_A', loss_A,on_step=False,on_epoch=True, prog_bar=True, logger=True)
+        self.log('Train_loss_B', loss_B,on_step=False,on_epoch=True, prog_bar=True, logger=True)
+        self.log('Train_loss_C', loss_C,on_step=False,on_epoch=True, prog_bar=True, logger=True)
+        # return {'loss':total_loss}
 
-        if (self.batch_idx + 1) == self.num_batches:
-            self.update_lr()
+    def parse_batch_train(self, batch):
+        target_batch = batch["target_loader"]
+        unlabel_batch = batch["unlabel_loader"]
+        return target_batch,unlabel_batch
 
-        return loss_summary
+    def parse_target_batch(self,batch):
+        input, label, domain = batch
+        return input,label,domain
+    def validation_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
+        loss,logit_1,logit_2,y = self.share_step(batch,train_mode=False)
+        y_logit = logit_1+logit_2
+        y_pred = F.softmax(y_logit, dim=1)
 
-    def discrepancy(self, y1, y2):
-        return (y1 - y2).abs().mean()
+        y_pred_1 = F.softmax(logit_1, dim=1)
+        y_pred_2 = F.softmax(logit_2, dim=1)
 
-    def model_inference(self, input):
-        feat = self.F(input)
-        return self.C1(feat)
+        if dataset_idx == 0 :
+            acc = self.valid_acc(y_pred, y)
+            acc_1 = self.valid_acc_1(y_pred_1,y)
+            acc_2 = self.valid_acc_2(y_pred_2,y)
+            log = {
+                "val_loss": loss,
+                "val_acc": acc,
+                "val_acc_1":acc_1,
+                "val_acc_2":acc_2
+            }
+            self.log_dict(log, on_step=False, on_epoch=True, prog_bar=True, logger=True,add_dataloader_idx=False)
+        else:
+            acc = self.test_acc(y_pred, y)
+            log = {
+                "test_loss": loss,
+                "test_acc": acc
+            }
+            self.log_dict(log, on_step=False, on_epoch=True, prog_bar=False, logger=True,add_dataloader_idx=False)
 
+        return {'loss': loss}
 
+    def test_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
+        loss,logit_1,logit_2,y = self.share_step(batch,train_mode=False)
+        y_logit = logit_1+logit_2
+        y_pred = F.softmax(y_logit,dim=1)
+        return {'loss': loss,'y_pred':y_pred,'y':y}

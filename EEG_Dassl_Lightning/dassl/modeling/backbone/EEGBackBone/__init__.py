@@ -14,3 +14,6 @@ from .FeatureExtractorV3 import extractorv3
 from .FBCNet import fbcnet
 from .FBCNetV1 import fbcnet_v1
 from .ComponentExtractor import componentExtractor
+
+from .EEGNETSleep import eegnetsleep
+from .DeepSleep import deepsleep

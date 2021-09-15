@@ -24,7 +24,7 @@ DATAMANAGER:
         N_TEST_FOLDS: 1
         TEST_FOLD_PREFIX: 'test_fold'
         START_TEST_FOLD: 1
-        END_TEST_FOLD: 4
+        END_TEST_FOLD: 1
         CURRENT_TEST_FOLD: 1
         WITHIN_SUBJECTS: False
         TRAIN_VALID_DATA_RATIO: -1
@@ -90,7 +90,7 @@ OPTIM:
     NAME: exponential
     PARAMS:
       gamma: 1.0
-  MAX_EPOCH: 40
+  MAX_EPOCH: 20
 
 TRAIN:
   CHECKPOINT_FREQ: 0

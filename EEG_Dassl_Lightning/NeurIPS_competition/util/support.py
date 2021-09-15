@@ -542,13 +542,13 @@ def process_target_data(epoch_data,f_min=4,f_max=36,resample=128,t_min=0,t_max=3
 
 
 
-def load_train_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_train_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=1,end_id=3):
     """dataset A is in voltage foramt"""
 
     X_MIA_train_data = []
     X_MIA_train_label = []
     subject_ids = []
-    for subj in range(1, 3):
+    for subj in range(start_id, end_id):
         savebase = os.path.join(path, "S{}".format(subj), "training")
         subject_train_data = []
         subject_train_label = []
@@ -582,13 +582,13 @@ def load_train_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3
     X_MIA_train_label = np.concatenate(X_MIA_train_label)
     return X_MIA_train_data,X_MIA_train_label,dataset_A_meta
 
-def load_test_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_test_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=1,end_id=3):
     """dataset A is in voltage foramt"""
 
     X_MIA_test_data = []
     X_MIA_test_label = []
     subject_ids = []
-    for subj in range(1, 3):
+    for subj in range(start_id, end_id):
         savebase = os.path.join(path, "S{}".format(subj), "testing")
         subject_test_data = []
         for i in range(6, 16):
@@ -612,7 +612,7 @@ def load_test_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3)
     return X_MIA_test_data,X_MIA_test_label,dataset_A_meta
 
 
-def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=1,end_id=3):
     """dataset A is in voltage foramt"""
     # process Dataset A (S1, S2)
     # get train target data
@@ -636,23 +636,23 @@ def load_dataset_A(path=None,train=True,norm=False,selected_chans = None,sfreq =
         selected_chans = ch_names
 
     if train:
-        X_MIA_train_data, X_MIA_train_label, dataset_A_meta = load_train_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
+        X_MIA_train_data, X_MIA_train_label, dataset_A_meta = load_train_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax,start_id=start_id,end_id=end_id)
         X_MIA_train_data = correct_EEG_data(X_MIA_train_data, ch_names, selected_chans)
         X_MIA_train_data = modify_data(X_MIA_train_data, time=max_time_length)
         # m_tgt_A = {name: col.values for name, col in dataset_A_meta.items()}
         return X_MIA_train_data,X_MIA_train_label,dataset_A_meta
     else:
-        X_MIA_test_data,X_MIA_test_label,dataset_A_meta = load_test_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
+        X_MIA_test_data,X_MIA_test_label,dataset_A_meta = load_test_A(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax,start_id=start_id,end_id=end_id)
         X_MIA_test_data = correct_EEG_data(X_MIA_test_data, ch_names, selected_chans)
         X_MIA_test_data = modify_data(X_MIA_test_data, time=max_time_length)
         return X_MIA_test_data,X_MIA_test_label,dataset_A_meta
 
-def load_train_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_train_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=3,end_id=6):
     """problem with dataset B. Dataset B is in the format of microvoltage. Need to convert to voltage """
     X_MIB_train_data = []
     X_MIB_train_label = []
     subject_ids = []
-    for subj in range(3, 6):
+    for subj in range(start_id, end_id):
         savebase = os.path.join(path, "S{}".format(subj), "training")
         subject_train_data = []
         subject_train_label = []
@@ -691,13 +691,13 @@ def load_train_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3
     X_MIB_train_label = np.concatenate(X_MIB_train_label)
     return X_MIB_train_data,X_MIB_train_label,dataset_B_meta
 
-def load_test_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_test_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=1,end_id=3):
     """problem with dataset B. Dataset B is in the format of microvoltage. Need to convert to voltage """
 
     X_MIB_test_data = []
     X_MIB_test_label = []
     subject_ids = []
-    for subj in range(3, 6):
+    for subj in range(start_id, end_id):
         savebase = os.path.join(path, "S{}".format(subj), "testing")
         subject_test_data = []
         with open(os.path.join(savebase, "testing_s{}X.npy".format(subj)), 'rb') as f:
@@ -723,7 +723,7 @@ def load_test_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3)
 
     return X_MIB_test_data,X_MIB_test_label,dataset_B_meta
 
-def load_dataset_B(path=None,train=True,norm=True,selected_chans = None,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3):
+def load_dataset_B(path=None,train=True,norm=True,selected_chans = None,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3,start_id=1,end_id=3):
     """problem with dataset B. Dataset B is in the format of microvoltage. Need to convert to voltage """
 
     # process Dataset B (S3, S4,S5)
@@ -741,13 +741,13 @@ def load_dataset_B(path=None,train=True,norm=True,selected_chans = None,sfreq = 
     if not selected_chans:
         selected_chans = ch_names
     if train:
-        X_MIB_train_data, X_MIB_train_label, dataset_B_meta = load_train_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
+        X_MIB_train_data, X_MIB_train_label, dataset_B_meta = load_train_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax,start_id=start_id,end_id=end_id)
         X_MIB_train_data = correct_EEG_data(X_MIB_train_data, ch_names, selected_chans)
         X_MIB_train_data = modify_data(X_MIB_train_data, time=max_time_length)
         # m_tgt_B = {name: col.values for name, col in dataset_B_meta.items()}
         return X_MIB_train_data,X_MIB_train_label,dataset_B_meta
     else:
-        X_MIB_test_data,X_MIB_test_label,dataset_B_meta = load_test_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax)
+        X_MIB_test_data,X_MIB_test_label,dataset_B_meta = load_test_B(path,ch_names,ch_types,sfreq = sfreq,fmin=fmin,fmax=fmax,tmin=tmin,tmax=tmax,start_id=start_id,end_id=end_id)
         X_MIB_test_data = correct_EEG_data(X_MIB_test_data, ch_names, selected_chans)
         X_MIB_test_data = modify_data(X_MIB_test_data, time=max_time_length)
 
@@ -917,13 +917,13 @@ def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject
     X_src = convert_volt_to_micro(X_src)
     y_src = np.array([relabel_func(l) for l in label_src])
     return X_src,y_src,m_src
-def load_target_data(target_channels,dataset_name="dataset_B"):
+def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3):
     if dataset_name == "dataset_A":
-        X_train_data,X_train_label,train_meta = load_dataset_A(train=True,selected_chans=target_channels)
-        X_test_data,X_test_label,test_meta = load_dataset_A(train=False, norm=False, selected_chans=target_channels)
+        X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
+        X_test_data,X_test_label,test_meta = load_dataset_A(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
     else:
-        X_train_data,X_train_label,train_meta = load_dataset_B(train=True,selected_chans=target_channels)
-        X_test_data,X_test_label,test_meta = load_dataset_B(train=False, norm=False, selected_chans=target_channels)
+        X_train_data,X_train_label,train_meta = load_dataset_B(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
+        X_test_data,X_test_label,test_meta = load_dataset_B(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
 
     X_train_data = convert_volt_to_micro(X_train_data)
     X_test_data = convert_volt_to_micro(X_test_data)

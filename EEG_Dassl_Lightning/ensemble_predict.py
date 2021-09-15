@@ -171,21 +171,11 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
     # np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
     return pred_output
 
-model_list_prefix = [
-    # 'vanilla',
-    # 'adaptation',
-    # 'adaptationV1',
-    # 'share_adaptV1'
-    # 'dannV1',
-    'mcdV1',
-    # 'addaV1',
-    # 'SRDA'
-#
-]
-target_dataset_list_prefix = [
-    "dataset_A",
-    # "dataset_B",
-]
+
+# target_dataset_list_prefix = [
+#     "dataset_A",
+#     # "dataset_B",
+# ]
 augmentation_list_prefix = [
     'no_aug',
     # 'temp_aug',
@@ -210,7 +200,7 @@ norm_list_prefix = [
 # experiment_type=["final_result_14_0_2_0","final_result_14_0_2_1","final_result_14_0_2_2"]
 # experiment_type=["final_result_14_0_3_0","final_result_14_0_3_1","final_result_14_0_3_2"]
 
-experiment_type=["final_result_14_3_1"]
+# experiment_type=["final_result_14_3_1"]
 # experiment_type=["final_result_12_3_1","final_result_12_3_3"]
 
 common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\al_model_2\\{}\\{}\\{}\\{}\\model"
@@ -235,7 +225,7 @@ def generate_predict(common_path,experiment_type,model_list_prefix,augmentation_
             model_prefix = [model_prefix]
             prefix_list = [experiment,augmentation_list_prefix, norm_list_prefix, model_prefix, target_dataset_list_prefix]
             list_full_path = generate_data_paths(common_path, prefix_list, [])
-            # print("full path : ",list_full_path)
+            print("full path : ",list_full_path)
             path = list_full_path[0]
 
             test_fold_preds=list()
@@ -268,8 +258,21 @@ def generate_predict(common_path,experiment_type,model_list_prefix,augmentation_
     pred = generate_bag_experiment_MI_label(experiment_preds,experiment_probs, "", predict_folder="predict_folder",only_count_best=only_count_best,confidence_level=confidence_level)
     return pred
 
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_2\\{}\\{}\\{}\\{}\\model"
-# experiment_type=["final_result_14_3_1"]
+model_list_prefix = [
+    # 'vanilla',
+    # 'adaptation',
+    # 'adaptationV1',
+    # 'share_adaptV1'
+    # 'dannV1',
+    'mcdV1',
+    # 'addaV1',
+    # 'SRDA'
+#
+]
+common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\{}\\{}\\{}\\{}\\model"
+# experiment_type=["final_result_14_3_1\\main_model_2\\tune_opt\\8"]
+# experiment_type=["task_2_final_2"]
+
 # target_dataset_list_prefix = [
 #     "dataset_A",
 # ]
@@ -280,81 +283,83 @@ def generate_predict(common_path,experiment_type,model_list_prefix,augmentation_
 #     "dataset_B",
 # ]
 # pred_B = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# model_list_prefix = [
-#     # 'vanilla',
-#     # 'adaptationV1',
-#     # 'dannV1',
-#     # 'mcdV1',
-#     # 'SRDA',
-#     'm3sda'
-# #
-# ]
-#
-# augmentation_list_prefix = [
-#     'no_aug',
-#     # 'temp_aug',
-# #     'T_F_aug'
-# ]
-#
-# # common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\ratio_tune\\1.0\\{}\\{}\\{}\\{}\\model"
-#
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\{}\\{}\\{}\\{}\\model"
-# experiment_type=["final_result_15_3_1"]
-# target_dataset_list_prefix = [
-#     "dataset_A_0",
-# ]
-# pred_A_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# target_dataset_list_prefix = [
-#     "dataset_A_1",
-# ]
-# pred_A_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-#
-# # common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\{}\\{}\\{}\\{}\\model"
-#
-# target_dataset_list_prefix = [
-#     "dataset_B_0",
-# ]
-# pred_B_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# target_dataset_list_prefix = [
-#     "dataset_B_1",
-# ]
-# pred_B_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-# target_dataset_list_prefix = [
-#     "dataset_B_2",
-# ]
-# pred_B_2 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
 # count(pred_A,name="A")
 # count(pred_B,name="B")
-# #
-# #
-# count(pred_A_0,name="A_0")
-# count(pred_A_1,name="A_1")
-#
-# count(pred_B_0,name="B_0")
-# count(pred_B_1,name="B_1")
-# count(pred_B_2,name="B_2")
-
-
-common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\{}\\{}\\{}\\{}\\{}\\model"
-experiment_type=["task_1_exp_2"]
-target_dataset_list_prefix = [
-    "full_dataset",
-]
 model_list_prefix = [
-    'vanilla',
+    # 'vanilla',
     # 'adaptationV1',
     # 'dannV1',
-    # 'mcdV1',
+    'mcdV1',
     # 'SRDA',
     # 'm3sda'
 #
 ]
-pred = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+augmentation_list_prefix = [
+    'no_aug',
+    # 'temp_aug',
+#     'T_F_aug'
+]
+
+# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\ratio_tune\\1.0\\{}\\{}\\{}\\{}\\model"
+
+common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\{}\\{}\\{}\\{}\\model"
+experiment_type=["task_2_final_2\\al_pretrain"]
+target_dataset_list_prefix = [
+    "dataset_A_0",
+]
+pred_A_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+target_dataset_list_prefix = [
+    "dataset_A_1",
+]
+pred_A_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+target_dataset_list_prefix = [
+    "dataset_A_2",
+]
+pred_A_2 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+
+# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\{}\\{}\\{}\\{}\\model"
+
+target_dataset_list_prefix = [
+    "dataset_B_0",
+]
+pred_B_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+target_dataset_list_prefix = [
+    "dataset_B_1",
+]
+pred_B_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+
+# count(pred_A,name="A")
+# count(pred_B,name="B")
+#
+#
+count(pred_A_0,name="A_0")
+count(pred_A_1,name="A_1")
+count(pred_A_2,name="A_2")
+
+count(pred_B_0,name="B_0")
+count(pred_B_1,name="B_1")
+
+
+# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\{}\\{}\\{}\\{}\\{}\\model"
+# experiment_type=["task_1_exp_2"]
+# target_dataset_list_prefix = [
+#     "full_dataset",
+# ]
+# model_list_prefix = [
+#     'vanilla',
+#     # 'adaptationV1',
+#     # 'dannV1',
+#     # 'mcdV1',
+#     # 'SRDA',
+#     # 'm3sda'
+# #
+# ]
+# pred = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
 
 
 # def relabel_target(l):

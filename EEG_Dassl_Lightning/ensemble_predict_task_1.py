@@ -25,14 +25,9 @@ def count(label,name=""):
 
 
 
-def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test_fold_probs, output_dir, predict_folder="predict_folder",only_count_best=False,confidence_level=5):
+def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test_fold_probs, output_dir, predict_folder="predict_folder",only_count_best=False,confidence_level=-1):
     final_pred = np.zeros(experiment_test_fold_preds[0][0][0][0].shape)
     final_prob = np.zeros(experiment_test_fold_probs[0][0][0][0].shape)
-    # print("test fold preds : ",test_fold_preds)
-    # print("len test fold : ",len(test_fold_preds))
-    # print("val fold size : ",len(test_fold_preds[0]))
-    # print("val pred size : ",test_fold_preds[0][0].shape)
-    # print("org final pred shape : ",final_pred.shape)
     total_sub_exp = 0
     for experiment_idx in range(len(experiment_test_fold_preds)):
         model_preds = experiment_test_fold_preds[experiment_idx]
@@ -46,8 +41,6 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
                 for valid_fold in range(len(current_fold_preds)):
                     current_valid_pred = current_fold_preds[valid_fold]
                     current_valid_prob = current_fold_probs[valid_fold]
-                    # print("current valid pred shape : ",current_valid_pred.shape)
-                    # print("final pred shape : ",final_pred.shape)
                     final_pred = final_pred + current_valid_pred
                     final_prob = final_prob + current_valid_prob
                     total_sub_exp+=1
@@ -55,7 +48,6 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
 
         # valid_fold_pred = test_fold_preds[test_fold]
 
-    # print("result current pred : ", current_pred)
     count= 0
     pred_output = list()
     subject_id = 0
@@ -66,8 +58,10 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
     subject_pred_info = defaultdict()
     best_subject_pred_info = defaultdict()
 
-    if confidence_level > total_sub_exp:
+    # print("total sub exp : ",total_sub_exp)
+    if confidence_level == -1:
         confidence_level = total_sub_exp
+
 
     for trial_idx in range(len(final_pred)):
         if trial_idx % subject_trials == 0:
@@ -111,7 +105,6 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
         subject_info[subject_id] = temp
 
         temp = subject_pred_info[subject_id]
-        print("temp : ",temp)
         temp[int(best_idx)] = temp[int(best_idx )]+1
         subject_pred_info[subject_id] = temp
         if only_count_best:
@@ -132,57 +125,7 @@ def generate_bag_experiment_MI_label(experiment_test_fold_preds, experiment_test
     # np.savetxt(os.path.join(combine_folder, "pred_MI_label.txt"), pred_output, delimiter=',', fmt="%d")
     return pred_output
 
-model_list_prefix = [
-    # 'vanilla',
-    # 'adaptation',
-    # 'adaptationV1',
-    # 'share_adaptV1'
-    # 'dannV1',
-    'mcdV1',
-    # 'addaV1',
-    # 'SRDA'
-#
-]
-target_dataset_list_prefix = [
-    "dataset_A",
-    # "dataset_B",
-]
-augmentation_list_prefix = [
-    'no_aug',
-    # 'temp_aug',
-#     'T_F_aug'
-]
-norm_list_prefix = [
-    'no_norm',
-    # 'chan_norm'
-]
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\{}\\{}\\{}\\{}\\model"
 
-# experiment_type=["final_result_11_4_3_0","final_result_11_4_3_1","final_result_11_4_3_2"]
-# experiment_type=["final_result_11_4_1_0","final_result_11_4_1_1","final_result_11_4_1_2"]
-# experiment_type=["final_result_11_4_1_0","final_result_11_4_1_2"]
-
-# experiment_type=["final_result_11_0_1","final_result_11_4_1_1"]
-# experiment_type=["final_result_11_4_3_1"]
-
-# experiment_type=["final_result_11_0_1","final_result_11_4_1"]
-# experiment_type=["final_result_14_0_3_2"]
-# experiment_type=["final_result_14_0_1_0","final_result_14_0_1_1","final_result_14_0_1_2"]
-# experiment_type=["final_result_14_0_2_0","final_result_14_0_2_1","final_result_14_0_2_2"]
-# experiment_type=["final_result_14_0_3_0","final_result_14_0_3_1","final_result_14_0_3_2"]
-
-experiment_type=["final_result_14_3_1"]
-# experiment_type=["final_result_12_3_1","final_result_12_3_3"]
-
-common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\al_model_2\\{}\\{}\\{}\\{}\\model"
-
-
-test_folds=["test_fold_1"]
-increment_folds=["increment_fold_1"]
-# valid_folds=["valid_fold_1","valid_fold_2","valid_fold_3","valid_fold_4","valid_fold_5"]
-valid_folds=["valid_fold_1","valid_fold_2","valid_fold_3","valid_fold_4","valid_fold_5"]
-
-predict_folder = "predict_folder"
 
 def generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix):
     experiment_preds = list()
@@ -223,123 +166,104 @@ def generate_predict(common_path,experiment_type,model_list_prefix,augmentation_
         # print(test_fold_preds)
     # generate_pred_MI_label(test_fold_preds, test_fold_probs, "", predict_folder="predict_folder")
     only_count_best = False
-    confidence_level=5
+    # confidence_level=18
+    # confidence_level=20
+    confidence_level=-1
     # only_count_best = True
 
     pred = generate_bag_experiment_MI_label(experiment_preds,experiment_probs, "", predict_folder="predict_folder",only_count_best=only_count_best,confidence_level=confidence_level)
     return pred
 
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_2\\{}\\{}\\{}\\{}\\model"
-# experiment_type=["final_result_14_3_1"]
-# target_dataset_list_prefix = [
-#     "dataset_A",
-# ]
-# pred_A = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-#
-# target_dataset_list_prefix = [
-#     "dataset_B",
-# ]
-# pred_B = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# model_list_prefix = [
-#     # 'vanilla',
-#     # 'adaptationV1',
-#     # 'dannV1',
-#     # 'mcdV1',
-#     # 'SRDA',
-#     'm3sda'
-# #
-# ]
-#
-# augmentation_list_prefix = [
-#     'no_aug',
-#     # 'temp_aug',
-# #     'T_F_aug'
-# ]
-#
-# # common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\ratio_tune\\1.0\\{}\\{}\\{}\\{}\\model"
-#
-# common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\{}\\{}\\{}\\{}\\model"
-# experiment_type=["final_result_15_3_1"]
-# target_dataset_list_prefix = [
-#     "dataset_A_0",
-# ]
-# pred_A_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# target_dataset_list_prefix = [
-#     "dataset_A_1",
-# ]
-# pred_A_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-#
-# # common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\{}\\main_model_3\\{}\\{}\\{}\\{}\\model"
-#
-# target_dataset_list_prefix = [
-#     "dataset_B_0",
-# ]
-# pred_B_0 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# target_dataset_list_prefix = [
-#     "dataset_B_1",
-# ]
-# pred_B_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-# target_dataset_list_prefix = [
-#     "dataset_B_2",
-# ]
-# pred_B_2 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-#
-# count(pred_A,name="A")
-# count(pred_B,name="B")
-# #
-# #
-# count(pred_A_0,name="A_0")
-# count(pred_A_1,name="A_1")
-#
-# count(pred_B_0,name="B_0")
-# count(pred_B_1,name="B_1")
-# count(pred_B_2,name="B_2")
 
+predict_folder = "predict_folder"
 
-common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\{}\\{}\\{}\\{}\\{}\\model"
-experiment_type=["task_1_exp_1"]
 target_dataset_list_prefix = [
     "full_dataset",
 ]
-model_list_prefix = [
-    'vanilla',
-    # 'adaptationV1',
-    # 'dannV1',
-    # 'mcdV1',
-    # 'SRDA',
-    # 'm3sda'
-#
+norm_list_prefix = [
+    'no_norm',
+    # 'time_norm'
 ]
-pred = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
-count(pred,"task_1")
+augmentation_list_prefix = [
+    "no_aug"
+]
+model_list_prefix = [
+    # 'deepsleep_vanilla',
+    'deepsleep_share_adaptV1'
+    # 'deepsleep_share_mcd'
+    # 'vanilla',
+    # 'share_adaptV1'
+]
+# valid_folds=["valid_fold_2","valid_fold_3","valid_fold_4","valid_fold_5"]
 
-# def relabel_target(l):
-#     if l == 0: return 0
-#     elif l == 1: return 1
-#     else: return 2
-# relabel=True
-# if relabel:
-#     pred_output = np.array([relabel_target(l) for l in pred])
-#     print("update pred output : ", pred_output)
-# count(pred_output,name="dataset_A")
-#
-# path_A="ensemble_results/case2/dataset_A"
-# path_B="ensemble_results/case2/dataset_B"
-#
-file = "pred_MI_label.txt"
-# path_A = os.path.join(path_A,file)
-# path_B = os.path.join(path_B,file)
-# np.savetxt("util/pred_MI_label.txt",MI_label,delimiter=',',fmt="%d")
+valid_folds=["valid_fold_1","valid_fold_2","valid_fold_3","valid_fold_4","valid_fold_5"]
+# test_folds=["test_fold_1","test_fold_2","test_fold_3","test_fold_4"]
+# test_folds=["test_fold_1","test_fold_3"]
 
-# np.savetxt("util/pred_MI_label.txt",MI_label,delimiter=',',fmt="%d")
-# pred_A = np.loadtxt(os.path.join(dataset_A_result_path, file), delimiter=',')
-# pred_B = np.loadtxt(os.path.join(dataset_B_result_path, file), delimiter=',')
-# final_pred = np.concatenate([pred_A,pred_B])
-# path = os.path.join("util",case,"answer.txt")
-# np.savetxt(path_A,pred_output,delimiter=',',fmt="%d")
-# np.savetxt(path_B,pred_output,delimiter=',',fmt="%d")
+test_folds=["test_fold_1"]
+common_path = "C:\\wduong_folder\\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\{}\\{}\\{}\\{}\\{}\\model"
+# experiment_type=["task_1_exp_2/al_pretrain"]
+# experiment_type=["task_1_exp_3\\al_model"]
+# experiment_type=["task_1_exp_5"]
+# experiment_type=["task_1_exp_5\\al_model"]
+# experiment_type=["task_1_exp_5\\al_al_model"]
+
+# experiment_type=["task_1_final_2\\quick_ver"]
+experiment_type=["task_1_final_2\\quick_ver_1"]
+
+# experiment_type=["task_1_final_2\\quick_ver"]
+
+
+print("experiment {}".format(experiment_type[0]))
+pred_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+count(pred_1,"task_1")
+# test_folds=["test_fold_1","test_fold_2","test_fold_3","test_fold_4"]
+
+# model_list_prefix = [
+#     'deepsleep_share_adaptV1'
+#     # 'deepsleep_vanilla',
+# #     'vanilla',
+# ]
+
+# experiment_type=["task_1_exp_5\\al_model"]
+# print("experiment {}".format(experiment_type[0]))
+# pred_2 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+# count(pred_2,"task_2")
+
+#
+# experiment_type=["task_1_exp_5\\al_al_pretrain"]
+# print("experiment {}".format(experiment_type[0]))
+# pred_3 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+# count(pred_3,"task_3")
+# #
+# #
+# experiment_type=["task_1_exp_5\\al_pretrain_2"]
+# print("experiment {}".format(experiment_type[0]))
+# pred_2_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+# count(pred_2_1,"task_2_1")
+#
+# experiment_type=["task_1_exp_5\\al_al_pretrain_2"]
+# print("experiment {}".format(experiment_type[0]))
+# pred_3_1 = generate_predict(common_path,experiment_type,model_list_prefix,augmentation_list_prefix, norm_list_prefix, target_dataset_list_prefix)
+# count(pred_3_1,"task_3_1")
+
+
+# similar_1_2 = np.sum(pred_1 == pred_2)
+# print("similar 1-2 : ",similar_1_2)
+
+# similar_1_3 = np.sum(pred_1 == pred_3)
+# print("similar 1-3 : ",similar_1_3)
+# #
+# similar_2_3 = np.sum(pred_2 == pred_3)
+# print("similar 2-3 : ",similar_2_3)
+# #
+# similar_2_2_1 = np.sum(pred_2 == pred_2_1)
+# print("similar_2_2_1 : ",similar_2_2_1)
+#
+# similar_1_2_1 = np.sum(pred_1 == pred_2_1)
+# print("similar_1_2_1 : ",similar_1_2_1)
+#
+# similar_1_3_1 = np.sum(pred_1 == pred_3_1)
+# print("similar_1_3_1 : ",similar_1_3_1)
+
+

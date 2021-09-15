@@ -5,7 +5,7 @@ from numpy.random import RandomState
 import torch
 import os
 from NeurIPS_competition.util.support import (
-    expand_data_dim,normalization,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
+    expand_data_dim,normalization_channels,normalization_time,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
     correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data,
     generate_data_file,print_dataset_info,print_info,get_dataset_A_ch,get_dataset_B_ch,shuffle_data,EuclideanAlignment,reduce_dataset,LabelAlignment,
     generate_common_target_chans,create_epoch_array,reformat,load_source_data,load_target_data,combine
@@ -30,14 +30,16 @@ def print_label_info(subjects_label):
             subject_info[int(label)] = subject_info[int(label)]+1
         print("subject {} has label info {}".format(subject_idx+1,subject_info))
 
-def setup_datasets(source_datasets, target_dataset_name, common_channels, save_folder="case",generate_folder_data=True):
+def setup_datasets(source_datasets, target_dataset_name, common_channels, save_folder="case",generate_folder_data=True,path=None,start_id=1,end_id=3):
 
-    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(
-        target_channels=common_channels, dataset_name=target_dataset_name)
+    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(path=path,
+        target_channels=common_channels, dataset_name=target_dataset_name,start_id=start_id,end_id=end_id)
 
     temp_train_data, temp_train_label, _ = reformat(train_data, train_label, train_meta)
     print_label_info(temp_train_label)
+    print_info(temp_train_data,"target_MI_"+target_dataset_name)
     temp_test_data, _, _ = reformat(test_data, test_label, test_meta)
+    print_info(temp_test_data,"test_MI_"+target_dataset_name)
 
     temp_X = np.concatenate([temp_train_data, temp_test_data], axis=1)
 
@@ -113,10 +115,10 @@ def setup_datasets(source_datasets, target_dataset_name, common_channels, save_f
         generate_data_file([target_r_op], folder_name=save_folder, file_name=target_dataset_name + '_r_op')
 
     return test_dataset
-def setup_specific_subject_dataset(source_datasets, target_dataset_name, common_channels, save_folder="case",test_folder="test_case",generate_folder_data=True):
+def setup_specific_subject_dataset(source_datasets, target_dataset_name, common_channels, save_folder="case",test_folder="test_case",generate_folder_data=True,start_id=1,end_id=3,path=None):
 
-    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(
-        target_channels=common_channels, dataset_name=target_dataset_name)
+    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(path=path,
+        target_channels=common_channels, dataset_name=target_dataset_name,start_id=start_id,end_id=end_id)
 
     subjects_train_data,subjects_train_label,subjects_train_meta = reformat(train_data, train_label, train_meta)
     subjects_test_data,subjects_test_label,subjects_test_meta = reformat(test_data, test_label, test_meta)

@@ -247,7 +247,10 @@ def get_test_data(dataset_type, norm, provide_data_path = None,EA=False):
 
 def generate_ensemble_predict(cfg,experiments_setup,benchmark=False,deterministic=True,generate_predict=False,use_assemble_test_dataloader=False,relabel=False,seed=42):
     """Apply data transformation/normalization"""
-    norm = cfg.INPUT.TRANSFORMS[0]
+    if len(cfg.INPUT.TRANSFORMS) > 0:
+        norm = cfg.INPUT.TRANSFORMS[0]
+    else:
+        norm = "none"
     EA = cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment
     print("use cross channel norm : ", norm)
     print("generate predict : ", generate_predict)

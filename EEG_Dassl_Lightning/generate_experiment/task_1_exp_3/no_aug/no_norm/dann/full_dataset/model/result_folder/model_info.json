@@ -1,0 +1,14 @@
+{
+    "EXTRA_FIELDS": {
+        "target_dataset": "full_dataset",
+        "source_dataset": [],
+        "normalize": "no_norm",
+        "EA": false,
+        "LA": false,
+        "aug": "no_aug",
+        "model": "DANN",
+        "backbone": "eegnet",
+        "source_label_space": [],
+        "target_label_space": 6
+    }
+}

@@ -382,8 +382,22 @@ class DataManagerV1(LightningDataModule):
     def print_dataset_info(self,train_data, train_label, valid_data, valid_label,test_data,test_label):
         # print("Train data info: ")
         print("train subjects : ",self._dataset.pick_train_subjects)
-        for subject_idx in range(len(train_data)):
-            print("Train subject {} has shape : {}, with range scale ({},{}) ".format(self._dataset.pick_train_subjects[subject_idx],train_data[subject_idx].shape,np.max(train_data[subject_idx]),np.min(train_data[subject_idx])))
+        if len(train_data) > len(self._dataset.pick_train_subjects):
+            unknown = -1
+            for subject_idx in range(len(train_data)):
+                if subject_idx< len(self._dataset.pick_train_subjects):
+                    print("Train subject {} has shape : {}, with range scale ({},{}) ".format(
+                        self._dataset.pick_train_subjects[subject_idx], train_data[subject_idx].shape,
+                        np.max(train_data[subject_idx]), np.min(train_data[subject_idx])))
+                else:
+                    print("unknown Train subject {} has shape : {}, with range scale ({},{}) ".format(
+                        unknown, train_data[subject_idx].shape,
+                        np.max(train_data[subject_idx]), np.min(train_data[subject_idx])))
+                    unknown = unknown-1
+
+        elif len(train_data) == len(self._dataset.pick_train_subjects):
+            for subject_idx in range(len(train_data)):
+                print("Train subject {} has shape : {}, with range scale ({},{}) ".format(self._dataset.pick_train_subjects[subject_idx],train_data[subject_idx].shape,np.max(train_data[subject_idx]),np.min(train_data[subject_idx])))
         print("test subjects : ",self._dataset.pick_test_subjects)
         for subject_idx in range(len(test_data)):
             print("test subject {} has shape : {}, with range scale ({},{})  ".format(self._dataset.pick_test_subjects[subject_idx],test_data[subject_idx].shape,np.max(test_data[subject_idx]),np.min(test_data[subject_idx])))
@@ -406,20 +420,76 @@ class DataManagerV1(LightningDataModule):
         if self.whole_class_weight is not None:
             print("the labels ratio of whole dataset : {}".format(self.whole_class_weight))
 
+class DataManagerV2(DataManagerV1):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+
+    def setup(self, stage: Optional[str] = None) :
+        super().setup(stage)
+        train_u_data = self._dataset.train_u
+        # train_u_same_as_test = False
+        if train_u_data is None:
+            print("there is no provide unlabel data. We need to use test data as unlabel")
+            test_dataset = self._dataset.test
+            test_data, _ = test_dataset
+            train_u_data = test_data
+            # train_u_same_as_test = True
+            subject_ids = self._dataset.pick_test_subjects
+        else:
+            subject_ids = [i for i in range(len(train_u_data))]
+
+        # train_u_data = self.train_u
+
+        if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
+            if self._dataset.r_op_list is not None:
+                # if train_u_same_as_test:
+                self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list,subject_ids=subject_ids)
+                # else:
+                #     self.train_u_EA = EuclideanAlignment(list_r_op=self._dataset.r_op_list)
+            else:
+                self.train_u_EA = EuclideanAlignment()
+            train_u_data = self.train_u_EA.convert_subjects_data_with_EA(train_u_data)
+
+        """Apply data transformation/normalization"""
+        if not self.cfg.INPUT.NO_TRANSFORM:
+            normalization = self.cfg.INPUT.TRANSFORMS[0]
+            if normalization == 'cross_channel_norm':
+                train_u_data = dataset_norm(train_u_data)
+            elif normalization == 'time_norm':
+                train_u_data= dataset_norm(train_u_data, norm_channels=False)
+        for subject_idx in range(len(train_u_data)):
+            print("unlabel data subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+                subject_ids[subject_idx], train_u_data[subject_idx].shape,
+                np.max(train_u_data[subject_idx]), np.min(train_u_data[subject_idx])))
+
+        train_u_data = self._expand_data_dim(train_u_data)
+        train_u_data = np.concatenate(train_u_data)
+        self.train_u = train_u_data
+
+
+
+
+    def train_dataloader(self):
+        train_x_dataloader = super().train_dataloader()
+        train_u = Wrapper(self.train_u)
+        train_loader_u = build_data_loader(
+            self.cfg,
+            sampler_type=self.cfg.DATAMANAGER.DATALOADER.TRAIN_U.SAMPLER,
+            data_source=train_u,
+            batch_size=self.cfg.DATAMANAGER.DATALOADER.TRAIN_U.BATCH_SIZE,
+            is_train=True,
+        )
+
+        return {"target_loader": train_x_dataloader, "unlabel_loader": train_loader_u}
+
 class MultiDomainDataManagerV1(DataManagerV1):
     def __init__(self, cfg):
         super().__init__(cfg)
 
     def setup(self, stage: Optional[str] = None) :
         super().setup(stage)
-
-
         self.list_train_u_exist = hasattr(self._dataset, 'multi_dataset_u')
         source_data_list , source_label_list=self._dataset.multi_dataset_u
-
-
-
-
         self.list_train_u = list()
         source_domain_class_weight = list()
         for source_dataset_idx in range(len(source_data_list)):
@@ -436,8 +506,9 @@ class MultiDomainDataManagerV1(DataManagerV1):
                 source_label = relabel_subjects(source_label)
                 new_label = np.unique(source_label[0])
                 print("relabel the dataset from {} to {}".format(old_label, new_label))
-
             current_domain_class_weight = self.generate_class_weight(source_label)
+            # else:
+            #     current_domain_class_weight = None
             source_domain_class_weight.append(current_domain_class_weight)
 
             if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
@@ -480,11 +551,13 @@ class MultiDomainDataManagerV1(DataManagerV1):
             self.list_train_u.append(train_u)
 
         # source_domain_class_weight = self.generate_domain_class_weight(source_label_list)
-        print("source domain class weight : ",source_domain_class_weight)
+
         source_domain_num_class = [len(source_domain_class_weight[i]) for i in range(len(source_domain_class_weight))]
         source_num_domain = len(source_domain_num_class)
         source_domain_input_shapes = [source_data_list[source_domain][0][0].shape for source_domain in range(source_num_domain) ]
 
+
+        # print("source domain class weight : ", source_domain_class_weight)
 
         self._num_source_domains = source_num_domain
         self._list_source_domain_class_weight = source_domain_class_weight

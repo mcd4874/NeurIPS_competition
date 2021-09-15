@@ -204,6 +204,7 @@ def generate_datasource(data, label, test_data=False,label_name_map= None):
         domain = subject
         for i in range(current_subject_data.shape[0]):
             trial_data = current_subject_data[i]
+            # print("current trial : ",current_subject_label[i].shape)
             trial_label = int(current_subject_label[i])
             label_name = ''
             if label_name_map is not None and trial_label in label_name_map.keys():
@@ -520,11 +521,15 @@ def normalization_channels(X):
     else:
         axis=-1
         raise ValueError("there is problem with data format")
-
+    # print("axis to norm : ",axis)
+    # print("data shape : ",X.shape)
     mean = np.mean(X,axis=axis,keepdims=True)
     # here normalise across channels as an example, unlike the in the sleep kit
     std = np.std(X, axis=axis, keepdims=True)
+    # print("current mean {} and std {}".format(mean,std))
+    # print("X-mean : ",(X-mean))
     X = (X - mean) / std
+    # print("final norm : ",X)
     return X
 
 def normalization_time(X):

@@ -163,13 +163,22 @@ def calculate_sampling_weight(data_source):
 
     """
     import numpy as np
-    labels = [item.label for item in data_source]
-    # print("size of labels:  ",len(labels))
-    counts = np.bincount(labels)
-    train_weights = 1. / torch.tensor(counts, dtype=torch.float)
-    sample_weights = train_weights[labels]
-    # print('Class frequency: ', counts / counts.sum())
-    return sample_weights,counts
+    # for item in data_source:
+    #     print("current item : ",item)
+    labels = np.array([item[1] for item in data_source])
+
+    class_sample_count = np.array([len(np.where(labels == t)[0]) for t in np.unique(labels)])
+
+    weight = 1. / class_sample_count
+    print("total : ",len(labels))
+    print("class count : ",class_sample_count)
+    print("class sample weights for sampler : ",weight)
+
+    samples_weight = np.array([weight[t] for t in labels])
+
+    samples_weight = torch.from_numpy(samples_weight)
+
+    return samples_weight,len(samples_weight)
 
 def build_sampler(
     sampler_type, cfg=None, data_source=None, batch_size=32, n_domain=0
@@ -191,5 +200,8 @@ def build_sampler(
     elif sampler_type == 'OverSampler':
         sample_weights, counts = calculate_sampling_weight(data_source)
         return WeightedRandomSampler(sample_weights, len(counts) * int(counts.max()), replacement=True)
+    elif sampler_type == 'WeightRandomSampler':
+        sample_weights, counts = calculate_sampling_weight(data_source)
+        return WeightedRandomSampler(sample_weights,counts)
     else:
         raise ValueError('Unknown sampler type: {}'.format(sampler_type))
