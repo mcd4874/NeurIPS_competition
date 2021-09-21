@@ -1,4 +1,4 @@
-from dassl.engine import TRAINER_REGISTRY,TrainerXU,TrainerX
+from dassl.engine import TRAINER_REGISTRY,TrainerBase
 from dassl.engine.base.base_model import BaseModel
 
 

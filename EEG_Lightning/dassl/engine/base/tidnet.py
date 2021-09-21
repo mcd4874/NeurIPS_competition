@@ -1,5 +1,5 @@
-from dassl.engine import TRAINER_REGISTRY,TrainerXU,TrainerX
 from dassl.engine.base.base_model import BaseModel
+from dassl.engine import TRAINER_REGISTRY,TrainerBase
 
 @TRAINER_REGISTRY.register()
 class TIDNET(BaseModel):

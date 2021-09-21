@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from dassl.modeling.ops import ReverseGrad
-from dassl.engine.trainer_tmp import SimpleNet
+from dassl.engine.trainer import SimpleNet
 import numpy as np
 from dassl.modeling import build_layer
 

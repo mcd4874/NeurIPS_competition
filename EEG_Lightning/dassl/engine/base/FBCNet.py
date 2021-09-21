@@ -7,9 +7,10 @@ from dassl.utils import count_num_param
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from dassl.engine.trainer_tmp import SimpleNet
+from dassl.engine.trainer import SimpleNet
 import numpy as np
 from dassl.engine.base.base_model import BaseModel
+from dassl.engine import TRAINER_REGISTRY,TrainerBase
 
 import copy
 import scipy.signal as signal

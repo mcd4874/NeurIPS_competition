@@ -1,12 +1,14 @@
 ########### Run task 1 experiment ###########
 
+You need to install pytorch
+
+conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+
 Install necessary package in the requirement.txt
 
 1) Download the necessary data
 
-https://github.com/XiaoxiWei/NeurIPS_BEETL/tree/main/start_kits
-
-https://figshare.com/articles/dataset/sleeptutorialdata_zip/14779407
+https://github.com/XiaoxiWei/NeurIPS_BEETL/blob/main/start_kits/1.LeaderboardDataGuide.ipynb
 
 2) generate data format
 
@@ -57,9 +59,7 @@ The .txt file with the test data prediction is generated in the folder EEG_Light
 
 1) Download the necessary data
 
-https://github.com/XiaoxiWei/NeurIPS_BEETL/tree/main/start_kits
-
-https://github.com/XiaoxiWei/NeurIPS_BEETL/blob/main/start_kits/3.motor_imagery_kit.ipynb
+https://github.com/XiaoxiWei/NeurIPS_BEETL/blob/main/start_kits/1.LeaderboardDataGuide.ipynb
 
 2) generate data format
 

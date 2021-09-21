@@ -1,12 +1,14 @@
 !/bin/bash
 eval "$(conda shell.bash hook)"
-#conda activate tf-gpu
-conda activate tensorflow2
+conda activate tf-gpu
+#conda activate tensorflow2
 
 
-computer_dir="/home/wduong/tmp/EEG_Lightning"
-data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+#computer_dir="/home/wduong/tmp/EEG_Lightning"
+#data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
 
+computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
 
 DIR="${computer_dir}/train_script/common_func_script"

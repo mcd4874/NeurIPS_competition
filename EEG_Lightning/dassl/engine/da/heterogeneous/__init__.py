@@ -15,7 +15,6 @@
 # from .share_label_spaces_adaptation import ShareLabelModelAdaptation
 # from .share_label_space_dann import ShareLabelDANN
 
-from .multi_dataset_adaptation import MultiDatasetAdaptation
 from .multi_dataset_adaptation_v1 import MultiDatasetAdaptationV1
 from .multi_dataset_adaptation_v2 import MultiDatasetAdaptationV2
 from .multi_dataset_dann_v1 import MultiDatasetDannV1
