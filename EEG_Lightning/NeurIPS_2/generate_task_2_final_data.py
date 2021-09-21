@@ -66,8 +66,8 @@ montage = None
 print("common chan A_B size : ",len(common_channel_A_B))
 print("common chan A_B : ",common_channel_A_B)
 
-# subject_ids = None
-subject_ids = [1,2]
+subject_ids = None
+# subject_ids = [1,2]
 X_src1,y_src1,m_src1 = load_source_data(target_channels=common_channel_A_B,relabel_func=relabel,dataset_name="cho2017",subject_ids=subject_ids)
 X_src2,y_src2,m_src2 = load_source_data(target_channels=common_channel_A_B,relabel_func=relabel,dataset_name="physionet",subject_ids=subject_ids)
 X_src3,y_src3,m_src3 = load_source_data(target_channels=common_channel_A_B,relabel_func=relabel,dataset_name="BCI_IV",montage=montage,subject_ids=subject_ids)
