@@ -30,11 +30,13 @@ The matlab data is generated in the directory EEG_Lightning/da_dataset/NeurIPS_1
 
 Go to train_script/gpu_4_script/experiment_script_4.0.sh to define the location of the train script and data path
 
-computer_dir="/home/wduong/tmp/EEG_Lightning"
-data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
 computer_dir is where you store the EEG_Lightning
 data_path_dir is where you store the data. We recommend that you store the data in da_dataset folder in EEG_Lightning/da_dataset
+experiment_dir is where you store the experiment directory. In this case, it is NeurIPS_1/task_1_final_1/
 
 Define the conda enviroment in train_script/gpu_4_script/experiment_script_4.0.sh
 conda activate #your conda enviroment

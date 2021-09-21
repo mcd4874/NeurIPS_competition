@@ -8,13 +8,14 @@ conda activate tf-gpu
 #data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
 
 computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
 
 DIR="${computer_dir}/train_script/common_func_script"
 source "${DIR}/common_script.sh"
 
-prefix_path="${data_path_dir}"
+prefix_path="${experiment_dir}"
 train_script="${computer_dir}"
 predict_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_1"

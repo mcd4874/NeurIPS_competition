@@ -1,11 +1,11 @@
 
 
-prefix_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/"
-train_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
-ROOT="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition"
-predict_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
+#prefix_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/"
+#train_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
+#ROOT="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition"
+#predict_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
 
-task_2_final_test_case="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/final_MI_test/NeurIPS_TL.mat"
+#task_2_final_test_case="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/final_MI_test/NeurIPS_TL.mat"
 
 
 

@@ -1,23 +1,24 @@
 #!/bin/bash
 eval "$(conda shell.bash hook)"
-#conda activate tf-gpu
-conda activate tensorflow2
+conda activate tf-gpu
+#conda activate tensorflow2
 
 
-computer_dir="/home/wduong/tmp/EEG_Lightning"
-data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
 
 
 DIR="${computer_dir}/train_script/common_func_script"
 source "${DIR}/common_script.sh"
 
-prefix_path="${data_path_dir}"
+prefix_path="${experiment_dir}"
 train_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_2"
 predict_script="${computer_dir}"
 
-MAIN_EXP_TYPE="NeurIPS_2/task_2_final_2"
+MAIN_EXP_TYPE="NeurIPS_2/task_2_final_2/LA_EA"
 
 LIST_EXP_TYPES=("")
 
