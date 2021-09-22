@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1"
+model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1"
 
 #task 2 final 2
 dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"

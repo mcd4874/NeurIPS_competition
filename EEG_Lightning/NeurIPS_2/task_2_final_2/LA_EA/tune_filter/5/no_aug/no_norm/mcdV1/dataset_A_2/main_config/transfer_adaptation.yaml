@@ -122,8 +122,8 @@ LIGHTNING_MODEL:
         kern_legnth: 64
         num_ch: 17
         samples: 384
-        F1: 16
-        D: 2
+        F1: 8
+        D: 4
         F2: 32
         drop_prob: 0.25
         avg_pool_1: 4

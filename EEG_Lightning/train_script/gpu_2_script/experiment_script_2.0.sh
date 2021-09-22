@@ -18,7 +18,7 @@ train_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_2"
 predict_script="${computer_dir}"
 
-MAIN_EXP_TYPE="NeurIPS_2/task_2_final_2/LA_EA/tune_filter/2"
+MAIN_EXP_TYPE="NeurIPS_2/task_2_final_2/LA_EA/tune_filter/5"
 
 LIST_EXP_TYPES=("")
 
