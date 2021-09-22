@@ -1,0 +1,753 @@
+use determinstic 
+cfg file setup :  DATAMANAGER:
+  DATALOADER:
+    NUM_WORKERS: 0
+    TEST:
+      BATCH_SIZE: 128
+      SAMPLER: SequentialSampler
+    TRAIN_U:
+      BATCH_SIZE: 64
+      N_DOMAIN: 0
+      SAME_AS_X: True
+      SAMPLER: RandomSampler
+    TRAIN_X:
+      BATCH_SIZE: 128
+      N_DOMAIN: 0
+      SAMPLER: WeightRandomSampler
+    VALID:
+      BATCH_SIZE: 128
+      N_DOMAIN: 0
+      SAMPLER: SequentialSampler
+  DATASET:
+    AUGMENTATION:
+      NAME: 
+      PARAMS:
+        DATASET_NAME: BCI_IV
+        MAX_FIX_TRIAL: -1
+        MAX_TRIAL_MUL: 3
+        N_SEGMENT: 4
+    DIR: task_1_final_case_1
+    EA: False
+    FILENAME: full_target_sleep.mat
+    FILTERBANK:
+      USE_FILTERBANK: False
+      freq_interval: 4
+    NAME: MultiDatasetV1
+    ROOT: /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+    SETUP:
+      INCREMENT_FOLD:
+        CURRENT_INCREMENT_FOLD: 1
+        END_INCREMENT_FOLD: 1
+        INCREMENT_FOLD_PREFIX: increment_fold
+        INCREMENT_TRAIN_SUGJECT: 0
+        N_INCREMENT_FOLDS: 1
+        START_INCREMENT_FOLD: 1
+        START_NUM_TRAIN_SUGJECT: -1
+      SHUFFLE_TRAIN_VALID_FOLD:
+        CURRENT_SHUFFLE_FOLD: 1
+        END_SHUFFLE_FOLD: 1
+        N_SHUFFLE_FOLDS: 1
+        SET_FIX_SEED: False
+        SHUFFLE_FOLD_PREFIX: shuffle_fold
+        SHUFFLE_SEED: []
+        START_SHUFFLE_FOLD: 1
+      SOURCE_DATASET_NAMES: []
+      TARGET_DATASET_NAME: 
+      TARGET_DATASET_NAMES: ['full_target_sleep']
+      TEST_FOLD:
+        CURRENT_TEST_FOLD: 1
+        END_TEST_FOLD: 1
+        NUM_TEST_SUBJECTS: -1
+        N_TEST_FOLDS: 1
+        SAME_AS_VALID: True
+        START_TEST_FOLD: 1
+        TEST_FOLD_PREFIX: test_fold
+        TEST_SUBJECT_INDEX: []
+        TRAIN_VALID_DATA_RATIO: -1
+        WITHIN_SUBJECTS: False
+      VALID_FOLD:
+        CROSS_SUBJECTS: False
+        CURRENT_VALID_FOLD: 1
+        DOMAIN_CLASS_WEIGHT: True
+        END_VALID_FOLD: 5
+        N_VALID_FOLDS: 5
+        SOURCE_DOMAIN_CLASS_WEIGHT: True
+        START_VALID_FOLD: 1
+        TOTAL_CLASS_WEIGHT: False
+        TRAIN_DATA_RATIO: -1
+        VALID_FOLD_PREFIX: valid_fold
+        WITHIN_SUBJECTS: False
+    TEST_DATA_FILE: 
+    TEST_DIR: 
+    TEST_SET_FILENAME: 
+    USE_Euclidean_Aligment: False
+    extra_files: ['source_sleep_0.mat', 'source_sleep_1.mat', 'source_sleep_2.mat', 'source_sleep_3.mat', 'source_sleep_4.mat']
+    r_op_file: 
+    source_dataset_LA: False
+    target_dataset_relabelled: False
+  MANAGER_TYPE: single_dataset
+  RESULT_FOLDER: result_folder
+DISPLAY_INFO:
+  DATASET: True
+  DataManager: True
+  TRAINER: True
+  writer: False
+EXTRA_FIELDS:
+  EA: False
+  LA: False
+  aug: no_aug
+  backbone: deepsleep
+  model: BaseModel
+  normalize: no_norm
+  source_dataset: []
+  source_label_space: []
+  target_dataset: full_dataset
+  target_label_space: 6
+INPUT:
+  NO_TRANSFORM: True
+  SIZE: (2, 3000)
+  TRANSFORMS: []
+LIGHTNING_MODEL:
+  ACTIVE_LEARNING:
+    USE_MODEL_UPDATE_DIR: 
+    ensemble_confidence_level: -1
+  COMPONENTS:
+    BACKBONE:
+      FREEZE: True
+      NAME: deepsleep
+      PARAMS:
+        F1: 8
+        F2: 8
+        avg_pool_1: 10
+        avg_pool_2: 10
+        drop_prob: 0.25
+        kern_length_1: 200
+        kern_length_2: 100
+        num_ch: 2
+        samples: 3000
+      PRETRAINED: False
+      PRETRAINED_PATH: 
+    LAST_FC:
+      NAME: max_norm
+      max_norm: 0.5
+    LAYER:
+      NAME: EEGNetConv3
+      PARAMS:
+        F2: 16
+        avg_pool_1: 4
+        avg_pool_2: 8
+        drop_prob: 0.25
+        samples: 256
+        sep_kern_length: 16
+  PRETRAIN:
+    DIR: /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model
+    USE_BEST: True
+  TRAINER:
+    CDAN:
+      lmda: 1.0
+      use_entropy: False
+      use_projection: False
+    DAN:
+      GaussianKernel:
+        alpha: [0.5, 1.0, 2.0]
+        sigma: []
+        track_running_stats: True
+      linear: False
+      lmda: 1.0
+      trade_off: 1.0
+    DANN:
+      lmda: 1.0
+    EXTRA:
+      PRETRAIN_SOURCE_LOSS_RATIO: 1.0
+      PRETRAIN_TARGET_LOSS_RATIO: 0.0
+      SOURCE_LOSS_RATIO: 0.2
+      SOURCE_PRE_TRAIN_EPOCHS: 10
+      TARGET_LOSS_RATIO: 0.8
+    EpiDG:
+      loss_weight_epic: 0.8
+      loss_weight_epif: 0.8
+      loss_weight_epir: 0.8
+      start_train_classifier: 35
+      start_train_feature: 35
+      warm_up_DS: 25
+      warn_up_AGG: 35
+    MLDG:
+      alpha: 0.1
+      inner_lr: 0.1
+      num_inner_loop: 1
+      num_test_subject: 1
+      percent_test_subject: 0.0
+    NAME: BaseModel
+    PARAMS:
+      pretrain: False
+      pretrain_epochs: 0
+LIGHTNING_TRAINER:
+  CHECKPOINT:
+    every_n_val_epochs: 1
+    filename: best
+    monitor: val_loss
+    save_last: True
+    save_top_k: 1
+  LOGGER:
+    
+  early_stop:
+    params:
+      
+    use_early_stop: False
+  multiple_trainloader_mode: max_size_cycle
+  num_sanity_val_steps: 0
+  profiler: simple
+  progress_bar_refresh_rate: 100
+  stochastic_weight_avg: False
+OPTIM:
+  BASE_LR_MULT: 0.1
+  COSINDECAY:
+    LAST_EPOCH: -1
+    MAX_LR: 0.01
+    WARM_DROP: 1.0
+    WARM_UP: 10
+  GAMMA: 0.1
+  LR_SCHEDULER: single_step
+  MAX_EPOCH: 15
+  NEW_LAYERS: ()
+  OPTIMIZER:
+    NAME: adam
+    PARAMS:
+      lr: 0.001
+      weight_decay: 0.0
+  SCHEDULER:
+    NAME: exponential
+    PARAMS:
+      gamma: 1.0
+  STAGED_LR: False
+  STEPSIZE: (10,)
+OUTPUT_DIR: /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/tune_cla/no_aug/no_norm/deepsleep_vanilla/full_dataset/model
+RESUME: 
+TEST:
+  COMPUTE_CMAT: False
+  EVALUATOR: Classification
+  EVAL_FREQ: 1
+  NO_TEST: False
+  PER_CLASS_RESULT: True
+  SPLIT: test
+TRAIN:
+  CHECKPOINT_FREQ: 0
+  COUNT_ITER: bigger_one
+  PRINT_FREQ: 10
+  SAVE_HISTORY_RECORD: True
+  SAVE_LAST_EPOCH: True
+USE_CUDA: True
+VERBOSE: True
+VERSION: 1
+history_dir: 
+output_dir: 
+Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None
+add dataset full_target_sleep into list target data 
+test subject idx after split :  None
+train-valid idx after split :  [0 1 2 3 4]
+cross subject split for valid data
+train subject after split :  [1, 2, 3, 4]
+valid subject after split :  [0]
+there is no test file 
+train subjects :  [1, 2, 3, 4]
+Train subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594) 
+Train subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0) 
+Train subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0) 
+Train subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0) 
+test subjects :  [0]
+test subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0)  
+valid subjects :  [0]
+valid subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0)  
+Loading trainer: BaseModel
+Building model
+Backbone: deepsleep
+params set up :  {'kern_length_1': 200, 'kern_length_2': 100, 'num_ch': 2, 'samples': 3000, 'F1': 8, 'F2': 8, 'drop_prob': 0.25, 'avg_pool_1': 10, 'avg_pool_2': 10}
+pretrain :  False
+pretrain path : 
+use max norm 0.5 constraint on last FC
+# params: 11,086
+freeze base model backbone --- 
+current potential pretrain dir :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_1
+path exist
+load pretrain model from /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_1/checkpoint.ckpt
+train x size :  13998
+total :  13998
+class count :  [7011 1175 3653  685  145 1329]
+class sample weights for sampler :  [0.00014263 0.00085106 0.00027375 0.00145985 0.00689655 0.00075245]
+size of train loader :  109
+size of val loader :  21
+size of test loader :  21
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/151 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/151 [00:00<?, ?it/s] Epoch 0:  66%|######6   | 100/151 [00:01<00:00, 65.95it/s]Epoch 0:  66%|######6   | 100/151 [00:01<00:00, 65.79it/s, loss=0.682, v_num=0_1]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 105.48it/s][AEpoch 0: 100%|##########| 151/151 [00:02<00:00, 72.79it/s, loss=0.681, v_num=0_1, Train_acc=0.706, Train_loss=0.721, val_loss=0.946, val_acc=0.550]
+                                                            [AEpoch 0:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.706, Train_loss=0.721, val_loss=0.946, val_acc=0.550]          Epoch 1:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.706, Train_loss=0.721, val_loss=0.946, val_acc=0.550]Epoch 1:  66%|######6   | 100/151 [00:01<00:00, 65.04it/s, loss=0.681, v_num=0_1, Train_acc=0.706, Train_loss=0.721, val_loss=0.946, val_acc=0.550]Epoch 1:  66%|######6   | 100/151 [00:01<00:00, 64.95it/s, loss=0.677, v_num=0_1, Train_acc=0.706, Train_loss=0.721, val_loss=0.946, val_acc=0.550]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 105.73it/s][AEpoch 1: 100%|##########| 151/151 [00:02<00:00, 72.34it/s, loss=0.681, v_num=0_1, Train_acc=0.717, Train_loss=0.689, val_loss=1.050, val_acc=0.495]
+                                                            [AEpoch 1:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.717, Train_loss=0.689, val_loss=1.050, val_acc=0.495]          Epoch 2:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.717, Train_loss=0.689, val_loss=1.050, val_acc=0.495]Epoch 2:  66%|######6   | 100/151 [00:01<00:00, 64.70it/s, loss=0.681, v_num=0_1, Train_acc=0.717, Train_loss=0.689, val_loss=1.050, val_acc=0.495]Epoch 2:  66%|######6   | 100/151 [00:01<00:00, 64.62it/s, loss=0.712, v_num=0_1, Train_acc=0.717, Train_loss=0.689, val_loss=1.050, val_acc=0.495]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 106.52it/s][AEpoch 2: 100%|##########| 151/151 [00:02<00:00, 71.86it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.683, val_loss=1.050, val_acc=0.489]
+                                                            [AEpoch 2:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.683, val_loss=1.050, val_acc=0.489]          Epoch 3:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.683, val_loss=1.050, val_acc=0.489]Epoch 3:  66%|######6   | 100/151 [00:01<00:00, 65.48it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.683, val_loss=1.050, val_acc=0.489]Epoch 3:  66%|######6   | 100/151 [00:01<00:00, 65.32it/s, loss=0.691, v_num=0_1, Train_acc=0.721, Train_loss=0.683, val_loss=1.050, val_acc=0.489]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 105.76it/s][AEpoch 3: 100%|##########| 151/151 [00:02<00:00, 72.39it/s, loss=0.702, v_num=0_1, Train_acc=0.721, Train_loss=0.687, val_loss=1.080, val_acc=0.484]
+                                                            [AEpoch 3:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.702, v_num=0_1, Train_acc=0.721, Train_loss=0.687, val_loss=1.080, val_acc=0.484]          Epoch 4:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.702, v_num=0_1, Train_acc=0.721, Train_loss=0.687, val_loss=1.080, val_acc=0.484]Epoch 4:  66%|######6   | 100/151 [00:01<00:00, 66.58it/s, loss=0.702, v_num=0_1, Train_acc=0.721, Train_loss=0.687, val_loss=1.080, val_acc=0.484]Epoch 4:  66%|######6   | 100/151 [00:01<00:00, 66.42it/s, loss=0.681, v_num=0_1, Train_acc=0.721, Train_loss=0.687, val_loss=1.080, val_acc=0.484]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 105.49it/s][AEpoch 4: 100%|##########| 151/151 [00:02<00:00, 73.20it/s, loss=0.687, v_num=0_1, Train_acc=0.722, Train_loss=0.693, val_loss=1.030, val_acc=0.501]
+                                                            [AEpoch 4:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.687, v_num=0_1, Train_acc=0.722, Train_loss=0.693, val_loss=1.030, val_acc=0.501]          Epoch 5:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.687, v_num=0_1, Train_acc=0.722, Train_loss=0.693, val_loss=1.030, val_acc=0.501]Epoch 5:  66%|######6   | 100/151 [00:01<00:00, 66.10it/s, loss=0.687, v_num=0_1, Train_acc=0.722, Train_loss=0.693, val_loss=1.030, val_acc=0.501]Epoch 5:  66%|######6   | 100/151 [00:01<00:00, 65.94it/s, loss=0.664, v_num=0_1, Train_acc=0.722, Train_loss=0.693, val_loss=1.030, val_acc=0.501]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 104.21it/s][AEpoch 5: 100%|##########| 151/151 [00:02<00:00, 72.73it/s, loss=0.663, v_num=0_1, Train_acc=0.725, Train_loss=0.679, val_loss=1.030, val_acc=0.514]
+                                                            [AEpoch 5:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.725, Train_loss=0.679, val_loss=1.030, val_acc=0.514]          Epoch 6:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.725, Train_loss=0.679, val_loss=1.030, val_acc=0.514]Epoch 6:  66%|######6   | 100/151 [00:01<00:00, 66.64it/s, loss=0.663, v_num=0_1, Train_acc=0.725, Train_loss=0.679, val_loss=1.030, val_acc=0.514]Epoch 6:  66%|######6   | 100/151 [00:01<00:00, 66.45it/s, loss=0.716, v_num=0_1, Train_acc=0.725, Train_loss=0.679, val_loss=1.030, val_acc=0.514]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 103.94it/s][AEpoch 6: 100%|##########| 151/151 [00:02<00:00, 72.85it/s, loss=0.692, v_num=0_1, Train_acc=0.722, Train_loss=0.676, val_loss=0.939, val_acc=0.570]
+                                                            [AEpoch 6:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.722, Train_loss=0.676, val_loss=0.939, val_acc=0.570]          Epoch 7:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.722, Train_loss=0.676, val_loss=0.939, val_acc=0.570]Epoch 7:  66%|######6   | 100/151 [00:01<00:00, 64.15it/s, loss=0.692, v_num=0_1, Train_acc=0.722, Train_loss=0.676, val_loss=0.939, val_acc=0.570]Epoch 7:  66%|######6   | 100/151 [00:01<00:00, 64.00it/s, loss=0.662, v_num=0_1, Train_acc=0.722, Train_loss=0.676, val_loss=0.939, val_acc=0.570]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 106.80it/s][AEpoch 7: 100%|##########| 151/151 [00:02<00:00, 71.46it/s, loss=0.65, v_num=0_1, Train_acc=0.735, Train_loss=0.668, val_loss=1.130, val_acc=0.455] 
+                                                            [AEpoch 7:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.65, v_num=0_1, Train_acc=0.735, Train_loss=0.668, val_loss=1.130, val_acc=0.455]          Epoch 8:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.65, v_num=0_1, Train_acc=0.735, Train_loss=0.668, val_loss=1.130, val_acc=0.455]Epoch 8:  66%|######6   | 100/151 [00:01<00:00, 65.80it/s, loss=0.65, v_num=0_1, Train_acc=0.735, Train_loss=0.668, val_loss=1.130, val_acc=0.455]Epoch 8:  66%|######6   | 100/151 [00:01<00:00, 65.72it/s, loss=0.668, v_num=0_1, Train_acc=0.735, Train_loss=0.668, val_loss=1.130, val_acc=0.455]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 94.98it/s][AEpoch 8: 100%|##########| 151/151 [00:02<00:00, 71.11it/s, loss=0.657, v_num=0_1, Train_acc=0.730, Train_loss=0.680, val_loss=1.050, val_acc=0.500]
+                                                           [AEpoch 8:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.657, v_num=0_1, Train_acc=0.730, Train_loss=0.680, val_loss=1.050, val_acc=0.500]          Epoch 9:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.657, v_num=0_1, Train_acc=0.730, Train_loss=0.680, val_loss=1.050, val_acc=0.500]Epoch 9:  66%|######6   | 100/151 [00:01<00:00, 65.83it/s, loss=0.657, v_num=0_1, Train_acc=0.730, Train_loss=0.680, val_loss=1.050, val_acc=0.500]Epoch 9:  66%|######6   | 100/151 [00:01<00:00, 65.66it/s, loss=0.69, v_num=0_1, Train_acc=0.730, Train_loss=0.680, val_loss=1.050, val_acc=0.500] 
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 103.33it/s][AEpoch 9: 100%|##########| 151/151 [00:02<00:00, 72.26it/s, loss=0.692, v_num=0_1, Train_acc=0.732, Train_loss=0.676, val_loss=0.982, val_acc=0.519]
+                                                            [AEpoch 9:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.732, Train_loss=0.676, val_loss=0.982, val_acc=0.519]          Epoch 10:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.732, Train_loss=0.676, val_loss=0.982, val_acc=0.519]Epoch 10:  66%|######6   | 100/151 [00:01<00:00, 64.43it/s, loss=0.692, v_num=0_1, Train_acc=0.732, Train_loss=0.676, val_loss=0.982, val_acc=0.519]Epoch 10:  66%|######6   | 100/151 [00:01<00:00, 64.34it/s, loss=0.687, v_num=0_1, Train_acc=0.732, Train_loss=0.676, val_loss=0.982, val_acc=0.519]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 102.98it/s][AEpoch 10: 100%|##########| 151/151 [00:02<00:00, 71.10it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.681, val_loss=1.110, val_acc=0.469]
+                                                            [AEpoch 10:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.681, val_loss=1.110, val_acc=0.469]          Epoch 11:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.681, val_loss=1.110, val_acc=0.469]Epoch 11:  66%|######6   | 100/151 [00:01<00:00, 65.41it/s, loss=0.689, v_num=0_1, Train_acc=0.721, Train_loss=0.681, val_loss=1.110, val_acc=0.469]Epoch 11:  66%|######6   | 100/151 [00:01<00:00, 65.27it/s, loss=0.716, v_num=0_1, Train_acc=0.721, Train_loss=0.681, val_loss=1.110, val_acc=0.469]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 104.99it/s][AEpoch 11: 100%|##########| 151/151 [00:02<00:00, 72.15it/s, loss=0.702, v_num=0_1, Train_acc=0.716, Train_loss=0.696, val_loss=0.912, val_acc=0.589]
+                                                            [AEpoch 11:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.702, v_num=0_1, Train_acc=0.716, Train_loss=0.696, val_loss=0.912, val_acc=0.589]          Epoch 12:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.702, v_num=0_1, Train_acc=0.716, Train_loss=0.696, val_loss=0.912, val_acc=0.589]Epoch 12:  66%|######6   | 100/151 [00:01<00:00, 65.32it/s, loss=0.702, v_num=0_1, Train_acc=0.716, Train_loss=0.696, val_loss=0.912, val_acc=0.589]Epoch 12:  66%|######6   | 100/151 [00:01<00:00, 65.24it/s, loss=0.681, v_num=0_1, Train_acc=0.716, Train_loss=0.696, val_loss=0.912, val_acc=0.589]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 104.23it/s][AEpoch 12: 100%|##########| 151/151 [00:02<00:00, 72.07it/s, loss=0.716, v_num=0_1, Train_acc=0.721, Train_loss=0.686, val_loss=1.130, val_acc=0.458]
+                                                            [AEpoch 12:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.716, v_num=0_1, Train_acc=0.721, Train_loss=0.686, val_loss=1.130, val_acc=0.458]          Epoch 13:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.716, v_num=0_1, Train_acc=0.721, Train_loss=0.686, val_loss=1.130, val_acc=0.458]Epoch 13:  66%|######6   | 100/151 [00:01<00:00, 64.69it/s, loss=0.716, v_num=0_1, Train_acc=0.721, Train_loss=0.686, val_loss=1.130, val_acc=0.458]Epoch 13:  66%|######6   | 100/151 [00:01<00:00, 64.60it/s, loss=0.676, v_num=0_1, Train_acc=0.721, Train_loss=0.686, val_loss=1.130, val_acc=0.458]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 100.13it/s][AEpoch 13: 100%|##########| 151/151 [00:02<00:00, 70.88it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.682, val_loss=1.110, val_acc=0.445]
+                                                            [AEpoch 13:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.682, val_loss=1.110, val_acc=0.445]          Epoch 14:   0%|          | 0/151 [00:00<?, ?it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.682, val_loss=1.110, val_acc=0.445]Epoch 14:  66%|######6   | 100/151 [00:01<00:00, 64.99it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.682, val_loss=1.110, val_acc=0.445]Epoch 14:  66%|######6   | 100/151 [00:01<00:00, 64.88it/s, loss=0.666, v_num=0_1, Train_acc=0.724, Train_loss=0.682, val_loss=1.110, val_acc=0.445]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/42 [00:00<?, ?it/s][A
+Validating: 100%|##########| 42/42 [00:00<00:00, 106.61it/s][AEpoch 14: 100%|##########| 151/151 [00:02<00:00, 72.14it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.686, val_loss=0.964, val_acc=0.551]
+                                                            [AEpoch 14: 100%|##########| 151/151 [00:02<00:00, 71.61it/s, loss=0.661, v_num=0_1, Train_acc=0.724, Train_loss=0.686, val_loss=0.964, val_acc=0.551]
+Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None
+add dataset full_target_sleep into list target data 
+test subject idx after split :  None
+train-valid idx after split :  [0 1 2 3 4]
+cross subject split for valid data
+train subject after split :  [0, 2, 3, 4]
+valid subject after split :  [1]
+there is no test file 
+train subjects :  [0, 2, 3, 4]
+Train subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0) 
+Train subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0) 
+Train subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0) 
+Train subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0) 
+test subjects :  [1]
+test subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594)  
+valid subjects :  [1]
+valid subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594)  
+Loading trainer: BaseModel
+Building model
+Backbone: deepsleep
+params set up :  {'kern_length_1': 200, 'kern_length_2': 100, 'num_ch': 2, 'samples': 3000, 'F1': 8, 'F2': 8, 'drop_prob': 0.25, 'avg_pool_1': 10, 'avg_pool_2': 10}
+pretrain :  False
+pretrain path : 
+use max norm 0.5 constraint on last FC
+# params: 11,086
+freeze base model backbone --- 
+current potential pretrain dir :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_2
+path exist
+load pretrain model from /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_2/checkpoint.ckpt
+train x size :  13381
+total :  13381
+class count :  [6358 1274 3754  689  145 1161]
+class sample weights for sampler :  [0.00015728 0.00078493 0.00026638 0.00145138 0.00689655 0.00086133]
+size of train loader :  104
+size of val loader :  25
+size of test loader :  25
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/154 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/154 [00:00<?, ?it/s] Epoch 0:  65%|######4   | 100/154 [00:01<00:00, 65.33it/s]Epoch 0:  65%|######4   | 100/154 [00:01<00:00, 65.18it/s, loss=0.676, v_num=0_1]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 106.02it/s][AEpoch 0: 100%|##########| 154/154 [00:02<00:00, 73.81it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.666, val_loss=0.785, val_acc=0.628]
+                                                            [AEpoch 0:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.666, val_loss=0.785, val_acc=0.628]          Epoch 1:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.666, val_loss=0.785, val_acc=0.628]Epoch 1:  65%|######4   | 100/154 [00:01<00:00, 66.80it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.666, val_loss=0.785, val_acc=0.628]Epoch 1:  65%|######4   | 100/154 [00:01<00:00, 66.70it/s, loss=0.645, v_num=0_1, Train_acc=0.722, Train_loss=0.666, val_loss=0.785, val_acc=0.628]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 107.41it/s][AEpoch 1: 100%|##########| 154/154 [00:02<00:00, 75.29it/s, loss=0.644, v_num=0_1, Train_acc=0.733, Train_loss=0.648, val_loss=0.810, val_acc=0.618]
+                                                            [AEpoch 1:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.644, v_num=0_1, Train_acc=0.733, Train_loss=0.648, val_loss=0.810, val_acc=0.618]          Epoch 2:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.644, v_num=0_1, Train_acc=0.733, Train_loss=0.648, val_loss=0.810, val_acc=0.618]Epoch 2:  65%|######4   | 100/154 [00:01<00:00, 66.69it/s, loss=0.644, v_num=0_1, Train_acc=0.733, Train_loss=0.648, val_loss=0.810, val_acc=0.618]Epoch 2:  65%|######4   | 100/154 [00:01<00:00, 66.60it/s, loss=0.635, v_num=0_1, Train_acc=0.733, Train_loss=0.648, val_loss=0.810, val_acc=0.618]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 109.46it/s][AEpoch 2: 100%|##########| 154/154 [00:02<00:00, 75.37it/s, loss=0.63, v_num=0_1, Train_acc=0.735, Train_loss=0.647, val_loss=0.726, val_acc=0.648] 
+                                                            [AEpoch 2:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.63, v_num=0_1, Train_acc=0.735, Train_loss=0.647, val_loss=0.726, val_acc=0.648]          Epoch 3:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.63, v_num=0_1, Train_acc=0.735, Train_loss=0.647, val_loss=0.726, val_acc=0.648]Epoch 3:  65%|######4   | 100/154 [00:01<00:00, 67.17it/s, loss=0.63, v_num=0_1, Train_acc=0.735, Train_loss=0.647, val_loss=0.726, val_acc=0.648]Epoch 3:  65%|######4   | 100/154 [00:01<00:00, 67.07it/s, loss=0.668, v_num=0_1, Train_acc=0.735, Train_loss=0.647, val_loss=0.726, val_acc=0.648]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 110.52it/s][AEpoch 3: 100%|##########| 154/154 [00:02<00:00, 76.13it/s, loss=0.676, v_num=0_1, Train_acc=0.736, Train_loss=0.652, val_loss=0.845, val_acc=0.590]
+                                                            [AEpoch 3:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.676, v_num=0_1, Train_acc=0.736, Train_loss=0.652, val_loss=0.845, val_acc=0.590]          Epoch 4:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.676, v_num=0_1, Train_acc=0.736, Train_loss=0.652, val_loss=0.845, val_acc=0.590]Epoch 4:  65%|######4   | 100/154 [00:01<00:00, 68.53it/s, loss=0.676, v_num=0_1, Train_acc=0.736, Train_loss=0.652, val_loss=0.845, val_acc=0.590]Epoch 4:  65%|######4   | 100/154 [00:01<00:00, 68.42it/s, loss=0.655, v_num=0_1, Train_acc=0.736, Train_loss=0.652, val_loss=0.845, val_acc=0.590]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 111.34it/s][AEpoch 4: 100%|##########| 154/154 [00:01<00:00, 77.32it/s, loss=0.655, v_num=0_1, Train_acc=0.735, Train_loss=0.651, val_loss=0.731, val_acc=0.652]
+                                                            [AEpoch 4:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.655, v_num=0_1, Train_acc=0.735, Train_loss=0.651, val_loss=0.731, val_acc=0.652]          Epoch 5:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.655, v_num=0_1, Train_acc=0.735, Train_loss=0.651, val_loss=0.731, val_acc=0.652]Epoch 5:  65%|######4   | 100/154 [00:01<00:00, 68.36it/s, loss=0.655, v_num=0_1, Train_acc=0.735, Train_loss=0.651, val_loss=0.731, val_acc=0.652]Epoch 5:  65%|######4   | 100/154 [00:01<00:00, 68.25it/s, loss=0.644, v_num=0_1, Train_acc=0.735, Train_loss=0.651, val_loss=0.731, val_acc=0.652]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 112.02it/s][AEpoch 5: 100%|##########| 154/154 [00:01<00:00, 77.36it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.641, val_loss=0.726, val_acc=0.649]
+                                                            [AEpoch 5:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.641, val_loss=0.726, val_acc=0.649]          Epoch 6:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.641, val_loss=0.726, val_acc=0.649]Epoch 6:  65%|######4   | 100/154 [00:01<00:00, 68.11it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.641, val_loss=0.726, val_acc=0.649]Epoch 6:  65%|######4   | 100/154 [00:01<00:00, 67.94it/s, loss=0.635, v_num=0_1, Train_acc=0.738, Train_loss=0.641, val_loss=0.726, val_acc=0.649]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 103.74it/s][AEpoch 6: 100%|##########| 154/154 [00:02<00:00, 75.55it/s, loss=0.648, v_num=0_1, Train_acc=0.734, Train_loss=0.645, val_loss=0.760, val_acc=0.628]
+                                                            [AEpoch 6:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.648, v_num=0_1, Train_acc=0.734, Train_loss=0.645, val_loss=0.760, val_acc=0.628]          Epoch 7:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.648, v_num=0_1, Train_acc=0.734, Train_loss=0.645, val_loss=0.760, val_acc=0.628]Epoch 7:  65%|######4   | 100/154 [00:01<00:00, 65.13it/s, loss=0.648, v_num=0_1, Train_acc=0.734, Train_loss=0.645, val_loss=0.760, val_acc=0.628]Epoch 7:  65%|######4   | 100/154 [00:01<00:00, 64.98it/s, loss=0.67, v_num=0_1, Train_acc=0.734, Train_loss=0.645, val_loss=0.760, val_acc=0.628] 
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 101.29it/s][AEpoch 7: 100%|##########| 154/154 [00:02<00:00, 72.47it/s, loss=0.663, v_num=0_1, Train_acc=0.729, Train_loss=0.662, val_loss=0.694, val_acc=0.668]
+                                                            [AEpoch 7:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.729, Train_loss=0.662, val_loss=0.694, val_acc=0.668]          Epoch 8:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.729, Train_loss=0.662, val_loss=0.694, val_acc=0.668]Epoch 8:  65%|######4   | 100/154 [00:01<00:00, 66.04it/s, loss=0.663, v_num=0_1, Train_acc=0.729, Train_loss=0.662, val_loss=0.694, val_acc=0.668]Epoch 8:  65%|######4   | 100/154 [00:01<00:00, 65.89it/s, loss=0.661, v_num=0_1, Train_acc=0.729, Train_loss=0.662, val_loss=0.694, val_acc=0.668]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 102.94it/s][AEpoch 8: 100%|##########| 154/154 [00:02<00:00, 73.84it/s, loss=0.664, v_num=0_1, Train_acc=0.733, Train_loss=0.652, val_loss=0.762, val_acc=0.637]
+                                                            [AEpoch 8:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.664, v_num=0_1, Train_acc=0.733, Train_loss=0.652, val_loss=0.762, val_acc=0.637]          Epoch 9:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.664, v_num=0_1, Train_acc=0.733, Train_loss=0.652, val_loss=0.762, val_acc=0.637]Epoch 9:  65%|######4   | 100/154 [00:01<00:00, 65.76it/s, loss=0.664, v_num=0_1, Train_acc=0.733, Train_loss=0.652, val_loss=0.762, val_acc=0.637]Epoch 9:  65%|######4   | 100/154 [00:01<00:00, 65.60it/s, loss=0.638, v_num=0_1, Train_acc=0.733, Train_loss=0.652, val_loss=0.762, val_acc=0.637]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 99.88it/s][AEpoch 9: 100%|##########| 154/154 [00:02<00:00, 73.09it/s, loss=0.649, v_num=0_1, Train_acc=0.737, Train_loss=0.645, val_loss=0.767, val_acc=0.627]
+                                                           [AEpoch 9:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.649, v_num=0_1, Train_acc=0.737, Train_loss=0.645, val_loss=0.767, val_acc=0.627]          Epoch 10:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.649, v_num=0_1, Train_acc=0.737, Train_loss=0.645, val_loss=0.767, val_acc=0.627]Epoch 10:  65%|######4   | 100/154 [00:01<00:00, 64.58it/s, loss=0.649, v_num=0_1, Train_acc=0.737, Train_loss=0.645, val_loss=0.767, val_acc=0.627]Epoch 10:  65%|######4   | 100/154 [00:01<00:00, 64.49it/s, loss=0.646, v_num=0_1, Train_acc=0.737, Train_loss=0.645, val_loss=0.767, val_acc=0.627]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 99.31it/s][AEpoch 10: 100%|##########| 154/154 [00:02<00:00, 71.96it/s, loss=0.636, v_num=0_1, Train_acc=0.736, Train_loss=0.648, val_loss=0.731, val_acc=0.639]
+                                                           [AEpoch 10:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.636, v_num=0_1, Train_acc=0.736, Train_loss=0.648, val_loss=0.731, val_acc=0.639]          Epoch 11:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.636, v_num=0_1, Train_acc=0.736, Train_loss=0.648, val_loss=0.731, val_acc=0.639]Epoch 11:  65%|######4   | 100/154 [00:01<00:00, 64.87it/s, loss=0.636, v_num=0_1, Train_acc=0.736, Train_loss=0.648, val_loss=0.731, val_acc=0.639]Epoch 11:  65%|######4   | 100/154 [00:01<00:00, 64.71it/s, loss=0.652, v_num=0_1, Train_acc=0.736, Train_loss=0.648, val_loss=0.731, val_acc=0.639]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 98.45it/s][AEpoch 11: 100%|##########| 154/154 [00:02<00:00, 72.09it/s, loss=0.639, v_num=0_1, Train_acc=0.735, Train_loss=0.655, val_loss=0.740, val_acc=0.651]
+                                                           [AEpoch 11:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.639, v_num=0_1, Train_acc=0.735, Train_loss=0.655, val_loss=0.740, val_acc=0.651]          Epoch 12:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.639, v_num=0_1, Train_acc=0.735, Train_loss=0.655, val_loss=0.740, val_acc=0.651]Epoch 12:  65%|######4   | 100/154 [00:01<00:00, 65.52it/s, loss=0.639, v_num=0_1, Train_acc=0.735, Train_loss=0.655, val_loss=0.740, val_acc=0.651]Epoch 12:  65%|######4   | 100/154 [00:01<00:00, 65.37it/s, loss=0.649, v_num=0_1, Train_acc=0.735, Train_loss=0.655, val_loss=0.740, val_acc=0.651]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 100.85it/s][AEpoch 12: 100%|##########| 154/154 [00:02<00:00, 73.02it/s, loss=0.663, v_num=0_1, Train_acc=0.731, Train_loss=0.663, val_loss=0.780, val_acc=0.646]
+                                                            [AEpoch 12:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.731, Train_loss=0.663, val_loss=0.780, val_acc=0.646]          Epoch 13:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.731, Train_loss=0.663, val_loss=0.780, val_acc=0.646]Epoch 13:  65%|######4   | 100/154 [00:01<00:00, 66.98it/s, loss=0.663, v_num=0_1, Train_acc=0.731, Train_loss=0.663, val_loss=0.780, val_acc=0.646]Epoch 13:  65%|######4   | 100/154 [00:01<00:00, 66.81it/s, loss=0.636, v_num=0_1, Train_acc=0.731, Train_loss=0.663, val_loss=0.780, val_acc=0.646]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 103.48it/s][AEpoch 13: 100%|##########| 154/154 [00:02<00:00, 74.59it/s, loss=0.649, v_num=0_1, Train_acc=0.734, Train_loss=0.648, val_loss=0.778, val_acc=0.636]
+                                                            [AEpoch 13:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.649, v_num=0_1, Train_acc=0.734, Train_loss=0.648, val_loss=0.778, val_acc=0.636]          Epoch 14:   0%|          | 0/154 [00:00<?, ?it/s, loss=0.649, v_num=0_1, Train_acc=0.734, Train_loss=0.648, val_loss=0.778, val_acc=0.636]Epoch 14:  65%|######4   | 100/154 [00:01<00:00, 63.42it/s, loss=0.649, v_num=0_1, Train_acc=0.734, Train_loss=0.648, val_loss=0.778, val_acc=0.636]Epoch 14:  65%|######4   | 100/154 [00:01<00:00, 63.27it/s, loss=0.66, v_num=0_1, Train_acc=0.734, Train_loss=0.648, val_loss=0.778, val_acc=0.636] 
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/50 [00:00<?, ?it/s][A
+Validating: 100%|##########| 50/50 [00:00<00:00, 102.22it/s][AEpoch 14: 100%|##########| 154/154 [00:02<00:00, 71.47it/s, loss=0.664, v_num=0_1, Train_acc=0.736, Train_loss=0.645, val_loss=0.718, val_acc=0.659]
+                                                            [AEpoch 14: 100%|##########| 154/154 [00:02<00:00, 70.95it/s, loss=0.664, v_num=0_1, Train_acc=0.736, Train_loss=0.645, val_loss=0.718, val_acc=0.659]
+Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None
+add dataset full_target_sleep into list target data 
+test subject idx after split :  None
+train-valid idx after split :  [0 1 2 3 4]
+cross subject split for valid data
+train subject after split :  [0, 1, 3, 4]
+valid subject after split :  [2]
+there is no test file 
+train subjects :  [0, 1, 3, 4]
+Train subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0) 
+Train subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594) 
+Train subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0) 
+Train subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0) 
+test subjects :  [2]
+test subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0)  
+valid subjects :  [2]
+valid subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0)  
+Loading trainer: BaseModel
+Building model
+Backbone: deepsleep
+params set up :  {'kern_length_1': 200, 'kern_length_2': 100, 'num_ch': 2, 'samples': 3000, 'F1': 8, 'F2': 8, 'drop_prob': 0.25, 'avg_pool_1': 10, 'avg_pool_2': 10}
+pretrain :  False
+pretrain path : 
+use max norm 0.5 constraint on last FC
+# params: 11,086
+freeze base model backbone --- 
+current potential pretrain dir :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_3
+path exist
+load pretrain model from /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_3/checkpoint.ckpt
+train x size :  13263
+total :  13263
+class count :  [6184 1378 4188  276   74 1163]
+class sample weights for sampler :  [0.00016171 0.00072569 0.00023878 0.00362319 0.01351351 0.00085985]
+size of train loader :  103
+size of val loader :  26
+size of test loader :  26
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/155 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/155 [00:00<?, ?it/s] Epoch 0:  65%|######4   | 100/155 [00:01<00:00, 64.85it/s]Epoch 0:  65%|######4   | 100/155 [00:01<00:00, 64.70it/s, loss=0.656, v_num=0_1]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 103.29it/s][AEpoch 0: 100%|##########| 155/155 [00:02<00:00, 73.27it/s, loss=0.653, v_num=0_1, Train_acc=0.724, Train_loss=0.648, val_loss=0.610, val_acc=0.784]
+                                                            [AEpoch 0:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.653, v_num=0_1, Train_acc=0.724, Train_loss=0.648, val_loss=0.610, val_acc=0.784]          Epoch 1:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.653, v_num=0_1, Train_acc=0.724, Train_loss=0.648, val_loss=0.610, val_acc=0.784]Epoch 1:  65%|######4   | 100/155 [00:01<00:00, 66.45it/s, loss=0.653, v_num=0_1, Train_acc=0.724, Train_loss=0.648, val_loss=0.610, val_acc=0.784]Epoch 1:  65%|######4   | 100/155 [00:01<00:00, 66.36it/s, loss=0.636, v_num=0_1, Train_acc=0.724, Train_loss=0.648, val_loss=0.610, val_acc=0.784]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 100.53it/s][AEpoch 1: 100%|##########| 155/155 [00:02<00:00, 74.13it/s, loss=0.622, v_num=0_1, Train_acc=0.731, Train_loss=0.635, val_loss=0.607, val_acc=0.783]
+                                                            [AEpoch 1:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.731, Train_loss=0.635, val_loss=0.607, val_acc=0.783]          Epoch 2:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.731, Train_loss=0.635, val_loss=0.607, val_acc=0.783]Epoch 2:  65%|######4   | 100/155 [00:01<00:00, 65.26it/s, loss=0.622, v_num=0_1, Train_acc=0.731, Train_loss=0.635, val_loss=0.607, val_acc=0.783]Epoch 2:  65%|######4   | 100/155 [00:01<00:00, 65.16it/s, loss=0.592, v_num=0_1, Train_acc=0.731, Train_loss=0.635, val_loss=0.607, val_acc=0.783]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 102.87it/s][AEpoch 2: 100%|##########| 155/155 [00:02<00:00, 73.64it/s, loss=0.597, v_num=0_1, Train_acc=0.740, Train_loss=0.623, val_loss=0.587, val_acc=0.793]
+                                                            [AEpoch 2:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.597, v_num=0_1, Train_acc=0.740, Train_loss=0.623, val_loss=0.587, val_acc=0.793]          Epoch 3:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.597, v_num=0_1, Train_acc=0.740, Train_loss=0.623, val_loss=0.587, val_acc=0.793]Epoch 3:  65%|######4   | 100/155 [00:01<00:00, 66.15it/s, loss=0.597, v_num=0_1, Train_acc=0.740, Train_loss=0.623, val_loss=0.587, val_acc=0.793]Epoch 3:  65%|######4   | 100/155 [00:01<00:00, 66.04it/s, loss=0.636, v_num=0_1, Train_acc=0.740, Train_loss=0.623, val_loss=0.587, val_acc=0.793]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 100.89it/s][AEpoch 3: 100%|##########| 155/155 [00:02<00:00, 73.84it/s, loss=0.63, v_num=0_1, Train_acc=0.732, Train_loss=0.630, val_loss=0.573, val_acc=0.796] 
+                                                            [AEpoch 3:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.63, v_num=0_1, Train_acc=0.732, Train_loss=0.630, val_loss=0.573, val_acc=0.796]          Epoch 4:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.63, v_num=0_1, Train_acc=0.732, Train_loss=0.630, val_loss=0.573, val_acc=0.796]Epoch 4:  65%|######4   | 100/155 [00:01<00:00, 66.87it/s, loss=0.63, v_num=0_1, Train_acc=0.732, Train_loss=0.630, val_loss=0.573, val_acc=0.796]Epoch 4:  65%|######4   | 100/155 [00:01<00:00, 66.76it/s, loss=0.613, v_num=0_1, Train_acc=0.732, Train_loss=0.630, val_loss=0.573, val_acc=0.796]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 104.73it/s][AEpoch 4: 100%|##########| 155/155 [00:02<00:00, 75.21it/s, loss=0.622, v_num=0_1, Train_acc=0.743, Train_loss=0.617, val_loss=0.580, val_acc=0.790]
+                                                            [AEpoch 4:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.743, Train_loss=0.617, val_loss=0.580, val_acc=0.790]          Epoch 5:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.743, Train_loss=0.617, val_loss=0.580, val_acc=0.790]Epoch 5:  65%|######4   | 100/155 [00:01<00:00, 67.25it/s, loss=0.622, v_num=0_1, Train_acc=0.743, Train_loss=0.617, val_loss=0.580, val_acc=0.790]Epoch 5:  65%|######4   | 100/155 [00:01<00:00, 67.14it/s, loss=0.649, v_num=0_1, Train_acc=0.743, Train_loss=0.617, val_loss=0.580, val_acc=0.790]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 103.64it/s][AEpoch 5: 100%|##########| 155/155 [00:02<00:00, 75.28it/s, loss=0.633, v_num=0_1, Train_acc=0.746, Train_loss=0.614, val_loss=0.604, val_acc=0.772]
+                                                            [AEpoch 5:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.633, v_num=0_1, Train_acc=0.746, Train_loss=0.614, val_loss=0.604, val_acc=0.772]          Epoch 6:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.633, v_num=0_1, Train_acc=0.746, Train_loss=0.614, val_loss=0.604, val_acc=0.772]Epoch 6:  65%|######4   | 100/155 [00:01<00:00, 67.56it/s, loss=0.633, v_num=0_1, Train_acc=0.746, Train_loss=0.614, val_loss=0.604, val_acc=0.772]Epoch 6:  65%|######4   | 100/155 [00:01<00:00, 67.47it/s, loss=0.644, v_num=0_1, Train_acc=0.746, Train_loss=0.614, val_loss=0.604, val_acc=0.772]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 105.37it/s][AEpoch 6: 100%|##########| 155/155 [00:02<00:00, 75.73it/s, loss=0.629, v_num=0_1, Train_acc=0.733, Train_loss=0.626, val_loss=0.599, val_acc=0.784]
+                                                            [AEpoch 6:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.629, v_num=0_1, Train_acc=0.733, Train_loss=0.626, val_loss=0.599, val_acc=0.784]          Epoch 7:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.629, v_num=0_1, Train_acc=0.733, Train_loss=0.626, val_loss=0.599, val_acc=0.784]Epoch 7:  65%|######4   | 100/155 [00:01<00:00, 65.81it/s, loss=0.629, v_num=0_1, Train_acc=0.733, Train_loss=0.626, val_loss=0.599, val_acc=0.784]Epoch 7:  65%|######4   | 100/155 [00:01<00:00, 65.65it/s, loss=0.619, v_num=0_1, Train_acc=0.733, Train_loss=0.626, val_loss=0.599, val_acc=0.784]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 101.38it/s][AEpoch 7: 100%|##########| 155/155 [00:02<00:00, 73.66it/s, loss=0.622, v_num=0_1, Train_acc=0.736, Train_loss=0.624, val_loss=0.574, val_acc=0.795]
+                                                            [AEpoch 7:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.736, Train_loss=0.624, val_loss=0.574, val_acc=0.795]          Epoch 8:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.622, v_num=0_1, Train_acc=0.736, Train_loss=0.624, val_loss=0.574, val_acc=0.795]Epoch 8:  65%|######4   | 100/155 [00:01<00:00, 65.63it/s, loss=0.622, v_num=0_1, Train_acc=0.736, Train_loss=0.624, val_loss=0.574, val_acc=0.795]Epoch 8:  65%|######4   | 100/155 [00:01<00:00, 65.46it/s, loss=0.615, v_num=0_1, Train_acc=0.736, Train_loss=0.624, val_loss=0.574, val_acc=0.795]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 102.70it/s][AEpoch 8: 100%|##########| 155/155 [00:02<00:00, 73.70it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.626, val_loss=0.587, val_acc=0.796]
+                                                            [AEpoch 8:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.626, val_loss=0.587, val_acc=0.796]          Epoch 9:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.626, val_loss=0.587, val_acc=0.796]Epoch 9:  65%|######4   | 100/155 [00:01<00:00, 66.05it/s, loss=0.631, v_num=0_1, Train_acc=0.738, Train_loss=0.626, val_loss=0.587, val_acc=0.796]Epoch 9:  65%|######4   | 100/155 [00:01<00:00, 65.89it/s, loss=0.646, v_num=0_1, Train_acc=0.738, Train_loss=0.626, val_loss=0.587, val_acc=0.796]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 99.72it/s][AEpoch 9: 100%|##########| 155/155 [00:02<00:00, 73.59it/s, loss=0.639, v_num=0_1, Train_acc=0.741, Train_loss=0.623, val_loss=0.585, val_acc=0.794]
+                                                           [AEpoch 9:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.639, v_num=0_1, Train_acc=0.741, Train_loss=0.623, val_loss=0.585, val_acc=0.794]          Epoch 10:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.639, v_num=0_1, Train_acc=0.741, Train_loss=0.623, val_loss=0.585, val_acc=0.794]Epoch 10:  65%|######4   | 100/155 [00:01<00:00, 65.34it/s, loss=0.639, v_num=0_1, Train_acc=0.741, Train_loss=0.623, val_loss=0.585, val_acc=0.794]Epoch 10:  65%|######4   | 100/155 [00:01<00:00, 65.26it/s, loss=0.636, v_num=0_1, Train_acc=0.741, Train_loss=0.623, val_loss=0.585, val_acc=0.794]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 104.32it/s][AEpoch 10: 100%|##########| 155/155 [00:02<00:00, 73.91it/s, loss=0.636, v_num=0_1, Train_acc=0.742, Train_loss=0.615, val_loss=0.562, val_acc=0.800]
+                                                            [AEpoch 10:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.636, v_num=0_1, Train_acc=0.742, Train_loss=0.615, val_loss=0.562, val_acc=0.800]          Epoch 11:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.636, v_num=0_1, Train_acc=0.742, Train_loss=0.615, val_loss=0.562, val_acc=0.800]Epoch 11:  65%|######4   | 100/155 [00:01<00:00, 65.17it/s, loss=0.636, v_num=0_1, Train_acc=0.742, Train_loss=0.615, val_loss=0.562, val_acc=0.800]Epoch 11:  65%|######4   | 100/155 [00:01<00:00, 65.01it/s, loss=0.625, v_num=0_1, Train_acc=0.742, Train_loss=0.615, val_loss=0.562, val_acc=0.800]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 102.98it/s][AEpoch 11: 100%|##########| 155/155 [00:02<00:00, 73.31it/s, loss=0.615, v_num=0_1, Train_acc=0.736, Train_loss=0.622, val_loss=0.593, val_acc=0.787]
+                                                            [AEpoch 11:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.615, v_num=0_1, Train_acc=0.736, Train_loss=0.622, val_loss=0.593, val_acc=0.787]          Epoch 12:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.615, v_num=0_1, Train_acc=0.736, Train_loss=0.622, val_loss=0.593, val_acc=0.787]Epoch 12:  65%|######4   | 100/155 [00:01<00:00, 65.12it/s, loss=0.615, v_num=0_1, Train_acc=0.736, Train_loss=0.622, val_loss=0.593, val_acc=0.787]Epoch 12:  65%|######4   | 100/155 [00:01<00:00, 64.97it/s, loss=0.601, v_num=0_1, Train_acc=0.736, Train_loss=0.622, val_loss=0.593, val_acc=0.787]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 101.83it/s][AEpoch 12: 100%|##########| 155/155 [00:02<00:00, 73.28it/s, loss=0.591, v_num=0_1, Train_acc=0.734, Train_loss=0.628, val_loss=0.595, val_acc=0.786]
+                                                            [AEpoch 12:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.591, v_num=0_1, Train_acc=0.734, Train_loss=0.628, val_loss=0.595, val_acc=0.786]          Epoch 13:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.591, v_num=0_1, Train_acc=0.734, Train_loss=0.628, val_loss=0.595, val_acc=0.786]Epoch 13:  65%|######4   | 100/155 [00:01<00:00, 67.43it/s, loss=0.591, v_num=0_1, Train_acc=0.734, Train_loss=0.628, val_loss=0.595, val_acc=0.786]Epoch 13:  65%|######4   | 100/155 [00:01<00:00, 67.27it/s, loss=0.629, v_num=0_1, Train_acc=0.734, Train_loss=0.628, val_loss=0.595, val_acc=0.786]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 102.25it/s][AEpoch 13: 100%|##########| 155/155 [00:02<00:00, 75.11it/s, loss=0.632, v_num=0_1, Train_acc=0.733, Train_loss=0.629, val_loss=0.578, val_acc=0.795]
+                                                            [AEpoch 13:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.632, v_num=0_1, Train_acc=0.733, Train_loss=0.629, val_loss=0.578, val_acc=0.795]          Epoch 14:   0%|          | 0/155 [00:00<?, ?it/s, loss=0.632, v_num=0_1, Train_acc=0.733, Train_loss=0.629, val_loss=0.578, val_acc=0.795]Epoch 14:  65%|######4   | 100/155 [00:01<00:00, 65.61it/s, loss=0.632, v_num=0_1, Train_acc=0.733, Train_loss=0.629, val_loss=0.578, val_acc=0.795]Epoch 14:  65%|######4   | 100/155 [00:01<00:00, 65.45it/s, loss=0.629, v_num=0_1, Train_acc=0.733, Train_loss=0.629, val_loss=0.578, val_acc=0.795]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/52 [00:00<?, ?it/s][A
+Validating: 100%|##########| 52/52 [00:00<00:00, 104.86it/s][AEpoch 14: 100%|##########| 155/155 [00:02<00:00, 74.15it/s, loss=0.642, v_num=0_1, Train_acc=0.745, Train_loss=0.619, val_loss=0.622, val_acc=0.763]
+                                                            [AEpoch 14: 100%|##########| 155/155 [00:02<00:00, 73.66it/s, loss=0.642, v_num=0_1, Train_acc=0.745, Train_loss=0.619, val_loss=0.622, val_acc=0.763]
+Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None
+add dataset full_target_sleep into list target data 
+test subject idx after split :  None
+train-valid idx after split :  [0 1 2 3 4]
+cross subject split for valid data
+train subject after split :  [0, 1, 2, 4]
+valid subject after split :  [3]
+there is no test file 
+train subjects :  [0, 1, 2, 4]
+Train subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0) 
+Train subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594) 
+Train subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0) 
+Train subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0) 
+test subjects :  [3]
+test subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0)  
+valid subjects :  [3]
+valid subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0)  
+Loading trainer: BaseModel
+Building model
+Backbone: deepsleep
+params set up :  {'kern_length_1': 200, 'kern_length_2': 100, 'num_ch': 2, 'samples': 3000, 'F1': 8, 'F2': 8, 'drop_prob': 0.25, 'avg_pool_1': 10, 'avg_pool_2': 10}
+pretrain :  False
+pretrain path : 
+use max norm 0.5 constraint on last FC
+# params: 11,086
+freeze base model backbone --- 
+current potential pretrain dir :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_4
+path exist
+load pretrain model from /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_4/checkpoint.ckpt
+train x size :  13544
+total :  13544
+class count :  [6072 1394 3801  669  145 1463]
+class sample weights for sampler :  [0.00016469 0.00071736 0.00026309 0.00149477 0.00689655 0.00068353]
+size of train loader :  105
+size of val loader :  24
+size of test loader :  24
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/153 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/153 [00:00<?, ?it/s] Epoch 0:  65%|######5   | 100/153 [00:01<00:00, 65.35it/s]Epoch 0:  65%|######5   | 100/153 [00:01<00:00, 65.27it/s, loss=0.67, v_num=0_1]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 100.06it/s][AEpoch 0: 100%|##########| 153/153 [00:02<00:00, 72.55it/s, loss=0.681, v_num=0_1, Train_acc=0.707, Train_loss=0.693, val_loss=0.490, val_acc=0.805]
+                                                            [AEpoch 0:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.707, Train_loss=0.693, val_loss=0.490, val_acc=0.805]          Epoch 1:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.707, Train_loss=0.693, val_loss=0.490, val_acc=0.805]Epoch 1:  65%|######5   | 100/153 [00:01<00:00, 65.68it/s, loss=0.681, v_num=0_1, Train_acc=0.707, Train_loss=0.693, val_loss=0.490, val_acc=0.805]Epoch 1:  65%|######5   | 100/153 [00:01<00:00, 65.59it/s, loss=0.642, v_num=0_1, Train_acc=0.707, Train_loss=0.693, val_loss=0.490, val_acc=0.805]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 103.00it/s][AEpoch 1: 100%|##########| 153/153 [00:02<00:00, 73.35it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.668, val_loss=0.457, val_acc=0.822]
+                                                            [AEpoch 1:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.668, val_loss=0.457, val_acc=0.822]          Epoch 2:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.668, val_loss=0.457, val_acc=0.822]Epoch 2:  65%|######5   | 100/153 [00:01<00:00, 65.99it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.668, val_loss=0.457, val_acc=0.822]Epoch 2:  65%|######5   | 100/153 [00:01<00:00, 65.91it/s, loss=0.659, v_num=0_1, Train_acc=0.718, Train_loss=0.668, val_loss=0.457, val_acc=0.822]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 100.73it/s][AEpoch 2: 100%|##########| 153/153 [00:02<00:00, 73.25it/s, loss=0.67, v_num=0_1, Train_acc=0.720, Train_loss=0.665, val_loss=0.520, val_acc=0.787] 
+                                                            [AEpoch 2:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.67, v_num=0_1, Train_acc=0.720, Train_loss=0.665, val_loss=0.520, val_acc=0.787]          Epoch 3:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.67, v_num=0_1, Train_acc=0.720, Train_loss=0.665, val_loss=0.520, val_acc=0.787]Epoch 3:  65%|######5   | 100/153 [00:01<00:00, 63.81it/s, loss=0.67, v_num=0_1, Train_acc=0.720, Train_loss=0.665, val_loss=0.520, val_acc=0.787]Epoch 3:  65%|######5   | 100/153 [00:01<00:00, 63.72it/s, loss=0.662, v_num=0_1, Train_acc=0.720, Train_loss=0.665, val_loss=0.520, val_acc=0.787]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 99.95it/s][AEpoch 3: 100%|##########| 153/153 [00:02<00:00, 71.21it/s, loss=0.67, v_num=0_1, Train_acc=0.713, Train_loss=0.681, val_loss=0.489, val_acc=0.800] 
+                                                           [AEpoch 3:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.67, v_num=0_1, Train_acc=0.713, Train_loss=0.681, val_loss=0.489, val_acc=0.800]          Epoch 4:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.67, v_num=0_1, Train_acc=0.713, Train_loss=0.681, val_loss=0.489, val_acc=0.800]Epoch 4:  65%|######5   | 100/153 [00:01<00:00, 65.58it/s, loss=0.67, v_num=0_1, Train_acc=0.713, Train_loss=0.681, val_loss=0.489, val_acc=0.800]Epoch 4:  65%|######5   | 100/153 [00:01<00:00, 65.42it/s, loss=0.661, v_num=0_1, Train_acc=0.713, Train_loss=0.681, val_loss=0.489, val_acc=0.800]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 105.22it/s][AEpoch 4: 100%|##########| 153/153 [00:02<00:00, 73.48it/s, loss=0.653, v_num=0_1, Train_acc=0.718, Train_loss=0.669, val_loss=0.460, val_acc=0.813]
+                                                            [AEpoch 4:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.653, v_num=0_1, Train_acc=0.718, Train_loss=0.669, val_loss=0.460, val_acc=0.813]          Epoch 5:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.653, v_num=0_1, Train_acc=0.718, Train_loss=0.669, val_loss=0.460, val_acc=0.813]Epoch 5:  65%|######5   | 100/153 [00:01<00:00, 65.05it/s, loss=0.653, v_num=0_1, Train_acc=0.718, Train_loss=0.669, val_loss=0.460, val_acc=0.813]Epoch 5:  65%|######5   | 100/153 [00:01<00:00, 64.98it/s, loss=0.666, v_num=0_1, Train_acc=0.718, Train_loss=0.669, val_loss=0.460, val_acc=0.813]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 103.56it/s][AEpoch 5: 100%|##########| 153/153 [00:02<00:00, 72.88it/s, loss=0.658, v_num=0_1, Train_acc=0.719, Train_loss=0.665, val_loss=0.490, val_acc=0.796]
+                                                            [AEpoch 5:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.658, v_num=0_1, Train_acc=0.719, Train_loss=0.665, val_loss=0.490, val_acc=0.796]          Epoch 6:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.658, v_num=0_1, Train_acc=0.719, Train_loss=0.665, val_loss=0.490, val_acc=0.796]Epoch 6:  65%|######5   | 100/153 [00:01<00:00, 65.95it/s, loss=0.658, v_num=0_1, Train_acc=0.719, Train_loss=0.665, val_loss=0.490, val_acc=0.796]Epoch 6:  65%|######5   | 100/153 [00:01<00:00, 65.79it/s, loss=0.683, v_num=0_1, Train_acc=0.719, Train_loss=0.665, val_loss=0.490, val_acc=0.796]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 102.21it/s][AEpoch 6: 100%|##########| 153/153 [00:02<00:00, 73.27it/s, loss=0.68, v_num=0_1, Train_acc=0.720, Train_loss=0.663, val_loss=0.471, val_acc=0.810] 
+                                                            [AEpoch 6:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.68, v_num=0_1, Train_acc=0.720, Train_loss=0.663, val_loss=0.471, val_acc=0.810]          Epoch 7:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.68, v_num=0_1, Train_acc=0.720, Train_loss=0.663, val_loss=0.471, val_acc=0.810]Epoch 7:  65%|######5   | 100/153 [00:01<00:00, 65.38it/s, loss=0.68, v_num=0_1, Train_acc=0.720, Train_loss=0.663, val_loss=0.471, val_acc=0.810]Epoch 7:  65%|######5   | 100/153 [00:01<00:00, 65.23it/s, loss=0.668, v_num=0_1, Train_acc=0.720, Train_loss=0.663, val_loss=0.471, val_acc=0.810]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 100.56it/s][AEpoch 7: 100%|##########| 153/153 [00:02<00:00, 72.58it/s, loss=0.673, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.500, val_acc=0.798]
+                                                            [AEpoch 7:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.673, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.500, val_acc=0.798]          Epoch 8:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.673, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.500, val_acc=0.798]Epoch 8:  65%|######5   | 100/153 [00:01<00:00, 66.13it/s, loss=0.673, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.500, val_acc=0.798]Epoch 8:  65%|######5   | 100/153 [00:01<00:00, 65.96it/s, loss=0.637, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.500, val_acc=0.798]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 101.81it/s][AEpoch 8: 100%|##########| 153/153 [00:02<00:00, 73.43it/s, loss=0.64, v_num=0_1, Train_acc=0.718, Train_loss=0.665, val_loss=0.464, val_acc=0.817] 
+                                                            [AEpoch 8:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.64, v_num=0_1, Train_acc=0.718, Train_loss=0.665, val_loss=0.464, val_acc=0.817]          Epoch 9:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.64, v_num=0_1, Train_acc=0.718, Train_loss=0.665, val_loss=0.464, val_acc=0.817]Epoch 9:  65%|######5   | 100/153 [00:01<00:00, 64.93it/s, loss=0.64, v_num=0_1, Train_acc=0.718, Train_loss=0.665, val_loss=0.464, val_acc=0.817]Epoch 9:  65%|######5   | 100/153 [00:01<00:00, 64.84it/s, loss=0.652, v_num=0_1, Train_acc=0.718, Train_loss=0.665, val_loss=0.464, val_acc=0.817]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 100.90it/s][AEpoch 9: 100%|##########| 153/153 [00:02<00:00, 72.21it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.663, val_loss=0.458, val_acc=0.824]
+                                                            [AEpoch 9:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.663, val_loss=0.458, val_acc=0.824]          Epoch 10:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.663, val_loss=0.458, val_acc=0.824]Epoch 10:  65%|######5   | 100/153 [00:01<00:00, 65.36it/s, loss=0.663, v_num=0_1, Train_acc=0.718, Train_loss=0.663, val_loss=0.458, val_acc=0.824]Epoch 10:  65%|######5   | 100/153 [00:01<00:00, 65.21it/s, loss=0.651, v_num=0_1, Train_acc=0.718, Train_loss=0.663, val_loss=0.458, val_acc=0.824]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 102.04it/s][AEpoch 10: 100%|##########| 153/153 [00:02<00:00, 72.79it/s, loss=0.643, v_num=0_1, Train_acc=0.717, Train_loss=0.660, val_loss=0.480, val_acc=0.806]
+                                                            [AEpoch 10:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.643, v_num=0_1, Train_acc=0.717, Train_loss=0.660, val_loss=0.480, val_acc=0.806]          Epoch 11:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.643, v_num=0_1, Train_acc=0.717, Train_loss=0.660, val_loss=0.480, val_acc=0.806]Epoch 11:  65%|######5   | 100/153 [00:01<00:00, 64.22it/s, loss=0.643, v_num=0_1, Train_acc=0.717, Train_loss=0.660, val_loss=0.480, val_acc=0.806]Epoch 11:  65%|######5   | 100/153 [00:01<00:00, 64.07it/s, loss=0.682, v_num=0_1, Train_acc=0.717, Train_loss=0.660, val_loss=0.480, val_acc=0.806]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 101.85it/s][AEpoch 11: 100%|##########| 153/153 [00:02<00:00, 71.75it/s, loss=0.674, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.560, val_acc=0.765]
+                                                            [AEpoch 11:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.674, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.560, val_acc=0.765]          Epoch 12:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.674, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.560, val_acc=0.765]Epoch 12:  65%|######5   | 100/153 [00:01<00:00, 65.88it/s, loss=0.674, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.560, val_acc=0.765]Epoch 12:  65%|######5   | 100/153 [00:01<00:00, 65.72it/s, loss=0.69, v_num=0_1, Train_acc=0.715, Train_loss=0.668, val_loss=0.560, val_acc=0.765] 
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 103.68it/s][AEpoch 12: 100%|##########| 153/153 [00:02<00:00, 73.53it/s, loss=0.689, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.459, val_acc=0.823]
+                                                            [AEpoch 12:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.459, val_acc=0.823]          Epoch 13:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.689, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.459, val_acc=0.823]Epoch 13:  65%|######5   | 100/153 [00:01<00:00, 67.67it/s, loss=0.689, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.459, val_acc=0.823]Epoch 13:  65%|######5   | 100/153 [00:01<00:00, 67.58it/s, loss=0.688, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.459, val_acc=0.823]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 108.60it/s][AEpoch 13: 100%|##########| 153/153 [00:02<00:00, 75.83it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.665, val_loss=0.489, val_acc=0.801]
+                                                            [AEpoch 13:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.665, val_loss=0.489, val_acc=0.801]          Epoch 14:   0%|          | 0/153 [00:00<?, ?it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.665, val_loss=0.489, val_acc=0.801]Epoch 14:  65%|######5   | 100/153 [00:01<00:00, 67.54it/s, loss=0.683, v_num=0_1, Train_acc=0.722, Train_loss=0.665, val_loss=0.489, val_acc=0.801]Epoch 14:  65%|######5   | 100/153 [00:01<00:00, 67.37it/s, loss=0.632, v_num=0_1, Train_acc=0.722, Train_loss=0.665, val_loss=0.489, val_acc=0.801]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/48 [00:00<?, ?it/s][A
+Validating: 100%|##########| 48/48 [00:00<00:00, 102.37it/s][AEpoch 14: 100%|##########| 153/153 [00:02<00:00, 74.68it/s, loss=0.647, v_num=0_1, Train_acc=0.724, Train_loss=0.659, val_loss=0.489, val_acc=0.805]
+                                                            [AEpoch 14: 100%|##########| 153/153 [00:02<00:00, 74.16it/s, loss=0.647, v_num=0_1, Train_acc=0.724, Train_loss=0.659, val_loss=0.489, val_acc=0.805]
+Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None
+add dataset full_target_sleep into list target data 
+test subject idx after split :  None
+train-valid idx after split :  [0 1 2 3 4]
+cross subject split for valid data
+train subject after split :  [0, 1, 2, 3]
+valid subject after split :  [4]
+there is no test file 
+train subjects :  [0, 1, 2, 3]
+Train subject 0 has shape : (2570, 1, 2, 3000), with range scale (200.0,-200.0) 
+Train subject 1 has shape : (3187, 1, 2, 3000), with range scale (182.0,-175.92308044433594) 
+Train subject 2 has shape : (3305, 1, 2, 3000), with range scale (162.62197875976562,-177.0) 
+Train subject 3 has shape : (3024, 1, 2, 3000), with range scale (182.0,-193.0) 
+test subjects :  [4]
+test subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0)  
+valid subjects :  [4]
+valid subject 4 has shape : (4482, 1, 2, 3000), with range scale (199.0,-199.0)  
+Loading trainer: BaseModel
+Building model
+Backbone: deepsleep
+params set up :  {'kern_length_1': 200, 'kern_length_2': 100, 'num_ch': 2, 'samples': 3000, 'F1': 8, 'F2': 8, 'drop_prob': 0.25, 'avg_pool_1': 10, 'avg_pool_2': 10}
+pretrain :  False
+pretrain path : 
+use max norm 0.5 constraint on last FC
+# params: 11,086
+freeze base model backbone --- 
+current potential pretrain dir :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_5
+path exist
+load pretrain model from /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/test_fold_1/valid_fold_5/checkpoint.ckpt
+train x size :  12086
+total :  12086
+class count :  [5611 1335 3420  437   71 1212]
+class sample weights for sampler :  [0.00017822 0.00074906 0.0002924  0.00228833 0.01408451 0.00082508]
+size of train loader :  94
+size of val loader :  36
+size of test loader :  36
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/166 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/166 [00:00<?, ?it/s] Epoch 0:  60%|######    | 100/166 [00:01<00:00, 69.97it/s]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 106.45it/s][AEpoch 0: 100%|##########| 166/166 [00:02<00:00, 78.28it/s, loss=0.659, v_num=0_1, Train_acc=0.707, Train_loss=0.695, val_loss=0.580, val_acc=0.772]
+                                                            [AEpoch 0:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.659, v_num=0_1, Train_acc=0.707, Train_loss=0.695, val_loss=0.580, val_acc=0.772]          Epoch 1:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.659, v_num=0_1, Train_acc=0.707, Train_loss=0.695, val_loss=0.580, val_acc=0.772]Epoch 1:  60%|######    | 100/166 [00:01<00:00, 70.65it/s, loss=0.659, v_num=0_1, Train_acc=0.707, Train_loss=0.695, val_loss=0.580, val_acc=0.772]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 97.04it/s][AEpoch 1: 100%|##########| 166/166 [00:02<00:00, 76.44it/s, loss=0.669, v_num=0_1, Train_acc=0.710, Train_loss=0.685, val_loss=0.577, val_acc=0.777]
+                                                           [AEpoch 1:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.669, v_num=0_1, Train_acc=0.710, Train_loss=0.685, val_loss=0.577, val_acc=0.777]          Epoch 2:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.669, v_num=0_1, Train_acc=0.710, Train_loss=0.685, val_loss=0.577, val_acc=0.777]Epoch 2:  60%|######    | 100/166 [00:01<00:00, 71.25it/s, loss=0.669, v_num=0_1, Train_acc=0.710, Train_loss=0.685, val_loss=0.577, val_acc=0.777]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 84.92it/s][AEpoch 2: 100%|##########| 166/166 [00:02<00:00, 73.28it/s, loss=0.667, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.600, val_acc=0.771]
+                                                           [AEpoch 2:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.667, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.600, val_acc=0.771]          Epoch 3:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.667, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.600, val_acc=0.771]Epoch 3:  60%|######    | 100/166 [00:01<00:00, 68.57it/s, loss=0.667, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.600, val_acc=0.771]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 98.68it/s][AEpoch 3: 100%|##########| 166/166 [00:02<00:00, 75.24it/s, loss=0.705, v_num=0_1, Train_acc=0.710, Train_loss=0.693, val_loss=0.618, val_acc=0.759]
+                                                           [AEpoch 3:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.705, v_num=0_1, Train_acc=0.710, Train_loss=0.693, val_loss=0.618, val_acc=0.759]          Epoch 4:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.705, v_num=0_1, Train_acc=0.710, Train_loss=0.693, val_loss=0.618, val_acc=0.759]Epoch 4:  60%|######    | 100/166 [00:01<00:00, 67.29it/s, loss=0.705, v_num=0_1, Train_acc=0.710, Train_loss=0.693, val_loss=0.618, val_acc=0.759]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 99.36it/s][AEpoch 4: 100%|##########| 166/166 [00:02<00:00, 74.65it/s, loss=0.681, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.604, val_acc=0.766]
+                                                           [AEpoch 4:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.604, val_acc=0.766]          Epoch 5:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.681, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.604, val_acc=0.766]Epoch 5:  60%|######    | 100/166 [00:01<00:01, 64.88it/s, loss=0.681, v_num=0_1, Train_acc=0.719, Train_loss=0.669, val_loss=0.604, val_acc=0.766]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 91.32it/s][AEpoch 5: 100%|##########| 166/166 [00:02<00:00, 69.86it/s, loss=0.687, v_num=0_1, Train_acc=0.712, Train_loss=0.674, val_loss=0.635, val_acc=0.745]
+                                                           [AEpoch 5:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.687, v_num=0_1, Train_acc=0.712, Train_loss=0.674, val_loss=0.635, val_acc=0.745]          Epoch 6:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.687, v_num=0_1, Train_acc=0.712, Train_loss=0.674, val_loss=0.635, val_acc=0.745]Epoch 6:  60%|######    | 100/166 [00:01<00:00, 68.01it/s, loss=0.687, v_num=0_1, Train_acc=0.712, Train_loss=0.674, val_loss=0.635, val_acc=0.745]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 99.93it/s][AEpoch 6: 100%|##########| 166/166 [00:02<00:00, 75.28it/s, loss=0.686, v_num=0_1, Train_acc=0.708, Train_loss=0.693, val_loss=0.594, val_acc=0.770]
+                                                           [AEpoch 6:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.686, v_num=0_1, Train_acc=0.708, Train_loss=0.693, val_loss=0.594, val_acc=0.770]          Epoch 7:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.686, v_num=0_1, Train_acc=0.708, Train_loss=0.693, val_loss=0.594, val_acc=0.770]Epoch 7:  60%|######    | 100/166 [00:01<00:01, 65.98it/s, loss=0.686, v_num=0_1, Train_acc=0.708, Train_loss=0.693, val_loss=0.594, val_acc=0.770]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 96.67it/s][AEpoch 7: 100%|##########| 166/166 [00:02<00:00, 72.99it/s, loss=0.68, v_num=0_1, Train_acc=0.715, Train_loss=0.685, val_loss=0.632, val_acc=0.755] 
+                                                           [AEpoch 7:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.68, v_num=0_1, Train_acc=0.715, Train_loss=0.685, val_loss=0.632, val_acc=0.755]          Epoch 8:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.68, v_num=0_1, Train_acc=0.715, Train_loss=0.685, val_loss=0.632, val_acc=0.755]Epoch 8:  60%|######    | 100/166 [00:01<00:00, 68.42it/s, loss=0.68, v_num=0_1, Train_acc=0.715, Train_loss=0.685, val_loss=0.632, val_acc=0.755]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 102.30it/s][AEpoch 8: 100%|##########| 166/166 [00:02<00:00, 75.99it/s, loss=0.695, v_num=0_1, Train_acc=0.709, Train_loss=0.694, val_loss=0.650, val_acc=0.746]
+                                                            [AEpoch 8:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.695, v_num=0_1, Train_acc=0.709, Train_loss=0.694, val_loss=0.650, val_acc=0.746]          Epoch 9:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.695, v_num=0_1, Train_acc=0.709, Train_loss=0.694, val_loss=0.650, val_acc=0.746]Epoch 9:  60%|######    | 100/166 [00:01<00:00, 68.11it/s, loss=0.695, v_num=0_1, Train_acc=0.709, Train_loss=0.694, val_loss=0.650, val_acc=0.746]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 102.68it/s][AEpoch 9: 100%|##########| 166/166 [00:02<00:00, 76.03it/s, loss=0.694, v_num=0_1, Train_acc=0.717, Train_loss=0.676, val_loss=0.628, val_acc=0.749]
+                                                            [AEpoch 9:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.694, v_num=0_1, Train_acc=0.717, Train_loss=0.676, val_loss=0.628, val_acc=0.749]          Epoch 10:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.694, v_num=0_1, Train_acc=0.717, Train_loss=0.676, val_loss=0.628, val_acc=0.749]Epoch 10:  60%|######    | 100/166 [00:01<00:00, 67.80it/s, loss=0.694, v_num=0_1, Train_acc=0.717, Train_loss=0.676, val_loss=0.628, val_acc=0.749]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 101.64it/s][AEpoch 10: 100%|##########| 166/166 [00:02<00:00, 75.54it/s, loss=0.692, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.676, val_acc=0.734]
+                                                            [AEpoch 10:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.676, val_acc=0.734]          Epoch 11:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.692, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.676, val_acc=0.734]Epoch 11:  60%|######    | 100/166 [00:01<00:01, 63.07it/s, loss=0.692, v_num=0_1, Train_acc=0.717, Train_loss=0.666, val_loss=0.676, val_acc=0.734]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 99.22it/s][AEpoch 11: 100%|##########| 166/166 [00:02<00:00, 71.44it/s, loss=0.656, v_num=0_1, Train_acc=0.710, Train_loss=0.677, val_loss=0.649, val_acc=0.750]
+                                                           [AEpoch 11:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.656, v_num=0_1, Train_acc=0.710, Train_loss=0.677, val_loss=0.649, val_acc=0.750]          Epoch 12:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.656, v_num=0_1, Train_acc=0.710, Train_loss=0.677, val_loss=0.649, val_acc=0.750]Epoch 12:  60%|######    | 100/166 [00:01<00:00, 67.56it/s, loss=0.656, v_num=0_1, Train_acc=0.710, Train_loss=0.677, val_loss=0.649, val_acc=0.750]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 99.63it/s][AEpoch 12: 100%|##########| 166/166 [00:02<00:00, 74.88it/s, loss=0.646, v_num=0_1, Train_acc=0.717, Train_loss=0.674, val_loss=0.607, val_acc=0.762]
+                                                           [AEpoch 12:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.646, v_num=0_1, Train_acc=0.717, Train_loss=0.674, val_loss=0.607, val_acc=0.762]          Epoch 13:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.646, v_num=0_1, Train_acc=0.717, Train_loss=0.674, val_loss=0.607, val_acc=0.762]Epoch 13:  60%|######    | 100/166 [00:01<00:00, 67.63it/s, loss=0.646, v_num=0_1, Train_acc=0.717, Train_loss=0.674, val_loss=0.607, val_acc=0.762]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 99.97it/s][AEpoch 13: 100%|##########| 166/166 [00:02<00:00, 74.86it/s, loss=0.674, v_num=0_1, Train_acc=0.712, Train_loss=0.679, val_loss=0.637, val_acc=0.752]
+                                                           [AEpoch 13:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.674, v_num=0_1, Train_acc=0.712, Train_loss=0.679, val_loss=0.637, val_acc=0.752]          Epoch 14:   0%|          | 0/166 [00:00<?, ?it/s, loss=0.674, v_num=0_1, Train_acc=0.712, Train_loss=0.679, val_loss=0.637, val_acc=0.752]Epoch 14:  60%|######    | 100/166 [00:01<00:00, 67.56it/s, loss=0.674, v_num=0_1, Train_acc=0.712, Train_loss=0.679, val_loss=0.637, val_acc=0.752]
+Validating: 0it [00:00, ?it/s][A
+Validating:   0%|          | 0/72 [00:00<?, ?it/s][A
+Validating: 100%|##########| 72/72 [00:00<00:00, 101.33it/s][AEpoch 14: 100%|##########| 166/166 [00:02<00:00, 75.35it/s, loss=0.678, v_num=0_1, Train_acc=0.720, Train_loss=0.673, val_loss=0.627, val_acc=0.756]
+                                                            [AEpoch 14: 100%|##########| 166/166 [00:02<00:00, 74.87it/s, loss=0.678, v_num=0_1, Train_acc=0.720, Train_loss=0.673, val_loss=0.627, val_acc=0.756]

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 
-model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1"
+model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1"
 
 #task 2 final 2
 dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
@@ -30,8 +30,15 @@ pred_B_1 = np.loadtxt(os.path.join(dataset_B_1_result_path, file), delimiter=','
 pred_A = np.concatenate([pred_A_0,pred_A_1,pred_A_2])
 pred_B = np.concatenate([pred_B_0,pred_B_1])
 final_pred = np.concatenate([pred_A,pred_B])
-path = os.path.join("util",case,"answer.txt")
+
+
+answer_folder = os.path.join("util",case)
+if not os.path.exists(answer_folder):
+    os.makedirs(answer_folder)
+
+path = os.path.join(answer_folder,"answer.txt")
 np.savetxt(path,final_pred,delimiter=',',fmt="%d")
+
 
 
 

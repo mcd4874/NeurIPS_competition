@@ -33,7 +33,7 @@ cfg file setup :  DATAMANAGER:
       USE_FILTERBANK: False
       freq_interval: 4
     NAME: MultiDatasetV1
-    ROOT: C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning//da_dataset/NeurIPS_1
+    ROOT: /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
     SETUP:
       INCREMENT_FOLD:
         CURRENT_INCREMENT_FOLD: 1
@@ -221,7 +221,7 @@ OPTIM:
       gamma: 1.0
   STAGED_LR: False
   STEPSIZE: (10,)
-OUTPUT_DIR: C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model
+OUTPUT_DIR: /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model
 RESUME: 
 TEST:
   COMPUTE_CMAT: False
@@ -242,7 +242,7 @@ VERSION: 1
 history_dir: 
 output_dir: 
 Loading dataset: MultiDatasetV1
-data root :  C:\wduong_folder\Dassl.pytorch-master\NeurIPS_competition\EEG_Lightning\da_dataset\NeurIPS_1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
 dataset dir :  task_1_final_case_1
 file name :  full_target_sleep.mat
 r_op file path :  None
@@ -374,5 +374,9 @@ class sample weights for sampler :  [3.79405850e-05 1.33689840e-04 3.02819247e-0
 size of train loader :  671
 size of val loader :  166
 size of test loader :  166
-Training: -1it [00:00, ?it/s]target class weight :  None
-Training:   0%|          | 0/1003 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/1003 [00:00<?, ?it/s] 
+Training: 0it [00:00, ?it/s]target class weight :  None
+Training:   0%|          | 0/1003 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/1003 [00:00<?, ?it/s] Loading dataset: MultiDatasetV1
+data root :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_1
+dataset dir :  task_1_final_case_1
+file name :  full_target_sleep.mat
+r_op file path :  None

@@ -31,7 +31,12 @@ file = "pred_MI_label.txt"
 
 
 pred = np.loadtxt(os.path.join(result_path, file), delimiter=',')
-path = os.path.join("util",case,"answer.txt")
+
+answer_folder = os.path.join("util",case)
+if not os.path.exists(answer_folder):
+    os.makedirs(answer_folder)
+
+path = os.path.join(answer_folder,"answer.txt")
 np.savetxt(path,pred,delimiter=',',fmt="%d")
 
 
