@@ -121,14 +121,56 @@ import os
 
 # case="task_1_final_6"
 
-result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_2\\quick_ver_1_1\\no_aug\\no_norm\\deepsleep_share_adaptV1\\full_dataset\\model\\predict_folder"
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_2\\quick_ver\\no_aug\\time_norm\\deepsleep_share_mcd\\full_dataset\\model\\predict_folder"
 
-case="task_1_final_7"
+# case="task_1_final_7"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_8"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_9"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1\\al_tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_10"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1\\tune_cla\\no_aug\\time_norm\\deepsleep_dann\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_11"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_3\\quick_ver_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+
+# case="task_1_final_12"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_13"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_3\\quick_ver_0\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_14"
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\tune_full_best\\1\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_15"
+
+
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\cla_al_pretrain\\2\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+#
+# case="task_1_final_16"
+
+result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\al_pretrain\\2\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+
+case="task_1_final_17"
+
 file = "pred_MI_label.txt"
 
 
 pred = np.loadtxt(os.path.join(result_path, file), delimiter=',')
-path = os.path.join("util",case,"answer.txt")
+path = os.path.join("util", case, "answer.txt")
 np.savetxt(path,pred,delimiter=',',fmt="%d")
 
 def count(label,name=""):

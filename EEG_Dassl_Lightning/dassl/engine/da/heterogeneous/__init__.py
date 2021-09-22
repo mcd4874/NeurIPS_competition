@@ -26,6 +26,6 @@ from .multi_share_adaptation_v1 import MultiShareAdaptationV1
 from .multi_share_mcd_v1 import MultiShareMCD
 from .multi_dataset_SRDA import MultiDatasetSRDA
 # from .multi_dataset_dann import MultiDatasetDann
-# from .multi_dataset_dan import MultiDatasetDan
+from .multi_dataset_dan import MultiDatasetDan
 # from .multi_dataset_cdan import MultiDatasetCdan
 from .multi_dataset_component_adapt import ComponentAdaptation

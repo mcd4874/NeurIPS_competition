@@ -61,6 +61,13 @@ class DANN(TrainerBase):
         FC_info = cfg.LIGHTNING_MODEL.COMPONENTS.LAST_FC
 
         self.CommonFeature = SimpleNet(backbone_info, FC_info, 0, **cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS)
+
+        freeze_common_feature = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.CommonFeature.parameters():
+                parameter.requires_grad = False
+            print("freeze feature extractor : ",)
+
         self.fdim = self.CommonFeature.fdim
 
         print('Building Target Classifier')

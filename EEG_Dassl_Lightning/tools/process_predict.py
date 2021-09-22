@@ -230,9 +230,19 @@ import os
 # case="task_2_final_1"
 
 # task_2_final_1
-dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\no_aug\\no_norm\\adaptationV1\dataset_A\model\\predict_folder"
-dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\no_aug\\no_norm\\adaptationV1\dataset_B\model\\predict_folder"
-case="task_2_final_2"
+# dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\no_aug\\no_norm\\adaptationV1\dataset_A\model\\predict_folder"
+# dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\no_aug\\no_norm\\adaptationV1\dataset_B\model\\predict_folder"
+# case="task_2_final_2"
+
+# task_2_final_1
+# dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_A\model\\predict_folder"
+# dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_1\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_B\model\\predict_folder"
+# case="task_2_final_6"
+
+# task_2_final_3
+dataset_A_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_3\\no_aug\\no_norm\\mcdV1\dataset_A\model\\predict_folder"
+dataset_B_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_3\\no_aug\\no_norm\\mcdV1\dataset_B\model\\predict_folder"
+case="task_2_final_11"
 
 # #case 15-3-1
 # dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\final_result_15_3_1\\main_model_4\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
@@ -340,14 +350,131 @@ case="task_2_final_2"
 # case="task_2_final_3"
 
 #task 2 final 2
-dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
-dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_1\model\\predict_folder"
-dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_2\model\\predict_folder"
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_B_1\model\\predict_folder"
+# case="task_2_final_4"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\new_EA\\no_aug\\no_norm\\mcdV1\dataset_B_1\model\\predict_folder"
+# case="task_2_final_5"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\3\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\3\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\3\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\3\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\3\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_7"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
 
 
-dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_B_0\model\\predict_folder"
-dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\incorrect\\al_pretrain\\no_aug\\no_norm\\mcdV1\dataset_B_1\model\\predict_folder"
-case="task_2_final_4"
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\2\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\tune_kern\\2\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_8"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\chan_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\chan_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\chan_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\chan_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\chan_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_9"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_10"
+
+
+#task 2 final 4
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_4\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_4\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_4\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_4\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_4\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_12"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_13"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\dan\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\dan\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\dan\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\dan\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\no_aug\\no_norm\\dan\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_14"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_n_step\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_n_step\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_n_step\\2\\no_aug\\no_norm\\mcdV1\\dataset_A_2\model\\predict_folder"
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_n_step\\2\\no_aug\\no_norm\\mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_n_step\\2\\no_aug\\no_norm\\mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_15"
+
+#task 2 final 2
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune\\2\\no_aug\\no_norm\\deepsleep_mcdV1\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune\\2\\no_aug\\no_norm\\deepsleep_mcdV1\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune\\2\\no_aug\\no_norm\\deepsleep_mcdV1\\dataset_A_2\model\\predict_folder"
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune\\2\\no_aug\\no_norm\\deepsleep_mcdV1\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune\\2\\no_aug\\no_norm\\deepsleep_mcdV1\\dataset_B_1\model\\predict_folder"
+# case="task_2_final_16"
+
+
+# dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1\dataset_A_2\model\\predict_folder"
+#
+#
+# dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\2\\no_aug\\no_norm\\mcdV1\dataset_B_1\model\\predict_folder"
+# case="task_2_final_17"
+
+dataset_A_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1\dataset_A_0\model\\predict_folder"
+dataset_A_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1\dataset_A_1\model\\predict_folder"
+dataset_A_2_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1\dataset_A_2\model\\predict_folder"
+
+dataset_B_0_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1\dataset_B_0\model\\predict_folder"
+dataset_B_1_result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1\dataset_B_1\model\\predict_folder"
+case="task_2_final_18"
 
 
 file = "pred_MI_label.txt"
@@ -357,7 +484,7 @@ file = "pred_MI_label.txt"
 # final_pred = np.concatenate([pred_A,pred_B])
 # path = os.path.join("util",case,"answer.txt")
 # np.savetxt(path,final_pred,delimiter=',',fmt="%d")
-#
+
 
 pred_A_0 = np.loadtxt(os.path.join(dataset_A_0_result_path, file), delimiter=',')
 pred_A_1 = np.loadtxt(os.path.join(dataset_A_1_result_path, file), delimiter=',')
@@ -370,7 +497,9 @@ pred_B_1 = np.loadtxt(os.path.join(dataset_B_1_result_path, file), delimiter=','
 pred_A = np.concatenate([pred_A_0,pred_A_1,pred_A_2])
 pred_B = np.concatenate([pred_B_0,pred_B_1])
 final_pred = np.concatenate([pred_A,pred_B])
-path = os.path.join("util",case,"answer.txt")
+
+
+path = os.path.join("util", case, "answer.txt")
 np.savetxt(path,final_pred,delimiter=',',fmt="%d")
 
 

@@ -15,6 +15,32 @@ from dassl.modeling.ops import ReverseGrad
 from typing import Any, Dict, List, Optional, Union
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT, STEP_OUTPUT
 
+from yacs.config import CfgNode as CN
+def convert_to_dict(cfg_node, key_list):
+    def _valid_type(value, allow_cfg_node=False):
+        return (type(value) in _VALID_TYPES) or (
+                allow_cfg_node and isinstance(value, CN)
+        )
+    def _assert_with_logging(cond, msg):
+        if not cond:
+            logger.debug(msg)
+        assert cond, msg
+    import logging
+    logger = logging.getLogger(__name__)
+    _VALID_TYPES = {tuple, list, str, int, float, bool, type(None)}
+    if not isinstance(cfg_node, CN):
+        _assert_with_logging(
+            _valid_type(cfg_node),
+            "Key {} with value {} is not a valid type; valid types: {}".format(
+                ".".join(key_list), type(cfg_node), _VALID_TYPES
+            ),
+        )
+        return cfg_node
+    else:
+        cfg_dict = dict(cfg_node)
+        for k, v in cfg_dict.items():
+            cfg_dict[k] = convert_to_dict(v, key_list + [k])
+        return cfg_dict
 
 import torchmetrics
 
@@ -27,7 +53,12 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
     """
     def __init__(self, cfg,require_parameter=None):
         super().__init__(cfg,require_parameter)
-        self.n_step_F = 5
+        if "n_step_F" in cfg.LIGHTNING_MODEL.TRAINER.PARAMS.keys():
+            self.n_step_F = cfg.LIGHTNING_MODEL.TRAINER.PARAMS.n_step_F
+            print("there is n_step_F : ",self.n_step_F)
+        else:
+            self.n_step_F = 5
+            print(" there is not provided n_step_F. We use default {}".format(self.n_step_F))
         self.automatic_optimization = False
 
     def build_metrics(self):

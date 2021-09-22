@@ -636,8 +636,10 @@ config_path = "main_config/final_result_15_3_1/main_model_3"
 # main_path = "task_2_final_1"
 # config_path = "main_config/task_2_final_1"
 
-# main_path = "task_2_final_2"
-# config_path = "main_config/task_2_final_2"
+main_path = "task_2_final_1/new_EA"
+config_path = "main_config/task_2_final_1/new_EA"
+# main_path = "task_2_final_2/new_EA"
+# config_path = "main_config/task_2_final_2/new_EA"
 
 # main_path = "task_1_exp_1"
 # config_path = "main_config/task_1_exp_1"
@@ -649,13 +651,13 @@ config_path = "main_config/final_result_15_3_1/main_model_3"
 # config_path = "main_config/task_1_exp_4"
 # main_path = "task_1_exp_5/quick_ver"
 # config_path = "main_config/task_1_exp_5"
-# main_path = "task_1_final_1/quick_ver"
-# config_path = "main_config/task_1_final_1/quick_ver"
+# main_path = "task_1_final_1/quick_ver_1/tune_cla"
+# config_path = "main_config/task_1_final_1/quick_ver_1/tune_cla"
 # main_path = "task_1_final_1"
 # config_path = "main_config/task_1_final_1"
 
-main_path = "task_1_final_2/quick_ver"
-config_path = "main_config/task_1_final_2/quick_ver"
+# main_path = "task_1_final_2/quick_ver"
+# config_path = "main_config/task_1_final_2/quick_ver"
 
 # main_path = "task_1_final_2/quick_ver_2"
 # config_path = "main_config/task_1_final_2/quick_ver_2"
@@ -679,10 +681,11 @@ norm_conditions = ["no_norm","time_norm"]
 # trainer_conditions = ["deepsleep_vanilla","vanilla","deepsleep_share_adaptV1","share_adaptV1"]
 # trainer_conditions = ["deepsleep_share_adaptV1","share_adaptV1"]
 
-# trainer_conditions = ["mcd","dann"]
+# trainer_conditions = ["mcdV1"]
+trainer_conditions = ["deepsleep_mcd","deepsleep_dann"]
 
 # trainer_conditions = ["deepsleep_share_adaptV1"]
-trainer_conditions = ["deepsleep_share_mcd"]
+# trainer_conditions = ["deepsleep_share_mcd"]
 
 
 # trainer_conditions = ["deepsleep_vanilla"]
@@ -696,8 +699,6 @@ trainer_conditions = ["deepsleep_share_mcd"]
 # trainer_conditions = ["share_adaptV1"]
 # trainer_conditions = ["FBCNET_adaptV1"]
 # dataset_conditions = ["dataset_A", "dataset_B"]
-# dataset_conditions = ["dataset_A"]
-# dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
 # dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
 dataset_conditions = ["full_dataset"]
 # dataset_conditions = ["full_dataset"]
@@ -708,40 +709,66 @@ setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_c
 # config_path = "main_config/final_result_15_3_1/main_model_3"
 # dataset_conditions = ["dataset_A_0","dataset_A_1", "dataset_B_0","dataset_B_1","dataset_B_2"]
 
-# deal with different pretrain setup
-# main_path = "task_1_exp_5/tune_params/1"
-# trainer_conditions = ["deepsleep_mcd","deepsleep_dann"]
-# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
-# extra_merge= list()
-# extra_merge.append([
-#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT",False,
-#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER","WeightRandomSampler",
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",200,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",100,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",8,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
-#     "OPTIM.MAX_EPOCH",40
-# ])
-# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
 
-# main_path = "task_1_exp_5/tune_params/2"
-# trainer_conditions = ["deepsleep_vanilla"]
-# # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+
+# deal with different pretrain setup
+# config_path = "main_config/task_2_final_2"
+# main_path = "task_2_final_2/tune_kern/1"
+# dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
+# norm_conditions = ["no_norm"]
+# aug_conditions=["no_aug"]
+# trainer_conditions = ["mcdV1"]
+# # # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
 # extra_merge= list()
 # extra_merge.append([
-#     "DATAMANAGER.DATASET.SETUP.VALID_FOLD.TOTAL_CLASS_WEIGHT", False,
-#     "DATAMANAGER.DATALOADER.TRAIN_X.SAMPLER", "WeightRandomSampler",
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_1",300,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_length_2",100,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F1",8,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.F2",8,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_1",10,
-#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.avg_pool_2",10,
-#     "OPTIM.MAX_EPOCH",80
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",64,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",32,
 # ])
 # setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# config_path = "main_config/task_2_final_2"
+# main_path = "task_2_final_2/tune_kern/2"
+# dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
+# norm_conditions = ["no_norm"]
+# aug_conditions=["no_aug"]
+# trainer_conditions = ["mcdV1"]
+# # # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",64,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",64,
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# config_path = "main_config/task_2_final_2"
+# main_path = "task_2_final_2/tune_kern/3"
+# dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
+# norm_conditions = ["no_norm"]
+# aug_conditions=["no_aug"]
+# trainer_conditions = ["mcdV1"]
+# # # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",32,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",16,
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+# config_path = "main_config/task_2_final_2"
+# main_path = "task_2_final_2/tune_kern/4"
+# dataset_conditions = ["dataset_A_0","dataset_A_1","dataset_A_2", "dataset_B_0","dataset_B_1"]
+# norm_conditions = ["no_norm"]
+# aug_conditions=["no_aug"]
+# trainer_conditions = ["mcdV1"]
+# # # trainer_conditions = ["deepsleep_vanilla","vanilla","eegnetsleep_vanilla"]
+# extra_merge= list()
+# extra_merge.append([
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.kern_legnth",32,
+#     "LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS.sep_kern_length",32,
+# ])
+# setup_experiments(main_path,config_path,aug_conditions,norm_conditions,trainer_conditions,dataset_conditions,extra_merge=extra_merge)
+#
+
 #
 # main_path = "task_1_exp_5/tune_params/3"
 # trainer_conditions = ["deepsleep_vanilla"]

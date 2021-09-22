@@ -8,7 +8,7 @@ from dassl.utils import count_num_param
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from dassl.engine.trainer_tmp import SimpleNet
+from dassl.engine.trainer import SimpleNet
 import numpy as np
 from dassl.modeling import build_layer
 from dassl.modeling.ops import ReverseGrad
@@ -132,8 +132,6 @@ class MultiDatasetDan(TrainerMultiAdaptation):
         sigma = cfg.LIGHTNING_MODEL.TRAINER.DAN.GaussianKernel.sigma
         track_running_stats = cfg.LIGHTNING_MODEL.TRAINER.DAN.GaussianKernel.track_running_stats
         linear = cfg.LIGHTNING_MODEL.TRAINER.DAN.linear
-        # self.lmda = cfg.TRAINER.HeterogeneousDANN.lmda
-        # print("current max lmda : ",self.lmda)
 
         if len(sigma) == 0:
             # sigma = None
@@ -150,86 +148,106 @@ class MultiDatasetDan(TrainerMultiAdaptation):
                 linear=linear
             )
 
-    # def configure_optimizers(self):
-    #     params = list(self.TargetFeature.parameters()) + \
-    #              list(self.TemporalLayer.parameters()) + \
-    #              list(self.TargetClassifier.parameters()) + \
-    #              list(self.SourceFeatures.parameters()) + \
-    #              list(self.SourceClassifiers.parameters()) +\
-    #              list(self.DomainDiscriminator.parameters())
-    #
-    #     opt = torch.optim.Adam(params, lr=self.lr)
-    #
-    #     scheduler = torch.optim.lr_scheduler.ExponentialLR(
-    #         opt, gamma=1.0
-    #     )
-    #     optimizers = [opt]
-    #     lr_schedulers = [scheduler]
-    #     return optimizers, lr_schedulers
-    #
 
 
-    # def build_model(self):
-    #     super(MultiDatasetDan, self).build_model()
-    #     self.DomainDiscriminator = nn.Linear(self.fdim2, 1)
-    #     self.revgrad = ReverseGrad()
 
-    # def calculate_dann(self,target_feature,source_feature):
-    #     #there is a problem need to concern. We assume that label target batch size is same as source batch size
-    #     domain_label_target = torch.ones(target_feature.shape[0], 1,device=self.device)
-    #     domain_label_source = torch.zeros(source_feature.shape[0], 1,device=self.device)
-    #     feature = torch.cat([target_feature, source_feature])
-    #     domain_label = torch.cat([domain_label_target, domain_label_source])
-    #     domain_pred = self.DomainDiscriminator(feature)
-    #     loss_d = self.bce(domain_pred, domain_label)
-    #     return loss_d
-    #
-    #
-    # def calculate_lmda_factor(self,batch_idx,current_epoch,num_batches,max_epoch,num_pretrain_epochs=0,lmda_scale = 1.0):
-    #     epoch = current_epoch-num_pretrain_epochs
-    #     total_epoch = max_epoch-num_pretrain_epochs
-    #     global_step = batch_idx + epoch * num_batches
-    #     progress = global_step / (total_epoch * num_batches)
-    #     lmda = 2 / (1 + np.exp(-10 * progress)) - 1
-    #     lmda = lmda * lmda_scale  # modify the scale of lmda
-    #     return lmda
+    def build_model(self):
+        cfg = self.cfg
+        print("Params : ", cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE)
+        print('Building F')
 
-    def share_step(self, batch, train_mode=True):
+        print('Building CommonFeature')
+        backbone_info = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE
+        FC_info = cfg.LIGHTNING_MODEL.COMPONENTS.LAST_FC
+
+        self.CommonFeature = SimpleNet(backbone_info, FC_info, 0, **cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.PARAMS)
+        freeze_common_feature = cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.CommonFeature.parameters():
+                parameter.requires_grad = False
+            print("freeze feature extractor : ",)
+
+        self.fdim = self.CommonFeature.fdim
+
+        print('Building Target Classifier')
+        self.TargetClassifier = self.create_classifier(self.fdim, self.num_classes, FC_info=FC_info)
+
+        print('Building SourceClassifiers')
+        print("source domains label size : ", self.source_domains_label_size)
+        source_classifier_list = []
+        for num_class in self.source_domains_label_size:
+            source_classifier = self.create_classifier(self.fdim, num_class, FC_info=FC_info)
+            source_classifier_list.append(source_classifier)
+        self.SourceClassifiers = nn.ModuleList(
+            source_classifier_list
+        )
+
+    def forward(self, input, return_feature=False):
+        f_target = self.CommonFeature(input)
+        logits_target = self.TargetClassifier(f_target)
+        probs = F.softmax(logits_target, dim=1)
+
+        if return_feature:
+            return probs, logits_target
+        return probs
+
+    def configure_optimizers(self):
+        params = list(self.CommonFeature.parameters()) + \
+                 list(self.TargetClassifier.parameters()) + \
+                 list(self.SourceClassifiers.parameters())
+        opt_cfg = self.cfg.OPTIM
+        opt = build_optimizer(params,opt_cfg)
+        scheduler = build_lr_scheduler(optimizer=opt,optim_cfg=opt_cfg)
+        optimizers = [opt]
+        lr_schedulers=[scheduler]
+        return optimizers, lr_schedulers
+
+    def share_step(self,batch,train_mode = True,weight=None):
         input, label, domain = self.parse_target_batch(batch)
-        f_target = self.TargetFeature(input)
-        temp_layer_target = self.TemporalLayer(f_target)
-        logits_target = self.TargetClassifier(temp_layer_target)
-        loss_target = self.loss_function(logits_target, label, train=train_mode)
-        return loss_target, logits_target, label, temp_layer_target
+        f_target = self.CommonFeature(input)
+        logits_target = self.TargetClassifier(f_target)
+        loss_target = self.loss_function(logits_target, label, train=train_mode,weight=weight)
+        return loss_target, logits_target,f_target, label
+
+    def parse_batch_train(self, batch):
+        target_batch = batch["target_loader"]
+        unlabel_batch = batch["unlabel_loader"]
+        list_source_batches = batch["source_loader"]
+        return target_batch,unlabel_batch,list_source_batches
+
+    def on_train_epoch_start(self) -> None:
+        if self.source_pretrain_epochs > self.current_epoch:
+            self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_TARGET_LOSS_RATIO
+            self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.PRETRAIN_SOURCE_LOSS_RATIO
+        else:
+            self.target_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.TARGET_LOSS_RATIO
+            self.source_ratio = self.cfg.LIGHTNING_MODEL.TRAINER.EXTRA.SOURCE_LOSS_RATIO
 
     def training_step(self, batch, batch_idx):
-        target_batch,list_source_batches = self.parse_batch_train(batch)
+        target_batch, unlabel_batch ,list_source_batches = self.parse_batch_train(batch)
         list_input_u, list_label_u, domain_u = self.parse_source_batches(list_source_batches)
 
         loss_source = 0
-        feat_source = []
         for u, y, d in zip(list_input_u, list_label_u, domain_u):
             # print("check range for source data : {} - {}".format(u.max(),u.min()))
-            f = self.SourceFeatures[d](u)
-            temp_layer = self.TemporalLayer(f)
-            feat_source.append(temp_layer)
-            logits = self.SourceClassifiers[d](temp_layer)
-            loss_source += self.loss_function(logits, y,train=True)
+            f = self.CommonFeature(u)
+            logits = self.SourceClassifiers[d](f)
+            domain_weight = self.source_domains_class_weight[d]
+            loss_source += self.loss_function(logits, y, train=True, weight=domain_weight)
         loss_source /= len(domain_u)
 
-        loss_target,logits_target, label, feat_target = self.share_step(target_batch,train_mode=True)
-
-        total_loss = loss_source+loss_target
-
-
-        feat_source = torch.cat(feat_source, 0)
-
-        transfer_loss = self.mkmmd_loss(feat_source, feat_target)
-        total_loss = total_loss + self.trade_off * transfer_loss
-
-        y_pred = F.softmax(logits_target, dim=1)
+        loss_target, logit_target, f_target,label = self.share_step(target_batch, train_mode=True,
+                                                                  weight=self.class_weight)
+        y_pred = F.softmax(logit_target, dim=1)
         y = label
         acc = self.train_acc(y_pred, y)
+
+        total_loss = self.source_ratio*loss_source+self.target_ratio*loss_target
+
+        f_unlabel = self.CommonFeature(unlabel_batch)
+
+        transfer_loss = self.mkmmd_loss(f_target, f_unlabel)
+        total_loss = total_loss + self.trade_off * transfer_loss
 
         self.log('Train_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('Train_loss', total_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -239,7 +257,28 @@ class MultiDatasetDan(TrainerMultiAdaptation):
 
         return {'loss': total_loss}
 
+    def validation_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
+        loss, logit, _,y = self.share_step(batch,train_mode=False)
+        y_pred = F.softmax(logit, dim=1)
+        if dataset_idx == 0 :
+            acc = self.valid_acc(y_pred, y)
+            log = {
+                "val_loss": loss*self.non_save_ratio,
+                "val_acc": acc,
+            }
+            self.log_dict(log, on_step=False, on_epoch=True, prog_bar=True, logger=True,add_dataloader_idx=False)
+        else:
+            acc = self.test_acc(y_pred, y)
+            log = {
+                "test_loss": loss,
+                "test_acc": acc
+            }
+            self.log_dict(log, on_step=False, on_epoch=True, prog_bar=False, logger=True,add_dataloader_idx=False)
 
+        return {'loss': loss}
 
-
+    def test_step(self, batch, batch_idx, dataset_idx: Optional[int] = None):
+        loss, logit, _,y = self.share_step(batch,train_mode=False)
+        y_pred = F.softmax(logit,dim=1)
+        return {'loss': loss,'y_pred':y_pred,'y':y}
 

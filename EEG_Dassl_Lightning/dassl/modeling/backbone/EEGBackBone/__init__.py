@@ -17,3 +17,4 @@ from .ComponentExtractor import componentExtractor
 
 from .EEGNETSleep import eegnetsleep
 from .DeepSleep import deepsleep
+from .SleepEEGNetCNN import sleepeegnetcnn

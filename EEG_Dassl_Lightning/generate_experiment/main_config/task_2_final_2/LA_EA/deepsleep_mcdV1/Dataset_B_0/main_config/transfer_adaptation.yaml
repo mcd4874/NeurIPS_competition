@@ -122,18 +122,17 @@ LIGHTNING_MODEL:
       NAME: max_norm
       max_norm: 0.5
     BACKBONE:
-      NAME: 'eegnet'
+      NAME: deepsleep
       PARAMS:
-        kern_legnth: 64
+        kern_length_1: 64
+        kern_length_2: 16
         num_ch: 17
         samples: 384
         F1: 8
-        D: 2
-        F2: 16
+        F2: 8
         drop_prob: 0.25
-        avg_pool_1: 4
-        avg_pool_2: 8
-        sep_kern_length: 16
+        avg_pool_1: 8
+        avg_pool_2: 4
 
 
 

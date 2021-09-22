@@ -20,4 +20,13 @@ class BaseModel(TrainerBase):
     def __init__(self, cfg,require_parameter=None):
         super().__init__(cfg,require_parameter)
 
+    def build_model(self):
+        super(BaseModel, self).build_model()
+        freeze_common_feature = self.cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE if self.cfg.LIGHTNING_MODEL.COMPONENTS.BACKBONE.FREEZE else False
+        if freeze_common_feature:
+            for parameter in self.model.backbone.parameters():
+                parameter.requires_grad = False
+            print("freeze base model backbone --- ")
+
+
 
