@@ -1,0 +1,22 @@
+{
+    "EXTRA_FIELDS": {
+        "target_dataset": "dataset_B_1",
+        "source_dataset": [
+            "cho2017",
+            "physionet",
+            "BCI_IV"
+        ],
+        "normalize": "no_norm",
+        "EA": true,
+        "LA": true,
+        "aug": "no_aug",
+        "model": "MultiDatasetMCDV1",
+        "backbone": "eegnet",
+        "source_label_space": [
+            2,
+            4,
+            4
+        ],
+        "target_label_space": 4
+    }
+}
