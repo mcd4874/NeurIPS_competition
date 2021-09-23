@@ -658,7 +658,7 @@ def load_train_B(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3
         subject_train_label = []
         with open(os.path.join(savebase, "training_s{}X.npy".format(subj)), 'rb') as f:
             subject_train_data.append(pickle.load(f))
-        with open(os.path.join(savebase, "training_s{}Y.npy".format(subj)), 'rb') as f:
+        with open(os.path.join(savebase, "training_s{}y.npy".format(subj)), 'rb') as f:
             subject_train_label.append(pickle.load(f))
         subject_train_data = np.concatenate(subject_train_data)
         subject_train_label = np.concatenate(subject_train_label)
