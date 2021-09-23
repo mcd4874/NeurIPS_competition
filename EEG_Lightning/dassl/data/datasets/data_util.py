@@ -9,7 +9,7 @@ def relabel_target(l):
     if l == 0: return 0
     elif l == 1: return 1
     else: return 2
-
+#
 class LabelAlignment:
     def __init__(self,target_dataset):
         """
@@ -134,6 +134,72 @@ class LabelAlignment:
         return r_op
 
 
+# class EuclideanAlignment:
+#     """
+#     convert trials of each subject to a new format with Euclidean Alignment technique
+#     https://arxiv.org/pdf/1808.05464.pdf
+#     """
+#     def __init__(self,list_r_op=None,subject_ids=None):
+#         self.list_r_op = list_r_op
+#         if subject_ids is not None:
+#             update_list_r_op = [self.list_r_op[subject_id] for subject_id in subject_ids]
+#             print("only use r-op for subjects {}".format(subject_ids))
+#             self.list_r_op = update_list_r_op
+#     def calculate_r_op(self,data):
+#         ##data shape (trials,channels, sample)
+#         # if
+#         assert len(data.shape) == 3
+#         r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+#         if np.iscomplexobj(r):
+#             print("covariance matrix problem")
+#         if np.iscomplexobj(sqrtm(r)):
+#             print("covariance matrix problem sqrt")
+#         r_op = inv(sqrtm(r))
+#         # print("r_op shape : ", r_op.shape)
+#         # print("data shape : ",x.shape)
+#         # print("r_op : ", r_op)
+#         if np.iscomplexobj(r_op):
+#             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
+#                   "not, check data!!")
+#             r_op = np.real(r_op).astype(np.float32)
+#         elif not np.any(np.isfinite(r_op)):
+#             print("WARNING! Not finite values in R Matrix")
+#         return r_op
+#     def convert_trials(self,data,r_op):
+#         results = np.matmul(r_op, data)
+#         return results
+#     def generate_list_r_op(self,subjects_data):
+#         list_r_op = list()
+#         for subject_idx in range(len(subjects_data)):
+#             subject_data = subjects_data[subject_idx]
+#             if len(subjects_data.shape) == 3:
+#                 r_op = self.calculate_r_op(subject_data)
+#             elif len(subjects_data.shape) == 4:
+#                 for filter_idx in range(len())
+#             list_r_op.append(r_op)
+#         return list_r_op
+#     def convert_subjects_data_with_EA(self,subjects_data):
+#         #calculate r_op for each subject
+#         if self.list_r_op is not None:
+#             assert len(self.list_r_op) == len(subjects_data)
+#             ##check if list r_op has same shape as data
+#             assert len(self.list_r_op[0].shape) == len(subjects_data.shape)
+#             print("use exist r_op")
+#         else:
+#             print("generate new r_op")
+#             self.list_r_op = self.generate_list_r_op(subjects_data)
+#         new_data = list()
+#         # print("size list r : ",len(self.list_r_op))
+#         # print("subject dat size : ",len(subjects_data))
+#         for subject_idx in range(len(subjects_data)):
+#             subject_data = subjects_data[subject_idx]
+#             r_op = self.list_r_op[subject_idx]
+#             subject_data = self.convert_trials(subject_data,r_op)
+#             new_data.append(subject_data)
+#         return new_data
+
+
+
 class EuclideanAlignment:
     """
     convert trials of each subject to a new format with Euclidean Alignment technique
@@ -152,7 +218,6 @@ class EuclideanAlignment:
             print("covariance matrix problem")
         if np.iscomplexobj(sqrtm(r)):
             print("covariance matrix problem sqrt")
-
         r_op = inv(sqrtm(r))
         # print("r_op shape : ", r_op.shape)
         # print("data shape : ",x.shape)
@@ -163,6 +228,10 @@ class EuclideanAlignment:
             r_op = np.real(r_op).astype(np.float32)
         elif not np.any(np.isfinite(r_op)):
             print("WARNING! Not finite values in R Matrix")
+        # print("before r op : ",r_op)
+        ####fix might cause not-reproducible result compare to best 72. Need to double check on this
+        # r_op = r_op.astype(np.float32)
+        # print("after r op : ",r_op)
         return r_op
     def convert_trials(self,data,r_op):
         results = np.matmul(r_op, data)

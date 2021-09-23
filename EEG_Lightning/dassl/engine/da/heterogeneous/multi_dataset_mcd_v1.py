@@ -148,11 +148,17 @@ class MultiDatasetMCDV1(TrainerMultiAdaptation):
         F_opt,C1_opt,C2_opt,C_S_opt = self.optimizers()
 
         loss_source = 0
+        # print("target_batch ",target_batch.dtype)
+        # print(torch.Tensor(1).dtype)
         for u, y, d in zip(list_input_u, list_label_u, domain_u):
             # print("check range for source data : {} - {}".format(u.max(),u.min()))
+            # print("u : ",u.dtype)
+            # u = u.type()
+            # u = u.to(dtype=torch.float32)
+            # print("u : ",u.dtype)
+
             f = self.CommonFeature(u)
             logits = self.SourceClassifiers[d](f)
-            # domain_weight = self.source_domains_class_weight[d]
             if not self.no_source_weight:
                 domain_weight = self.source_domains_class_weight[d]
             else:

@@ -132,6 +132,28 @@ class DataManagerV1(LightningDataModule):
         if self.TOTAL_CLASS_WEIGHT:
             self.whole_class_weight = self.generate_class_weight(train_x_label)
 
+
+        # """Use filter bank """
+        # if self.useFilterBank:
+        #     # diff = 4
+        #     diff = self.cfg.DATAMANAGER.DATASET.FILTERBANK.freq_interval
+        #     filter_bands = []
+        #     # axis = 2
+        #     for i in range(1, 9):
+        #         filter_bands.append([i * diff, (i + 1) * diff])
+        #     print("build filter band : ", filter_bands)
+        #     filter = filterBank(
+        #         filtBank=filter_bands,
+        #         fs=128
+        #     )
+        #     source = [0, 1, 2, 3]
+        #     destination = [0, 2, 3, 1]
+        #
+        #     train_x_data = subjects_filterbank(train_x_data,filter,source,destination)
+        #     val_data = subjects_filterbank(val_data,filter,source,destination)
+        #     test_data = subjects_filterbank(test_data,filter,source,destination)
+
+
         if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
             print("run custom EA")
             if self._dataset.r_op_list is not None:
@@ -148,26 +170,6 @@ class DataManagerV1(LightningDataModule):
 
             # print("convert trials : ",)
             # print("new trial : ",val_data[0])
-
-        """Use filter bank """
-        if self.useFilterBank:
-            # diff = 4
-            diff = self.cfg.DATAMANAGER.DATASET.FILTERBANK.freq_interval
-            filter_bands = []
-            # axis = 2
-            for i in range(1, 9):
-                filter_bands.append([i * diff, (i + 1) * diff])
-            print("build filter band : ", filter_bands)
-            filter = filterBank(
-                filtBank=filter_bands,
-                fs=128
-            )
-            source = [0, 1, 2, 3]
-            destination = [0, 2, 3, 1]
-
-            train_x_data = subjects_filterbank(train_x_data,filter,source,destination)
-            val_data = subjects_filterbank(val_data,filter,source,destination)
-            test_data = subjects_filterbank(test_data,filter,source,destination)
 
         """Apply data transformation/normalization"""
         if not self.cfg.INPUT.NO_TRANSFORM:
@@ -515,6 +517,9 @@ class MultiDomainDataManagerV1(DataManagerV1):
                 print("run custom EA")
                 source_EA = EuclideanAlignment()
                 source_data = source_EA.convert_subjects_data_with_EA(source_data)
+
+
+                source_data = [subject_data.astype(np.float32) for subject_data in source_data]
 
             """Use filter bank """
             if self.useFilterBank:
