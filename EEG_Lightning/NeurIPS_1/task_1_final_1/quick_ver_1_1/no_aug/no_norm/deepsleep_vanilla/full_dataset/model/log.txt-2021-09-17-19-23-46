@@ -1,4 +1,0 @@
-use determinstic 
-use cross channel norm :  none
-generate predict :  False
-save folder :  /data1/wduong_experiment_data/EEG_Dassl_Lightning/NeurIPS_1/task_1_final_1/quick_ver_1_1/no_aug/no_norm/deepsleep_vanilla/full_dataset/model/predict_folder

@@ -174,12 +174,40 @@ def setup_phase_1_2_dataset(source_datasets,target_dataset_name, common_channels
         generate_data_file([target_dataset], folder_name=save_folder, file_name='NeurIPS_TL')
     return test_dataset
 
-def generate_source_datasets_file(source_datasets,common_channels,save_folder,generate_folder_data):
+def generate_source_datasets_file(source_datasets,common_channels,save_folder,generate_folder_data,convert_EA=False):
+    # idx = 1
+    # for source_dataset in source_datasets:
+    #     X_src, y_src, m_src, dataset_name = source_dataset
+    #     # conduct label alignment
+    #     tmp_X_src, tmp_y_src, tmp_m_src = reformat(X_src, y_src, m_src)
+    #     m_src = {name: col.values for name, col in m_src.items()}
+    #     print_info(tmp_X_src,dataset_name=dataset_name)
+    #     dataset = {
+    #         'data': X_src,
+    #         'label': y_src,
+    #         'meta_data': m_src,
+    #         'dataset_name': dataset_name,
+    #         'chans':common_channels
+    #     }
+    #     file_name = 'dataset_{}'.format(idx)
+    #     idx += 1
+    #     if generate_folder_data:
+    #         generate_data_file([dataset], folder_name=save_folder, file_name=file_name)
+
     idx = 1
     for source_dataset in source_datasets:
         X_src, y_src, m_src, dataset_name = source_dataset
         # conduct label alignment
         tmp_X_src, tmp_y_src, tmp_m_src = reformat(X_src, y_src, m_src)
+
+        if convert_EA:
+            EA = EuclideanAlignment()
+            tmp_X_src = EA.convert_subjects_data_with_EA(tmp_X_src)
+
+        X_src, y_src, m_src = combine(tmp_X_src,tmp_y_src, tmp_m_src)
+        print("{} dtype {}".format(dataset_name,X_src.dtype))
+
+
         m_src = {name: col.values for name, col in m_src.items()}
         print_info(tmp_X_src,dataset_name=dataset_name)
         dataset = {
@@ -194,14 +222,21 @@ def generate_source_datasets_file(source_datasets,common_channels,save_folder,ge
         if generate_folder_data:
             generate_data_file([dataset], folder_name=save_folder, file_name=file_name)
 
-def generate_LA_source_dataset_file(LA,source_datasets,common_channels,save_folder,generate_folder_data):
+def generate_LA_source_dataset_file(LA,source_datasets,common_channels,save_folder,generate_folder_data,convert_EA=False):
     idx = 1
     for source_dataset in source_datasets:
         X_src, y_src, m_src, dataset_name = source_dataset
         # conduct label alignment
         tmp_X_src, tmp_y_src, tmp_m_src = reformat(X_src, y_src, m_src)
         update_X_src, update_y_src = LA.convert_source_data_with_LA(tmp_X_src, tmp_y_src)
+
+        if convert_EA:
+            EA = EuclideanAlignment()
+            update_X_src = EA.convert_subjects_data_with_EA(update_X_src)
+
         LA_X_src, LA_y_src, LA_m_src = combine(update_X_src, update_y_src, tmp_m_src)
+        print("LA {} dtype {}".format(dataset_name,LA_X_src.dtype))
+
         LA_m_src = {name: col.values for name, col in LA_m_src.items()}
         print_info(update_X_src,dataset_name="LA_"+dataset_name)
         LA_dataset = {
@@ -234,43 +269,11 @@ def setup_specific_subject_dataset(source_datasets, target_dataset_name, common_
 
     EA = EuclideanAlignment()
     dataset_r_op = EA.generate_list_r_op(temp_X)
+    # EA = EuclideanAlignment(list_r_op=dataset_r_op)
+    # subjects_train_data = EA.convert_subjects_data_with_EA(subjects_train_data)
+    # subjects_test_label = EA.convert_subjects_data_with_EA(subjects_test_label)
 
     generate_source_datasets_file(source_datasets, common_channels, save_folder, generate_folder_data)
-    # idx = 1
-    # for source_dataset in source_datasets:
-    #     X_src, y_src, m_src, dataset_name = source_dataset
-    #     # conduct label alignment
-    #     tmp_X_src, tmp_y_src, tmp_m_src = reformat(X_src, y_src, m_src)
-    #     # update_X_src, update_y_src = LA.convert_source_data_with_LA(tmp_X_src, tmp_y_src)
-    #     # LA_X_src, LA_y_src, LA_m_src = combine(update_X_src, update_y_src, tmp_m_src)
-    #
-    #     m_src = {name: col.values for name, col in m_src.items()}
-    #     # LA_m_src = {name: col.values for name, col in LA_m_src.items()}
-    #
-    #     print_info(tmp_X_src,dataset_name=dataset_name)
-    #     # print_info(update_X_src,dataset_name="LA_"+dataset_name)
-    #
-    #     dataset = {
-    #         'data': X_src,
-    #         'label': y_src,
-    #         'meta_data': m_src,
-    #         'dataset_name': dataset_name,
-    #         'chans':common_channels
-    #     }
-    #
-    #     # LA_dataset = {
-    #     #     'data': LA_X_src,
-    #     #     'label': LA_y_src,
-    #     #     'meta_data': LA_m_src,
-    #     #     'dataset_name': dataset_name,
-    #     #     'chans': common_channels
-    #     #
-    #     # }
-    #     file_name = 'dataset_{}'.format(idx)
-    #     idx += 1
-    #     if generate_folder_data:
-    #         generate_data_file([dataset], folder_name=save_folder, file_name=file_name)
-    #         # generate_data_file([LA_dataset], folder_name=save_folder + '/LA', file_name=file_name)
 
     for subject_id in range(len(subjects_train_data)):
         print("current subject id : ",subject_id)
@@ -324,4 +327,75 @@ def setup_specific_subject_dataset(source_datasets, target_dataset_name, common_
             generate_data_file([target_r_op], folder_name=subject_test_folder, file_name=subject_dataset_name + '_r_op')
 
 
-    # return test_dataset
+def setup_specific_subject_dataset_EA(source_datasets, target_dataset_name, common_channels, save_folder="case",test_folder="test_case",generate_folder_data=True,start_id=1,end_id=3,path=None,convert_EA=False):
+
+    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(path=path,
+        target_channels=common_channels, dataset_name=target_dataset_name,start_id=start_id,end_id=end_id)
+
+    subjects_train_data,subjects_train_label,subjects_train_meta = reformat(train_data, train_label, train_meta)
+    subjects_test_data,subjects_test_label,subjects_test_meta = reformat(test_data, test_label, test_meta)
+
+
+    # temp_train_data, temp_train_label, _ = reformat(train_data, train_label, train_meta)
+    # print_label_info(temp_train_label)
+    # temp_test_data, _, _ = reformat(test_data, test_label, test_meta)
+
+    temp_X = np.concatenate([subjects_train_data, subjects_test_data], axis=1)
+
+    EA = EuclideanAlignment()
+    dataset_r_op = EA.generate_list_r_op(temp_X)
+    if convert_EA:
+        EA = EuclideanAlignment(list_r_op=dataset_r_op)
+        subjects_train_data_EA = EA.convert_subjects_data_with_EA(subjects_train_data)
+        subjects_test_data_EA = EA.convert_subjects_data_with_EA(subjects_test_data)
+
+
+    generate_source_datasets_file(source_datasets, common_channels, save_folder, generate_folder_data,convert_EA)
+
+    for subject_id in range(len(subjects_train_data)):
+        print("current subject id : ",subject_id)
+        subject_train_data, subject_train_label, subject_train_meta = subjects_train_data[subject_id],subjects_train_label[subject_id],subjects_train_meta[subject_id]
+        subject_test_data, subject_test_label, subject_test_meta = subjects_test_data[subject_id],subjects_test_label[subject_id],subjects_test_meta[subject_id]
+
+
+        # subject_r_op = dataset_r_op[subject_id]
+
+        subject_dataset_name = "{}_{}".format(target_dataset_name,str(subject_id))
+        subject_save_folder=os.path.join(save_folder,subject_dataset_name)
+        subject_test_folder = os.path.join(test_folder,subject_dataset_name)
+
+
+        ##generate subject specific LA for source data
+        LA = LabelAlignment(target_dataset=(subject_train_data, subject_train_label))
+        generate_LA_source_dataset_file(LA,source_datasets, common_channels, subject_save_folder, generate_folder_data,convert_EA)
+
+        if convert_EA:
+            subject_train_data = subjects_train_data_EA[subject_id]
+            subject_test_data = subjects_test_data_EA[subject_id]
+
+
+        subject_train_meta = {name: col.values for name, col in subject_train_meta.items()}
+        subject_test_meta = {name: col.values for name, col in subject_test_meta.items()}
+
+        target_dataset = {
+            'data': subject_train_data,
+            'label': subject_train_label,
+            'meta_data': subject_train_meta,
+            'dataset_name': subject_dataset_name,
+            'chans': common_channels
+
+        }
+        test_dataset = {
+            'data': subject_test_data,
+            'label': subject_test_label,
+            'meta_data': subject_test_meta,
+            'dataset_name': subject_dataset_name,
+            'chans': common_channels
+
+        }
+
+
+        if generate_folder_data:
+            generate_data_file([target_dataset], folder_name=subject_save_folder, file_name='NeurIPS_TL')
+            generate_data_file([test_dataset], folder_name=subject_test_folder, file_name='NeurIPS_TL')
+

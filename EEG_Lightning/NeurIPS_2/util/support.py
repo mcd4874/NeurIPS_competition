@@ -340,6 +340,8 @@ def shuffle_data(subject_data,subject_label):
     shuffle_subject_label = subject_label[shuffle_index,]
     return [shuffle_subject_data,shuffle_subject_label]
 
+# def shuffle_data(subject_data,subject_label):
+#     return [subject_data,subject_label]
 
 def modify_data(data,time=256):
     return data[:, :, :time]
@@ -572,7 +574,10 @@ def load_train_A(path,ch_names,ch_types,sfreq = 128,fmin=4,fmax=36,tmin=0,tmax=3
         new_mne_data = process_target_data(mne_data, f_min=fmin, f_max=fmax, resample=sfreq, t_min=tmin, t_max=tmax)
         subject_train_data = new_mne_data.get_data()
 
+        print("currnet label : ",subject_train_label)
+
         subject_train_data, subject_train_label = shuffle_data(subject_train_data, subject_train_label)
+        print("shuffle label after shuffle : ",subject_train_label)
         X_MIA_train_data.append(subject_train_data)
         X_MIA_train_label.append(subject_train_label)
         subject_id = [subj] * len(subject_train_data)
@@ -789,9 +794,11 @@ class EuclideanAlignment:
         if np.iscomplexobj(r_op):
             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
                   "not, check data!!")
-            r_op = np.real(r_op).astype(np.float32)
+            r_op = np.real(r_op).astype(np.float64)
         elif not np.any(np.isfinite(r_op)):
             print("WARNING! Not finite values in R Matrix")
+
+        # r_op = r_op.astype(np.float32)
         return r_op
     def convert_trials(self,data,r_op):
         results = np.matmul(r_op, data)
@@ -814,6 +821,8 @@ class EuclideanAlignment:
         new_data = list()
         # print("size list r : ",len(self.list_r_op))
         # print("subject dat size : ",len(subjects_data))
+        print("subject data dtype : ",subjects_data[0].dtype)
+        print("r op dtype : ",self.list_r_op[0].dtype)
         for subject_idx in range(len(subjects_data)):
             subject_data = subjects_data[subject_idx]
             r_op = self.list_r_op[subject_idx]

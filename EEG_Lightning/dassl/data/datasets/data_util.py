@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict
 from dassl.data.datasets.base_dataset import EEGDatum
 
+# scipy.seed
 
 def relabel_target(l):
     if l == 0: return 0
@@ -112,7 +113,7 @@ class LabelAlignment:
         r_op = inv(sqrtm(r))
         # print("r_op shape : ", r_op.shape)
         # print("data shape : ",x.shape)
-        # print("r_op : ", r_op)
+        print("r_op : ", r_op)
         if np.iscomplexobj(r_op):
             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
                   "not, check data!!")
@@ -213,15 +214,25 @@ class EuclideanAlignment:
             self.list_r_op = update_list_r_op
     def calculate_r_op(self,data):
         assert len(data.shape) == 3
+        print("input data dtype : ",data.dtype)
         r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        print("r data dtype : ",r.dtype)
         if np.iscomplexobj(r):
             print("covariance matrix problem")
         if np.iscomplexobj(sqrtm(r)):
             print("covariance matrix problem sqrt")
-        r_op = inv(sqrtm(r))
+        # np.random.seed(seed=42)
+        sqrt_r =  sqrtm(r)
+        # print("sqrt r data dtype : ",sqrt_r.dtype)
+        # sqrt_r = sqrt_r.astype(np.float32)
+        # print("sqrt r data dtype : ",sqrt_r.dtype)
+
+        r_op = inv(sqrt_r)
+        # print("r op inv data dtype : ",r_op.dtype)
+
         # print("r_op shape : ", r_op.shape)
         # print("data shape : ",x.shape)
-        # print("r_op : ", r_op)
+        # print("r_op : ", r_op[0])
         if np.iscomplexobj(r_op):
             print("WARNING! Covariance matrix was not SPD somehow. Can be caused by running ICA-EOG rejection, if "
                   "not, check data!!")

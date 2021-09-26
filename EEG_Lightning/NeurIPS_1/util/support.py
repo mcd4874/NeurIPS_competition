@@ -185,8 +185,6 @@ def load_source_sleep(path=None):
         path =  "C:/Users/wduong/mne_data/SleepSource/SleepSource"
     train_data_1 = []
     train_label_1 = []
-    train_data_2 = []
-    train_label_2 = []
     subject_ids = []
     for subj in range(39):
         with open(os.path.join(path, "training_s{}r1X.npy".format(subj)), 'rb') as f:
@@ -217,30 +215,69 @@ def load_source_sleep(path=None):
     return train_data,train_label,dataset_meta
 
 def load_full_target_sleep(path=None,file_format="leaderboard",start_id=0,end_id=6):
+    ###old version
+
+    # if path is None:
+    #     path =  "C:/Users/wduong/mne_data/MNE-beetlsleepleaderboard-data/sleep_target"
+    # target_train_data = []
+    # target_train_label = []
+    # subject_ids = []
+    # for subj in range(start_id,end_id):
+    #     subject_data = list()
+    #     subject_label = list()
+    #     for sess in range(1,3):
+    #
+    #         data_format = file_format+"_s{}r{}X.npy"
+    #         abel_format = file_format+"_s{}r{}y.npy"
+    #         with open(os.path.join(path, data_format.format(subj,sess)), 'rb') as f:
+    #             x = pickle.load(f)
+    #             subject_data.append(x)
+    #         with open(os.path.join(path, abel_format.format(subj,sess)), 'rb') as f:
+    #             y = pickle.load(f)
+    #             subject_label.append(y)
+    #
+    #     subject_data = np.concatenate(subject_data)
+    #     subject_label = np.concatenate(subject_label)
+    #     target_train_data.append(subject_data)
+    #     target_train_label.append(subject_label)
+    #     subject_ids.extend([subj]*len(subject_label))
+    #
+    # dataset_meta = pd.DataFrame({"subject": subject_ids, "session": ["session_0"] * len(subject_ids),
+    #                                "run": ["run_0"] * len(subject_ids)})
+    # target_train_data = np.concatenate(target_train_data)
+    # target_train_label = np.concatenate(target_train_label)
+    #
+    # return target_train_data,target_train_label,dataset_meta
+
+    ###new version
     if path is None:
         path =  "C:/Users/wduong/mne_data/MNE-beetlsleepleaderboard-data/sleep_target"
     target_train_data = []
     target_train_label = []
     subject_ids = []
+    subject_idx = 0
     for subj in range(start_id,end_id):
-        subject_data = list()
-        subject_label = list()
+        # subject_data = list()
+        # subject_label = list()
         for sess in range(1,3):
 
             data_format = file_format+"_s{}r{}X.npy"
-            abel_format = file_format+"_s{}r{}y.npy"
+            label_format = file_format+"_s{}r{}y.npy"
             with open(os.path.join(path, data_format.format(subj,sess)), 'rb') as f:
                 x = pickle.load(f)
-                subject_data.append(x)
-            with open(os.path.join(path, abel_format.format(subj,sess)), 'rb') as f:
+                subject_data = x
+                # subject_data.append(x)
+            with open(os.path.join(path, label_format.format(subj,sess)), 'rb') as f:
                 y = pickle.load(f)
-                subject_label.append(y)
+                subject_label = y
+                # subject_label.append(y)
 
-        subject_data = np.concatenate(subject_data)
-        subject_label = np.concatenate(subject_label)
-        target_train_data.append(subject_data)
-        target_train_label.append(subject_label)
-        subject_ids.extend([subj]*len(subject_label))
+        # subject_data = np.concatenate(subject_data)
+        # subject_label = np.concatenate(subject_label)
+            target_train_data.append(subject_data)
+            target_train_label.append(subject_label)
+            subject_ids.extend([subject_idx]*len(subject_label))
+            subject_idx +=1
 
     dataset_meta = pd.DataFrame({"subject": subject_ids, "session": ["session_0"] * len(subject_ids),
                                    "run": ["run_0"] * len(subject_ids)})
@@ -505,6 +542,18 @@ def create_epoch_array(data,label,channel_name,sampling_freq = 128,event_id=None
 
     mne_data = mne.EpochsArray(data, info, event_id=event_id, events=events, tmin=0)
     return mne_data
+
+def process_epoch_array_with_mne(data,sampling_freq = 100,fmin=0,fmax=30):
+    n_channel = data.shape[1]
+    # sampling_freq = 500  # in Hertz
+    ch_types = ['eeg'] * n_channel
+    info = mne.create_info(ch_types=ch_types, sfreq=sampling_freq)
+    mne_data = mne.EpochsArray(data, info)
+
+    epoch_f = mne_data.copy().filter(
+        fmin, fmax, method="iir")
+    subject_train_data = epoch_f.get_data()
+    return subject_train_data
 
 def reformat(data,label,meta_data):
     """

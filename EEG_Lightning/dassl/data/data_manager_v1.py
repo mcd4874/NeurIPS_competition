@@ -514,12 +514,27 @@ class MultiDomainDataManagerV1(DataManagerV1):
             source_domain_class_weight.append(current_domain_class_weight)
 
             if self.cfg.DATAMANAGER.DATASET.USE_Euclidean_Aligment:
+                for subject_idx in range(len(source_data)):
+                    print("source_data before EA subject_idx {} has shape : {}, with range scale ({},{}) ".format(
+                        subject_idx, source_data[subject_idx].shape,
+                        np.max(source_data[subject_idx]), np.min(source_data[subject_idx])))
+
                 print("run custom EA")
                 source_EA = EuclideanAlignment()
                 source_data = source_EA.convert_subjects_data_with_EA(source_data)
 
+                # update = list()
+                # for subject_data in source_data:
+                #     print("current data type : ", subject_data.dtype)
+                #     if isinstance(subject_data,np.float64):
+                #         print("update data type : ")
+                #         subject_data = subject_data.astype(np.float32)
+                #     else:
+                #         print("can't update ")
+                #     update.append(subject_data)
+                # source_data = update
+                # source_data = [subject_data.astype(np.float32) for subject_data in source_data]
 
-                source_data = [subject_data.astype(np.float32) for subject_data in source_data]
 
             """Use filter bank """
             if self.useFilterBank:
