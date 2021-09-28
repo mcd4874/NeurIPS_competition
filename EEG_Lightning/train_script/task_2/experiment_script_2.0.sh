@@ -5,13 +5,13 @@ eval "$(conda shell.bash hook)"
 
 conda activate beetl
 
-#computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 #experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 #data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
-computer_dir="/home/wduong/tmp/EEG_Lightning/"
-experiment_dir="/data1/wduong_experiment_data/EEG_Lightning/"
-data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+#computer_dir="/home/wduong/tmp/EEG_Lightning/"
+#experiment_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+#data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
 
 
 
@@ -20,16 +20,17 @@ source "${DIR}/common_script.sh"
 
 prefix_path="${experiment_dir}"
 train_script="${computer_dir}"
-ROOT="${data_path_dir}/da_dataset/NeurIPS_4"
+ROOT="${data_path_dir}/da_dataset/NeurIPS_2"
 predict_script="${computer_dir}"
 
-#MAIN_EXP_TYPE="NeurIPS_4/LA_EA/tune_filter/5"
-#MAIN_EXP_TYPE="NeurIPS_4/best"
+#MAIN_EXP_TYPE="submission/task_2"
 
-LIST_EXP_TYPES=("2")
+LIST_EXP_TYPES=("")
 
-LIST_AUG_PREFIX=("$no_aug")
-LIST_NORMALIZE_PREFIX=("$no_norm")
+#LIST_AUG_PREFIX=("$no_aug")
+#LIST_NORMALIZE_PREFIX=("$no_norm")
+LIST_AUG_PREFIX=("")
+LIST_NORMALIZE_PREFIX=("")
 TRAINER_MODEL_PREFIXS=("$mcdV1_prefix")
 
 DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset" "$Dataset_A_2_dataset")

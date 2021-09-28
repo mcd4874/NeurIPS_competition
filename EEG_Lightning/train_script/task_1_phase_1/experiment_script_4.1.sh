@@ -21,42 +21,40 @@ prefix_path="${experiment_dir}"
 train_script="${computer_dir}"
 predict_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_1"
-test_case_path="${data_path_dir}/da_dataset/NeurIPS_1/task_1_final_test_case_1/full_test_sleep.mat"
+test_case_path="${data_path_dir}/da_dataset/NeurIPS_1/phase_1_task_1_test_case_1/phase_1_test_sleep.mat"
 
 group_aug=("$no_aug")
 #group_norm=("$no_norm" "$time_norm")
 group_norm=("$no_norm")
-
 group_datasets=("$full_dataset")
 group_model=("$deepsleep_vanilla_prefix")
-LIST_EXP_TYPES=("case_2")
-#LIST_EXP_TYPES=("case_1")
+LIST_EXP_TYPES=("phase_1_case_4")
+#LIST_EXP_TYPES=("phase_1_case_3")
 
 exp="NeurIPS_1"
-#tune_cla_exp="NeurIPS_1/task_1_final_1/quick_ver_1_1/tune_cla"
 pretrain_best="True"
 
 for SUB_EXP_TYPE in "${LIST_EXP_TYPES[@]}";
 do
   task_exp="${exp}/${SUB_EXP_TYPE}"
-  run_full_multi_gpu $gpu_device_0 $task_exp group_aug group_norm group_model group_datasets
-  run_predict_task_1 $gpu_device_0 $task_exp $test_case_path group_aug group_norm group_model group_datasets
+#  run_full_multi_gpu $gpu_device_2 $task_exp group_aug group_norm group_model group_datasets
+  run_predict_task_1 $gpu_device_2 $task_exp $test_case_path group_aug group_norm group_model group_datasets
 
   tune_cla_exp="${task_exp}/tune_cla"
-  run_pretrain $gpu_device_0 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
-  run_predict_task_1 $gpu_device_0 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
+#  run_pretrain $gpu_device_2 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
+  run_predict_task_1 $gpu_device_2 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
 
   tune_cla_exp="${task_exp}/tune_cla_2"
-  run_pretrain $gpu_device_0 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
-  run_predict_task_1 $gpu_device_0 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
+#  run_pretrain $gpu_device_2 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
+  run_predict_task_1 $gpu_device_2 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
 
   tune_cla_exp="${task_exp}/tune_full"
-  run_pretrain $gpu_device_0 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
-  run_predict_task_1 $gpu_device_0 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
+#  run_pretrain $gpu_device_2 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
+  run_predict_task_1 $gpu_device_2 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
 
   tune_cla_exp="${task_exp}/tune_full_2"
-  run_pretrain $gpu_device_0 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
-  run_predict_task_1 $gpu_device_0 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
+#  run_pretrain $gpu_device_2 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
+  run_predict_task_1 $gpu_device_2 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
 done
 #run_full_multi_gpu $gpu_device_0 $task_exp group_aug group_norm group_model group_datasets
 #run_predict_task_1 $gpu_device_0 $task_exp $test_case_path group_aug group_norm group_model group_datasets

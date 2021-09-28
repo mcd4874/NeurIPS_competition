@@ -5,9 +5,6 @@ eval "$(conda shell.bash hook)"
 
 conda activate beetl
 
-#computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
-#experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
-#data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
 
 computer_dir="/home/wduong/tmp/EEG_Lightning/"
 experiment_dir="/data1/wduong_experiment_data/EEG_Lightning/"
@@ -23,10 +20,10 @@ train_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_4"
 predict_script="${computer_dir}"
 
-#MAIN_EXP_TYPE="NeurIPS_4/LA_EA/tune_filter/5"
-#MAIN_EXP_TYPE="NeurIPS_4/best"
+#MAIN_EXP_TYPE="NeurIPS_2/task_2_final_2/LA_EA/tune_filter/5"
+MAIN_EXP_TYPE="NeurIPS_4/filterbank/best"
 
-LIST_EXP_TYPES=("2")
+LIST_EXP_TYPES=("")
 
 LIST_AUG_PREFIX=("$no_aug")
 LIST_NORMALIZE_PREFIX=("$no_norm")
@@ -35,8 +32,7 @@ TRAINER_MODEL_PREFIXS=("$mcdV1_prefix")
 DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
 #DATASETS=("$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
 
-PRETRAIN_DATASET="dataset_A"
-TEST_DATASET_CASE="final_MI_test_A_1"
+TEST_DATASET_CASE="final_filter_MI_test_A_1"
 for SUB_EXP_TYPE in "${LIST_EXP_TYPES[@]}";
 do
   for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
@@ -63,8 +59,7 @@ do
 done
 
 DATASETS=("$Dataset_B_0_dataset" "$Dataset_B_1_dataset")
-PRETRAIN_DATASET="dataset_B"
-TEST_DATASET_CASE="final_MI_test_B_1"
+TEST_DATASET_CASE="final_filter_MI_test_B_1"
 for SUB_EXP_TYPE in "${LIST_EXP_TYPES[@]}";
 do
   for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";

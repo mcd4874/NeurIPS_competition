@@ -16,6 +16,7 @@ from NeurIPS_1.util.support import (
 )
 
 
+
 def generate_class_weight(label):
     """
     generate the weight ratio based on total labels of every subjects

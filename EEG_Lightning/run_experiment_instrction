@@ -2,109 +2,82 @@
 
 You need to install pytorch
 
-conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+conda create --name beetl python=3.8 anaconda=2021.05
+conda install pytorch==1.8.1 torchvision torchaudio cudatoolkit=10.2 -c pytorch
+
+conda activate beetl
 
 Install necessary package in the requirement.txt
+
+pip install -r requirements.tx
 
 1) Download the necessary data
 
 https://github.com/XiaoxiWei/NeurIPS_BEETL/blob/main/start_kits/1.LeaderboardDataGuide.ipynb
+The source motor imagery data is downloaded with Moabb
+
+Put all the data under EEG_Lightning/da_dataset
+
+EEG_Lightning/da_dataset/finalMI  (this is for final motor imagery)
+EEG_Lightning/da_dataset/SleepSource/SleepSource (this is for the source dataset in sleep data)
+EEG_Lightning/da_dataset/finalSleep/sleep_target (this is for final target dataset in sleep data
+EEG_Lightning/da_dataset/finalSleep/testing (this is for final test dataset in sleep data)
 
 2) generate data format
 
-go to EEG_Lightning/NeurIPS_1 to run python generate_task_1_final_data.py
+go to EEG_Lightning/submission to run python generate_task_1_data.py
 
-You need to define
-source_path = "C:/Users/wduong/mne_data/SleepSource/SleepSource"
-final_target_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\sleep_target\\"
-final_test_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\testing\\"
 
-source_path is where you store the source sleep data
-final_target_sleep_data and final_test_sleep_data are where you store the sleep target data and test data
+The matlab data is generated in the directory EEG_Lightning/da_dataset/task_1/
 
-The matlab data is generated in the directory EEG_Lightning/da_dataset/NeurIPS_1/
-
-3) The experiment is located in NeurIPS_1/task_1_final_1
+3) The experiment is located in EEG_Lightning/submission/task_1
 
 4) run the training script
 
-Go to train_script/gpu_4_script/experiment_script_4.0.sh to define the location of the train script and data path
+EEG_Lightning/submission/task_1_script to run source task_1_script.sh
+
+define the location of the train scrip
 
 computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
-experiment_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
-data_path_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
-
-computer_dir is where you store the EEG_Lightning
-data_path_dir is where you store the data. We recommend that you store the data in da_dataset folder in EEG_Lightning/da_dataset
-experiment_dir is where you store the experiment directory. In this case, it is NeurIPS_1/task_1_final_1/
-
-Define the conda enviroment in train_script/gpu_4_script/experiment_script_4.0.sh
-conda activate #your conda enviroment
-
-run bash experiment_script_4.0.sh to train the model automatically
+computer_dir is where you store the directory EEG_Lightning
 
 
 5) Generate predict file
 
-Go to EEG_Lightning/tools/process_predict_task_1.py
+Go to EEG_Lightning/submission to run process_predict_task_1.py
 
-result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
-
-case="task_1"
-
-Define the result_path where you store the data in result_path
-
-The .txt file with the test data prediction is generated in the folder EEG_Lightning/tools/util/task_1/
+The .txt file with the test data prediction is generated in the folder EEG_Lightning/submission/util/task_1/answer.txt
 
 
 ########### Run task 2 experiment ###########
 
-1) Download the necessary data
-
-https://github.com/XiaoxiWei/NeurIPS_BEETL/blob/main/start_kits/1.LeaderboardDataGuide.ipynb
 
 2) generate data format
 
-go to EEG_Lightning/NeurIPS_2 to run python generate_task_2_final_data.py
-
-You need to define
-data_path = "C:\\Users\\wduong\\mne_data\\finalMI"
+go to EEG_Lightning/submission to run python generate_task_2_data.py
 
 To get source dasets, we use moabb
 
-data_path are where you store the target and test MI data
+Put the target dataset under EEG_Lightning/da_dataset
+EEG_Lightning/da_dataset/finalMI  (this is for final motor imagery)
 
-The matlab data is generated in the directory EEG_Lightning/da_dataset/NeurIPS_2/
-
-3) The experiment is located in NeurIPS_2/task_2_final_2
+3) The experiment is located in EEG_Lightning/submission/task_1
 
 4) run the training script
 
-Go to train_script/gpu_2_script/experiment_script_2.0.sh to define the location of the train script and data path
+EEG_Lightning/submission/task_2_script to run       source task_2_script.sh
 
-computer_dir="/home/wduong/tmp/EEG_Lightning"
-data_path_dir="/data1/wduong_experiment_data/EEG_Lightning/"
+define the location of the train scrip
 
-computer_dir is where you store the EEG_Lightning
-data_path_dir is where you store the data. We recommend that you store the data in da_dataset folder in EEG_Lightning/da_dataset
-
-Define the conda enviroment in train_script/gpu_2_script/experiment_script_2.0.sh
-conda activate #your conda enviroment
-
-run bash experiment_script_2.0.sh to train the model automatically
+computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+computer_dir is where you store the directory EEG_Lightning
 
 
 5) Generate predict file
 
-Go to EEG_Lightning/tools/process_predict_task_2.py
+Go to EEG_Lightning/submission to run process_predict_task_2.py
 
-result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
-
-case="task_1"
-
-Define the result_path where you store the data in result_path
-
-The .txt file with the test data prediction is generated in the folder EEG_Lightning/tools/util/task_1/
+The .txt file with the test data prediction is generated in the folder EEG_Lightning/submission/util/task_2/answer.txt
 
 
 

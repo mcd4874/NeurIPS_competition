@@ -24,9 +24,9 @@ ROOT="${data_path_dir}/da_dataset/NeurIPS_4"
 predict_script="${computer_dir}"
 
 #MAIN_EXP_TYPE="NeurIPS_4/LA_EA/tune_filter/5"
-#MAIN_EXP_TYPE="NeurIPS_4/best"
+MAIN_EXP_TYPE="NeurIPS_4/best"
 
-LIST_EXP_TYPES=("2")
+LIST_EXP_TYPES=("1")
 
 LIST_AUG_PREFIX=("$no_aug")
 LIST_NORMALIZE_PREFIX=("$no_norm")
@@ -54,7 +54,7 @@ do
 
           echo $PRETRAIN_DIR
           echo $MAIN_DIR
-          run_simple_train $gpu_device_0 $test_path $MAIN_DIR
+          run_simple_train $gpu_device_1 $test_path $MAIN_DIR
 
         done
       done
@@ -81,7 +81,7 @@ do
 
           echo $PRETRAIN_DIR
           echo $MAIN_DIR
-          run_simple_train $gpu_device_0 $test_path $MAIN_DIR
+          run_simple_train $gpu_device_1 $test_path $MAIN_DIR
 
         done
       done

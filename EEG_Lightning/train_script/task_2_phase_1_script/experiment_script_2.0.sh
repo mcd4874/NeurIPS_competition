@@ -23,8 +23,7 @@ train_script="${computer_dir}"
 ROOT="${data_path_dir}/da_dataset/NeurIPS_4"
 predict_script="${computer_dir}"
 
-#MAIN_EXP_TYPE="NeurIPS_4/LA_EA/tune_filter/5"
-#MAIN_EXP_TYPE="NeurIPS_4/best"
+MAIN_EXP_TYPE="NeurIPS_4/phase_1_best"
 
 LIST_EXP_TYPES=("2")
 
@@ -32,11 +31,8 @@ LIST_AUG_PREFIX=("$no_aug")
 LIST_NORMALIZE_PREFIX=("$no_norm")
 TRAINER_MODEL_PREFIXS=("$mcdV1_prefix")
 
-DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
-#DATASETS=("$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
-
-PRETRAIN_DATASET="dataset_A"
-TEST_DATASET_CASE="final_MI_test_A_1"
+DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset")
+TEST_DATASET_CASE="phase_1_MI_test_A_1"
 for SUB_EXP_TYPE in "${LIST_EXP_TYPES[@]}";
 do
   for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
@@ -61,10 +57,11 @@ do
     done
   done
 done
-
-DATASETS=("$Dataset_B_0_dataset" "$Dataset_B_1_dataset")
+#
+DATASETS=("$Dataset_B_0_dataset" "$Dataset_B_1_dataset" "$Dataset_B_2_dataset")
+#DATASETS=("$Dataset_B_2_dataset")
 PRETRAIN_DATASET="dataset_B"
-TEST_DATASET_CASE="final_MI_test_B_1"
+TEST_DATASET_CASE="phase_1_MI_test_B_1"
 for SUB_EXP_TYPE in "${LIST_EXP_TYPES[@]}";
 do
   for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
