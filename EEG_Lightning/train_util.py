@@ -207,7 +207,16 @@ def trainer_setup(output_dir,cfg,benchmark=False,deterministic=False,seed=42,upd
     # cfg = experiment["cfg"]
 
 
-    pl.seed_everything(seed)
+    pl.seed_everything(seed,workers=True)
+    # In general seed PyTorch operations
+    torch.manual_seed(seed)
+    # If you are using CUDA on 1 GPU, seed it
+    torch.cuda.manual_seed(seed)
+    # If you are using CUDA on more than 1 GPU, seed them all
+    torch.cuda.manual_seed_all(seed)
+
+
+
     data_manager_type = cfg.DATAMANAGER.MANAGER_TYPE
 
     if data_manager_type == "single_dataset":
@@ -278,7 +287,8 @@ def trainer_setup(output_dir,cfg,benchmark=False,deterministic=False,seed=42,upd
         logger=[csv_logger, tensorboard_logger],
         progress_bar_refresh_rate=cfg.LIGHTNING_TRAINER.progress_bar_refresh_rate,
         profiler=cfg.LIGHTNING_TRAINER.profiler,
-        num_sanity_val_steps=cfg.LIGHTNING_TRAINER.num_sanity_val_steps,
+        # num_sanity_val_steps=cfg.LIGHTNING_TRAINER.num_sanity_val_steps,
+        num_sanity_val_steps=0,
         stochastic_weight_avg=cfg.LIGHTNING_TRAINER.stochastic_weight_avg
 
     )

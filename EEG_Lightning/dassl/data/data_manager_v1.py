@@ -96,7 +96,7 @@ class DataManagerV1(LightningDataModule):
         val_data,val_label = val_dataset
         test_data,test_label = test_dataset
 
-
+        self.print_dataset_info(train_x_data, train_x_label, val_data, val_label, test_data, test_label)
         # """Create label alignment"""
         # if self.label_alignment:
         #     print(" shape {}, {}, {}".format(train_x_data[0].shape,val_data[0].shape,test_data[0].shape))

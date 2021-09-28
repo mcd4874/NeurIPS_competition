@@ -66,13 +66,14 @@ class LinearWithConstraint(nn.Linear):
 #         return flatten
 
 class EEGNET(Backbone):
-    def __init__(self, kern_legnth=64, num_ch=22, samples = 256,F1=8, D=2, F2=16,drop_prob=0.4,avg_pool_1 = 4, avg_pool_2 = 8, sep_kern_length = 16):
+    def __init__(self, kern_legnth=64, num_ch=22, samples = 256,F0=1,F1=8, D=2, F2=16,drop_prob=0.4,avg_pool_1 = 4, avg_pool_2 = 8, sep_kern_length = 16):
         super().__init__()
         self.avg_pool_1 = avg_pool_1
         self.avg_pool_2 = avg_pool_2
         self.sep_kern_length = sep_kern_length
 
-        self.c1 = nn.Conv2d(in_channels=1, out_channels=F1, kernel_size=(1, kern_legnth), stride=1, bias=False,
+
+        self.c1 = nn.Conv2d(in_channels=F0, out_channels=F1, kernel_size=(1, kern_legnth), stride=1, bias=False,
                             padding=(0, (kern_legnth // 2)))
         # self.b1 = nn.BatchNorm2d(F1)
         self.b1 = nn.BatchNorm2d(F1)

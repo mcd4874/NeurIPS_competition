@@ -6,7 +6,7 @@ from dassl.config import get_cfg_default
 from dassl.engine import build_trainer
 import numpy as np
 from dassl.data.datasets.build import build_dataset
-from NeurIPS_competition.util.support import (
+from NeurIPS_2.util.support import (
     expand_data_dim, normalization_channels,normalization_time, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
     correct_EEG_data_order, relabel, process_target_data, relabel_target, load_dataset_A, load_dataset_B, modify_data,reformat
 )

@@ -23,19 +23,20 @@ def main(args):
         use_best_model_pretrain = args.use_pretrain_best
         cfg.merge_from_list(["LIGHTNING_MODEL.PRETRAIN.DIR", pretrain_dir])
         cfg.merge_from_list(["LIGHTNING_MODEL.PRETRAIN.USE_BEST", use_best_model_pretrain])
-
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
     if torch.cuda.is_available() and cfg.USE_CUDA:
         print("use determinstic ")
-        benchmark = False
-        deterministic = True #this can help to reproduce the result
+    benchmark = False
+    deterministic = True #this can help to reproduce the result
 
     seed = 42
     pl.seed_everything(seed)
 
     experiments_setup = generate_setup(cfg)
     train_full_experiment(cfg, experiments_setup,benchmark=benchmark ,deterministic=deterministic,eval=eval, use_best_model_pretrain=use_best_model_pretrain, pretrain_dir=pretrain_dir,seed=seed)
-
 
 
 if __name__ == '__main__':

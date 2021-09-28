@@ -399,3 +399,68 @@ def setup_specific_subject_dataset_EA(source_datasets, target_dataset_name, comm
             generate_data_file([target_dataset], folder_name=subject_save_folder, file_name='NeurIPS_TL')
             generate_data_file([test_dataset], folder_name=subject_test_folder, file_name='NeurIPS_TL')
 
+def generate_LA_dataset(LA,source_datasets,convert_EA=False):
+    list_LA_datasets=list()
+    for source_dataset in source_datasets:
+        X_src, y_src, m_src, dataset_name = source_dataset
+        # conduct label alignment
+        tmp_X_src, tmp_y_src, tmp_m_src = reformat(X_src, y_src, m_src)
+        update_X_src, update_y_src = LA.convert_source_data_with_LA(tmp_X_src, tmp_y_src)
+
+
+        if convert_EA:
+            EA = EuclideanAlignment()
+            update_X_src = EA.convert_subjects_data_with_EA(update_X_src)
+
+        LA_X_src, LA_y_src, LA_m_src = combine(update_X_src, update_y_src, tmp_m_src)
+        # LA_m_src = {name: col.values for name, col in LA_m_src.items()}
+
+        LA_source = (LA_X_src, LA_y_src, LA_m_src,dataset_name)
+        list_LA_datasets.append(LA_source)
+    return list_LA_datasets
+def setup_specific_subject_filterbank_dataset(source_datasets, target_dataset_name, common_channels, save_folder="case",test_folder="test_case",generate_folder_data=True,start_id=1,end_id=3,path=None,fmin=4,fmax=36,seed=42,convert_EA=False):
+
+    np.random.seed(seed)
+    # print("filter data between")
+    train_data, train_label, train_meta, test_data, test_label, test_meta = load_target_data(path=path,
+        target_channels=common_channels, dataset_name=target_dataset_name,start_id=start_id,end_id=end_id,fmin=fmin,fmax=fmax)
+
+
+    subjects_train_data,subjects_train_label,subjects_train_meta = reformat(train_data, train_label, train_meta)
+    subjects_test_data,subjects_test_label,subjects_test_meta = reformat(test_data, test_label, test_meta)
+
+
+
+
+
+
+    subject_id = start_id
+    assert end_id-start_id == 1 and len(subjects_train_data) == 1
+
+    # for subject_id in range(len(subjects_train_data)):
+    print("current subject id : ",subject_id)
+
+
+    ##generate subject specific LA for source data
+    assert len(subjects_train_data) == 1
+    LA = LabelAlignment(target_dataset=(subjects_train_data[0],subjects_train_label[0]))
+
+    temp_X = np.concatenate([subjects_train_data, subjects_test_data], axis=1)
+    EA = EuclideanAlignment()
+    dataset_r_op = EA.generate_list_r_op(temp_X)
+    if convert_EA:
+        EA = EuclideanAlignment(list_r_op=dataset_r_op)
+        subjects_train_data_EA = EA.convert_subjects_data_with_EA(subjects_train_data)
+        subjects_test_data_EA = EA.convert_subjects_data_with_EA(subjects_test_data)
+        subjects_train_data = subjects_train_data_EA
+        subjects_test_data = subjects_test_data_EA
+
+    list_LA_datasets = generate_LA_dataset(LA,source_datasets,convert_EA=convert_EA)
+    subjects_train_data, subjects_train_label, subjects_train_meta = combine(subjects_train_data,subjects_train_label,subjects_train_meta)
+    subjects_test_data, subjects_test_label, subjects_test_meta = combine(subjects_test_data,subjects_test_label,subjects_test_meta )
+
+    target_dataset = (subjects_train_data,subjects_train_label,subjects_train_meta,target_dataset_name)
+    test_dataset = (subjects_test_data, subjects_test_label, subjects_test_meta,target_dataset_name)
+
+    return target_dataset,test_dataset,list_LA_datasets,
+

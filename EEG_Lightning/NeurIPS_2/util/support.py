@@ -335,7 +335,9 @@ def normalization_time(X):
 
 def shuffle_data(subject_data,subject_label):
     available_index = np.arange(subject_data.shape[0])
+    print("avail index : ",available_index)
     shuffle_index = np.random.permutation(available_index)
+    print("shuffle index : ",shuffle_index)
     shuffle_subject_data = subject_data[shuffle_index,]
     shuffle_subject_label = subject_label[shuffle_index,]
     return [shuffle_subject_data,shuffle_subject_label]
@@ -877,7 +879,56 @@ def reduce_dataset(data,label,meta_data):
     dataset_meta = pd.DataFrame({"subject":update_ids,"session":["session_0"]*len(update_ids),"run":["run_0"]*len(update_ids)})
     return update_data,update_label,dataset_meta
 
-def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject_ids=None,events=None,relabel_func=None):
+# def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject_ids=None,events=None,relabel_func=None):
+#     if relabel_func is None:
+#         print("use default relabel function")
+#         print("left_hand ->0 , right_hand ->1, all other -> 2")
+#         def relabel(l):
+#             if l == 'left_hand':
+#                 return 0
+#             elif l == 'right_hand':
+#                 return 1
+#             else:
+#                 return 2
+#         relabel_func = relabel
+#
+#
+#     print("common target chans : ",target_channels)
+#     print("target size : ",len(target_channels))
+#     fmin=4
+#     fmax=36
+#     tmax=3
+#     tmin=0
+#     sfreq=128
+#     max_time_length = int((tmax - tmin) * sfreq)
+#     if dataset_name == "cho2017":
+#         # epoch_X_src, label_src, m_src = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels)
+#         epoch_X_src, label_src, m_src = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels,subjects=subject_ids)
+#         print("cho2017 current chans : ",epoch_X_src.ch_names)
+#         reorder_epoch_X_src = epoch_X_src.copy().reorder_channels(target_channels)
+#         print("reorder cho2017 chans : ",reorder_epoch_X_src.ch_names)
+#
+#     elif dataset_name == "physionet":
+#         if events is None:
+#             events=dict(left_hand=2, right_hand=3, feet=5, rest=1)
+#         epoch_X_src, label_src, m_src = load_Physionet(fmin=fmin,fmax=fmax,selected_chans=target_channels,subjects=subject_ids,events=events)
+#         print("physionet current chans : ",epoch_X_src.ch_names)
+#         reorder_epoch_X_src = epoch_X_src.copy().reorder_channels(target_channels)
+#         print("reorder physionet chans : ",reorder_epoch_X_src.ch_names)
+#         print("total chans : ",len(epoch_X_src.ch_names))
+#     elif dataset_name == "BCI_IV":
+#         epoch_X_src, label_src, m_src = load_BCI_IV(fmin=fmin, fmax=fmax, selected_chans=target_channels,montage=montage,subjects=subject_ids)
+#
+#         print("BCI_IV current chans : ",epoch_X_src.ch_names)
+#         reorder_epoch_X_src = epoch_X_src.copy().reorder_channels(target_channels)
+#         print("reorder BCI_IV chans : ",reorder_epoch_X_src.ch_names)
+#
+#     src = reorder_epoch_X_src.get_data()
+#     X_src = modify_data(src, time=max_time_length)
+#     X_src = convert_volt_to_micro(X_src)
+#     y_src = np.array([relabel_func(l) for l in label_src])
+#     return X_src,y_src,m_src
+def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject_ids=None,events=None,relabel_func=None,fmin=4,fmax=36,sfreq=128,tmin=0,tmax=3):
     if relabel_func is None:
         print("use default relabel function")
         print("left_hand ->0 , right_hand ->1, all other -> 2")
@@ -893,11 +944,11 @@ def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject
 
     print("common target chans : ",target_channels)
     print("target size : ",len(target_channels))
-    fmin=4
-    fmax=36
-    tmax=3
-    tmin=0
-    sfreq=128
+    # fmin=4
+    # fmax=36
+    # tmax=3
+    # tmin=0
+    # sfreq=128
     max_time_length = int((tmax - tmin) * sfreq)
     if dataset_name == "cho2017":
         # epoch_X_src, label_src, m_src = load_Cho2017(fmin=fmin,fmax=fmax,selected_chans=target_channels)
@@ -926,19 +977,31 @@ def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject
     X_src = convert_volt_to_micro(X_src)
     y_src = np.array([relabel_func(l) for l in label_src])
     return X_src,y_src,m_src
-def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3):
+
+# def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3):
+#     if dataset_name == "dataset_A":
+#         X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
+#         X_test_data,X_test_label,test_meta = load_dataset_A(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
+#     else:
+#         X_train_data,X_train_label,train_meta = load_dataset_B(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
+#         X_test_data,X_test_label,test_meta = load_dataset_B(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
+#
+#     X_train_data = convert_volt_to_micro(X_train_data)
+#     X_test_data = convert_volt_to_micro(X_test_data)
+#
+#     return X_train_data,X_train_label,train_meta,X_test_data,X_test_label,test_meta
+def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3,sfreq = 128,fmin=4,fmax=36):
     if dataset_name == "dataset_A":
-        X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
-        X_test_data,X_test_label,test_meta = load_dataset_A(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
+        X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id,sfreq=sfreq,fmin=fmin,fmax=fmax)
+        X_test_data,X_test_label,test_meta = load_dataset_A(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id,sfreq=sfreq,fmin=fmin,fmax=fmax)
     else:
-        X_train_data,X_train_label,train_meta = load_dataset_B(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
-        X_test_data,X_test_label,test_meta = load_dataset_B(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
+        X_train_data,X_train_label,train_meta = load_dataset_B(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id,sfreq=sfreq,fmin=fmin,fmax=fmax)
+        X_test_data,X_test_label,test_meta = load_dataset_B(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id,sfreq=sfreq,fmin=fmin,fmax=fmax)
 
     X_train_data = convert_volt_to_micro(X_train_data)
     X_test_data = convert_volt_to_micro(X_test_data)
 
     return X_train_data,X_train_label,train_meta,X_test_data,X_test_label,test_meta
-
 def create_epoch_array(data,label,channel_name,sampling_freq = 128,event_id=None):
     total_trials = len(label)
     ch_types = ['eeg'] * len(channel_name)

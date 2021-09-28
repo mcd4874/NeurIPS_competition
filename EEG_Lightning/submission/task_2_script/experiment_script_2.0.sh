@@ -19,7 +19,9 @@ train_script="${computer_dir}"
 ROOT="${computer_dir}/da_dataset/task_2"
 predict_script="${computer_dir}"
 
-MAIN_EXP_TYPE="submission/task_2"
+#MAIN_EXP_TYPE="submission/task_2"
+#MAIN_EXP_TYPE="submission/task_2_1"
+
 
 TRAINER_MODEL_PREFIXS=("$mcdV1_prefix")
 
@@ -27,7 +29,8 @@ DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
 #DATASETS=("$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
 
 PRETRAIN_DATASET="dataset_A"
-TEST_DATASET_CASE="final_MI_test_A_1"
+#TEST_DATASET_CASE="final_MI_test_A_1"
+TEST_DATASET_CASE="final_filter_MI_test_A_1"
 
 for TRAINER_MODEL_PREFIX in "${TRAINER_MODEL_PREFIXS[@]}";
 do
