@@ -10,10 +10,6 @@ DATAMANAGER:
     NAME: MultiDataset
     DIR: final_MI_A_1
     FILENAME: dataset_A_0/NeurIPS_TL.mat
-#    extra_files:
-#      - dataset_1.mat
-#      - dataset_2.mat
-#      - dataset_3.mat
     extra_files:
       - dataset_A_0/LA/dataset_1.mat
       - dataset_A_0/LA/dataset_2.mat

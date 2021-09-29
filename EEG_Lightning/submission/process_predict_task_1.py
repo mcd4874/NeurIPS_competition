@@ -22,8 +22,9 @@ def count(label,name=""):
     print("dataset {},  has {}% label 0, {}% label 1, and {}% label 2, {}% label 3, {}% label 4, {}% label 5".format(name,percent_0,percent_1,percent_2,percent_3,percent_4,percent_5))
 
 
-model_path = "task_1\\tune_cla\\deepsleep_vanilla"
-result_path = model_path+"\\full_dataset\\model\\predict_folder"
+# model_path = "task_1\\tune_cla"
+model_path = "task_1\\tune_cla_2"
+result_path = model_path+"\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
 
 case="task_1"
 

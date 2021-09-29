@@ -79,14 +79,14 @@ torch.backends.cudnn.deterministic = True
 rng = RandomState(seed)
 
 ##provide path to where you store the source data, target sleep data and test sleep data
-source_path = "C:/Users/wduong/mne_data/SleepSource/SleepSource"
-final_target_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\sleep_target\\"
-final_test_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\testing\\"
+# source_path = "C:/Users/wduong/mne_data/SleepSource/SleepSource"
+# final_target_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\sleep_target\\"
+# final_test_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\testing\\"
 
 
-# source_path = "../da_dataset/SleepSource/SleepSource"
-# final_target_sleep_data = "../da_dataset/finalSleep/sleep_target"
-# final_test_sleep_data = "../da_dataset/finalSleep/testing"
+source_path = "../da_dataset/SleepSource/SleepSource"
+final_target_sleep_data = "../da_dataset/finalSleep/sleep_target"
+final_test_sleep_data = "../da_dataset/finalSleep/testing"
 #
 #
 

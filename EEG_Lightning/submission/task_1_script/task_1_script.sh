@@ -24,6 +24,8 @@ group_datasets=("$full_dataset")
 group_model=("$deepsleep_vanilla_prefix")
 task_exp="submission/task_1"
 tune_cla_exp="submission/task_1/tune_cla"
+tune_cla_2_exp="submission/task_1/tune_cla_2"
+
 pretrain_best="True"
 
 run_full_multi_gpu $gpu_device_0 $task_exp group_aug group_norm group_model group_datasets
@@ -31,3 +33,6 @@ run_predict_task_1 $gpu_device_0 $task_exp $test_case_path group_aug group_norm 
 
 run_pretrain $gpu_device_0 $tune_cla_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
 run_predict_task_1 $gpu_device_0 $tune_cla_exp $test_case_path group_aug group_norm group_model group_datasets
+
+run_pretrain $gpu_device_0 $tune_cla_2_exp $task_exp $pretrain_best group_aug group_norm group_model group_datasets
+run_predict_task_1 $gpu_device_0 $tune_cla_2_exp $test_case_path group_aug group_norm group_model group_datasets
