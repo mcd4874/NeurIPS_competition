@@ -4,7 +4,7 @@ from numpy.random import RandomState
 import pandas as pd
 import torch
 import os
-from submission.NeurIPS_2.util.support import (
+from NeurIPS_2.util.support import (
     expand_data_dim,normalization_channels,normalization_time,generate_common_chan_test_data,load_Cho2017,load_Physionet,load_BCI_IV,
     correct_EEG_data_order,relabel,process_target_data,relabel_target,load_dataset_A,load_dataset_B,modify_data,
     generate_data_file,print_dataset_info,print_info,get_dataset_A_ch,get_dataset_B_ch,shuffle_data,EuclideanAlignment,reduce_dataset,LabelAlignment,
