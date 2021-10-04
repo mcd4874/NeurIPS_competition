@@ -303,35 +303,7 @@ def normalization_time(X):
     X = (X - mean) / std
     return X
 
-# def normalization(X):
-#
-#     # assert len(X) == len(y)
-#     # Normalised, you could choose other normalisation strategy
-#     if len(X.shape) == 3:
-#         # assume the data in format (trials,channels,samples)
-#         axis = 1
-#     elif len(X.shape) == 4:
-#         # assume the data in format (trials,filter,channels,samples)
-#         axis = 2
-#     else:
-#         axis = -1
-#         raise ValueError("there is problem with data format")
-#     print("normalize along axis {} for the data ".format(axis))
-#     # assert len(X) == len(y)
-#     # Normalised, you could choose other normalisation strategy
-#     mean = np.mean(X, axis=axis, keepdims=True)
-#     # here normalise across channels as an example, unlike the in the sleep kit
-#     std = np.std(X, axis=axis, keepdims=True)
-#     X = (X - mean) / std
-#     return X
 
-# def dataset_norm(data):
-#     new_data = list()
-#     for subject_idx in range(len(data)):
-#         subject_data = data[subject_idx]
-#         subject_data = normalization(subject_data)
-#         new_data.append(subject_data)
-#     return new_data
 
 def shuffle_data(subject_data,subject_label):
     available_index = np.arange(subject_data.shape[0])
@@ -978,18 +950,8 @@ def load_source_data(target_channels,dataset_name="cho2017",montage=None,subject
     y_src = np.array([relabel_func(l) for l in label_src])
     return X_src,y_src,m_src
 
-# def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3):
-#     if dataset_name == "dataset_A":
-#         X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
-#         X_test_data,X_test_label,test_meta = load_dataset_A(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
-#     else:
-#         X_train_data,X_train_label,train_meta = load_dataset_B(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id)
-#         X_test_data,X_test_label,test_meta = load_dataset_B(path=path,train=False, norm=False, selected_chans=target_channels,start_id=start_id,end_id=end_id)
-#
-#     X_train_data = convert_volt_to_micro(X_train_data)
-#     X_test_data = convert_volt_to_micro(X_test_data)
-#
-#     return X_train_data,X_train_label,train_meta,X_test_data,X_test_label,test_meta
+
+
 def load_target_data(target_channels,dataset_name="dataset_B",path=None,start_id=1,end_id=3,sfreq = 128,fmin=4,fmax=36):
     if dataset_name == "dataset_A":
         X_train_data,X_train_label,train_meta = load_dataset_A(path=path,train=True,selected_chans=target_channels,start_id=start_id,end_id=end_id,sfreq=sfreq,fmin=fmin,fmax=fmax)

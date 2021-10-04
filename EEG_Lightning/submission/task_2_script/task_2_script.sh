@@ -26,7 +26,6 @@ TRAINER_MODEL_PREFIXS=("$mcdV1_prefix")
 
 DATASETS=("$Dataset_A_0_dataset" "$Dataset_A_1_dataset" "$Dataset_A_2_dataset")
 
-PRETRAIN_DATASET="dataset_A"
 TEST_DATASET_CASE="final_MI_test_A_1"
 
 for TRAINER_MODEL_PREFIX in "${TRAINER_MODEL_PREFIXS[@]}";
@@ -45,7 +44,6 @@ done
 
 
 DATASETS=("$Dataset_B_0_dataset" "$Dataset_B_1_dataset")
-PRETRAIN_DATASET="dataset_B"
 TEST_DATASET_CASE="final_MI_test_B_1"
 for TRAINER_MODEL_PREFIX in "${TRAINER_MODEL_PREFIXS[@]}";
 do

@@ -73,13 +73,13 @@ OPTIM:
   OPTIMIZER:
     NAME: adam
     PARAMS:
-      lr: 0.001
+      lr: 0.0001
       weight_decay: 0.0
   SCHEDULER:
     NAME: exponential
     PARAMS:
       gamma: 1.0
-  MAX_EPOCH: 15
+  MAX_EPOCH: 20
 TRAIN:
   CHECKPOINT_FREQ: 0
   PRINT_FREQ: 10

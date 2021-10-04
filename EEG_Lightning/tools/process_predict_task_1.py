@@ -20,12 +20,36 @@ def count(label,name=""):
     percent_5 = round(count_5/len(label) *100,2)
 
     print("dataset {},  has {}% label 0, {}% label 1, and {}% label 2, {}% label 3, {}% label 4, {}% label 5".format(name,percent_0,percent_1,percent_2,percent_3,percent_4,percent_5))
+#
+# exp = "NeurIPS_1\\case_1\\tune_cla_2"
+#
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\{}\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder".format(exp)
+#
+# case="task_1_final_18"
 
+# exp = "NeurIPS_1_filter\\case_1\\tune_cla_2"
+# #
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\{}\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder".format(exp)
+# #
+# case="task_1_final_19"
 
+# exp = "NeurIPS_1\\case_2\\tune_cla_2"
+#
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\{}\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder".format(exp)
+#
+# case="task_1_final_20"
 
-result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_1\\task_1_final_1\\quick_ver_1_1\\tune_cla\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+# exp = "NeurIPS_1\\case_1\\al_pretrain"
+#
+# result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\{}\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder".format(exp)
+#
+# case="task_1_final_21"
 
-case="task_1"
+exp = "NeurIPS_1\\case_1\\al_pretrain_cla_last"
+
+result_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\{}\\no_aug\\no_norm\\deepsleep_vanilla\\full_dataset\\model\\predict_folder".format(exp)
+
+case="task_1_final_22"
 
 file = "pred_MI_label.txt"
 

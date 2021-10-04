@@ -396,7 +396,10 @@ def train_full_experiment(cfg,experiments_setup,update_dataset_func=None,benchma
 
 
         if eval:
-            model_state = torch.load(os.path.join(output_dir, 'checkpoint.ckpt'), map_location='cuda:0')
+            # model_state = torch.load(os.path.join(output_dir, 'checkpoint.ckpt'), map_location='cuda:0')
+            print("eval with last model not best model")
+            model_state = torch.load(os.path.join(output_dir, 'last.ckpt'), map_location='cuda:0')
+
             print("save checkpoint keys : ", model_state.keys())
             # print("state dict : ", model['state_dict'])
             best_epoch = model_state['epoch']

@@ -2,7 +2,89 @@ import numpy as np
 import pandas as pd
 import os
 
-model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Dassl_Lightning\\NeurIPS_competition\\task_2_final_2\\LA_EA\\tune_filter\\5\\no_aug\\no_norm\\mcdV1"
+# exp="\\task_2_final_2\\LA_EA\\tune_filter\\2"
+# # exp=""
+# model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_2{}\\no_aug\\no_norm\\mcdV1".format(exp)
+#
+# #task 2 final 2
+# dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+# # case="compare_against_vernon"
+#
+# case="task_2_final_20"
+
+# exp="\\LA_EA\\tune_filter\\3"
+# # exp=""
+# model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_4{}\\no_aug\\no_norm\\mcdV1".format(exp)
+#
+# #task 2 final 2
+# dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+# # case="compare_against_vernon"
+#
+# case="task_2_final_21"
+
+# exp="\\LA_EA\\tune_filter\\5"
+# # exp=""
+# model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_4{}\\no_aug\\no_norm\\mcdV1".format(exp)
+#
+# #task 2 final 2
+# dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+# # case="compare_against_vernon"
+#
+# case="task_2_final_22"
+
+# exp="\\filterbank\\best"
+# # exp=""
+# model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_4{}\\no_aug\\no_norm\\mcdV1".format(exp)
+#
+# #task 2 final 2
+# dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+# # case="compare_against_vernon"
+#
+# case="task_2_final_24"
+
+# exp="\\best_extend_last"
+# # exp=""
+# model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_4{}\\no_aug\\no_norm\\mcdV1".format(exp)
+#
+# #task 2 final 2
+# dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
+# dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
+# dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+# #
+# #
+# dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
+# dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+# # case="compare_against_vernon"
+#
+# case="task_2_final_26"
+
+exp="\\no_fmin_ex"
+# exp=""
+model_path = "C:\\wduong_folder\Dassl.pytorch-master\\NeurIPS_competition\\EEG_Lightning\\NeurIPS_5{}\\no_aug\\no_norm\\mcdV1".format(exp)
 
 #task 2 final 2
 dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
@@ -12,8 +94,9 @@ dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
 #
 dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
 dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
-case="task_2"
+# case="compare_against_vernon"
 
+case="task_2_final_27"
 
 file = "pred_MI_label.txt"
 

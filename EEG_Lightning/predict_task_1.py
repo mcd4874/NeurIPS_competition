@@ -275,7 +275,11 @@ def generate_ensemble_predict(cfg,experiments_setup,benchmark=False,deterministi
         if generate_predict:
             trainer_model, trainer_lightning, data_manager = trainer_setup(output_dir, cfg, benchmark, deterministic,
                                                                            seed=seed)
-            model_state = torch.load(os.path.join(output_dir, 'checkpoint.ckpt'), map_location='cuda:0')
+            #predict with best epoch
+            # model_state = torch.load(os.path.join(output_dir, 'checkpoint.ckpt'), map_location='cuda:0')
+            #predict with lastest epoch
+            print("use last.ckpt for prediction" )
+            model_state = torch.load(os.path.join(output_dir, 'last.ckpt'), map_location='cuda:0')
             print("save checkpoint keys : ", model_state.keys())
             trainer_model.load_state_dict(model_state['state_dict'])
             trainer_model.eval()

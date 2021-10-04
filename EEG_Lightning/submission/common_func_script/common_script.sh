@@ -1,14 +1,5 @@
 
 
-#prefix_path="/data1/wduong_experiment_data/EEG_Dassl_Lightning/"
-#train_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
-#ROOT="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition"
-#predict_script="/home/wduong/tmp/EEG_Dassl_Lightning/"
-
-#task_2_final_test_case="/data1/wduong_experiment_data/EEG_Dassl_Lightning/da_dataset/NeurIPS_competition/final_MI_test/NeurIPS_TL.mat"
-
-
-
 
 function run_pretrain() {
     #run a group of experiment for mroe efficient
@@ -82,7 +73,38 @@ function run_simple_train(){
     CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$MAIN_DIR" --main-config-file "$MAIN_CONFIG" --test-data $test_path --relabel
 }
 
-
+function run_simple_active_learning(){
+    local GPU_device=$1
+    local test_path=$2
+    local PRETRAIN_DIR=$3
+    local USE_BEST_EXP=$4
+    local AL_DIR=$5
+    local MODEL_UPDATE_AL_DIR=$6
+    AL_CONFIG="${AL_DIR}/main_config/transfer_adaptation.yaml"
+    AL_DIR="${AL_DIR}/model"
+    MODEL_UPDATE_AL_DIR="${MODEL_UPDATE_AL_DIR}/model"
+    if [ "$PRETRAIN_DIR" != "empty" ];
+    then
+      PRETRAIN_PATH="${PRETRAIN_DIR}/model"
+      echo "conduct al with pretrain model"
+      echo $PRETRAIN_PATH
+      echo $USE_BEST_EXP
+      if [ "$USE_BEST_EXP" == "True" ];
+      then
+        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --pretrain-dir "$PRETRAIN_PATH" --use_pretrain_best --test-data  "$test_path" --model-update-dir "$MODEL_UPDATE_AL_DIR"
+      else
+        CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --pretrain-dir "$PRETRAIN_PATH" --test-data  "$test_path" --model-update-dir "$MODEL_UPDATE_AL_DIR"
+      fi
+    else
+      echo "run only al learning strategy"
+      echo $AL_DIR
+      echo $MODEL_UPDATE_AL_DIR
+      CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --test-data  "$test_path" --model-update-dir "$MODEL_UPDATE_AL_DIR"
+    fi
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_temp.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --eval-only
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --test-data $test_path --generate-predict
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${predict_script}predict.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$AL_DIR" --main-config-file "$AL_CONFIG" --test-data $test_path --relabel
+}
 
 function run_full_multi_gpu() {
     #run a group of experiment for mroe efficient
@@ -120,6 +142,43 @@ function run_full_multi_gpu() {
 }
 
 
+function run_pretrain_al_full() {
+    #run a group of experiment for mroe efficient
+    #treat GPU_device, exp_type, and normalize_prefix as individual variable
+    #treat DATASET,train_model_prefix as a list
+    local GPU_device=$1
+    local EXP_TYPE=$2
+    local test_path=$3
+    local model_update_al=$4
+    local pretrain_exp=$5
+    local -n LIST_AUG_PREFIX=$6
+    local -n LIST_NORMALIZE_PREFIX=$7
+    local -n TRAINER_MODEL_PREFIXS=$8
+    local -n DATASETS=$9
+    printf '1: %q\n' "${TRAINER_MODEL_PREFIXS[@]}"
+    printf '2: %q\n' "${DATASETS[@]}"
+
+    echo TRAINER_MODEL_PREFIXS
+    for AUG_PREFIX in "${LIST_AUG_PREFIX[@]}";
+    do
+      for NORMALIZE_PREFIX in "${LIST_NORMALIZE_PREFIX[@]}";
+      do
+        for TRAINER_MODEL_PREFIX in "${TRAINER_MODEL_PREFIXS[@]}";
+        do
+          for DATASET in "${DATASETS[@]}";
+          do
+            PRETRAIN_DIR="${prefix_path}${pretrain_exp}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/model"
+            MODEL_UPDATE_AL_DIR="${prefix_path}${model_update_al}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/model"
+            OUTPUT_DIR="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/model"
+            MAIN_CONFIG="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/main_config/transfer_adaptation.yaml"
+
+            CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --train-k-folds --test-data $test_path --model-update-dir "$MODEL_UPDATE_AL_DIR" --use_pretrain_best --pretrain-dir "$PRETRAIN_DIR"
+            CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_temp.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --eval-only
+          done
+        done
+      done
+    done
+}
 function run_al_full() {
     #run a group of experiment for mroe efficient
     #treat GPU_device, exp_type, and normalize_prefix as individual variable
@@ -148,8 +207,8 @@ function run_al_full() {
             OUTPUT_DIR="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/model"
             MAIN_CONFIG="${prefix_path}${EXP_TYPE}/${AUG_PREFIX}/${NORMALIZE_PREFIX}/${TRAINER_MODEL_PREFIX}/${DATASET}/main_config/transfer_adaptation.yaml"
 
-            CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --train-k-folds --test-data $test_path --model-update-dir "$MODEL_UPDATE_AL_DIR"
-            CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_temp.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --eval-only
+            CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_active_learning.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --train-k-folds --test-data $test_path --model-update-dir "$MODEL_UPDATE_AL_DIR"
+            CUBLAS_WORKSPACE_CONFIG=:4096:8 CUDA_VISIBLE_DEVICES=$GPU_device python ${train_script}train_temp.py --gpu-id $GPU_device --root "$ROOT" --output-dir "$OUTPUT_DIR" --main-config-file "$MAIN_CONFIG" --eval-only
           done
         done
       done

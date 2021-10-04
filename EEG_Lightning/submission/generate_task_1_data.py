@@ -10,7 +10,7 @@ import pandas as pd
 import mne
 import matplotlib
 matplotlib.use('TkAgg')
-from NeurIPS_1.util.support import (
+from submission.NeurIPS_1.util.support import (
     reformat,load_source_sleep,load_target_sleep,load_test_sleep,print_info,print_dataset_info,convert_volt_to_micro,generate_data_file,
     combine,load_test_sleep_combine,load_full_target_sleep
 )
