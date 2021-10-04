@@ -1,11 +1,11 @@
 #!/bin/bash
-eval "$(conda shell.bash hook)"
+#eval "$(conda shell.bash hook)"
 #conda activate tf-gpu
 #conda activate tensorflow2
 
-conda activate beetl
+#conda activate beetl
 
-computer_dir="C:/wduong_folder/Dassl.pytorch-master/NeurIPS_competition/EEG_Lightning/"
+computer_dir="/home/vernon/software/NeurIPS_competition/EEG_Lightning/"
 
 
 #computer_dir="../"

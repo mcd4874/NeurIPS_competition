@@ -6,16 +6,16 @@ import os
 
 # exp="\\LA_EA\\tune_filter\\5"
 # exp=""
-model_path = "task_2\\mcdV1"
+model_path = "/home/vernon/software/NeurIPS_competition/EEG_Lightning/submission/task_2/mcdV1"
 
 file = "pred_MI_label.txt"
 #task 2 final 2
-dataset_A_0_result_path = model_path+"\\dataset_A_0\model\\predict_folder"
-dataset_A_1_result_path = model_path+"\\dataset_A_1\model\\predict_folder"
-dataset_A_2_result_path = model_path+"\\dataset_A_2\model\\predict_folder"
+dataset_A_0_result_path = model_path+"/dataset_A_0/model/predict_folder"
+dataset_A_1_result_path = model_path+"/dataset_A_1/model/predict_folder"
+dataset_A_2_result_path = model_path+"/dataset_A_2/model/predict_folder"
 
-dataset_B_0_result_path = model_path+"\\dataset_B_0\model\\predict_folder"
-dataset_B_1_result_path = model_path+"\\dataset_B_1\model\\predict_folder"
+dataset_B_0_result_path = model_path+"/dataset_B_0/model/predict_folder"
+dataset_B_1_result_path = model_path+"/dataset_B_1/model/predict_folder"
 
 
 

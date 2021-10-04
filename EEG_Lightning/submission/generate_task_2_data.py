@@ -46,7 +46,7 @@ rng = RandomState(seed)
 
 # data_path = "C:\\Users\\wduong\\mne_data\\finalMI"
 
-data_path = "../da_dataset/finalMI"
+data_path = "/home/vernon/mne_data/finalMI"
 
 
 #get common channel between dataset A and dataset B

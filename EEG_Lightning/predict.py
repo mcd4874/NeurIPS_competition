@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 
-from NeurIPS_2.util.support import (
+from submission.NeurIPS_2.util.support import (
     expand_data_dim, normalization_time,normalization_channels, generate_common_chan_test_data, load_Cho2017, load_Physionet, load_BCI_IV,
     correct_EEG_data_order, relabel, process_target_data, relabel_target, load_dataset_A, load_dataset_B, modify_data,reformat,
     filterBank

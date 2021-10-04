@@ -85,9 +85,9 @@ rng = RandomState(seed)
 # final_test_sleep_data = "C:\\Users\\wduong\\mne_data\\finalSleep\\testing\\"
 
 
-source_path = "../da_dataset/SleepSource/SleepSource"
-final_target_sleep_data = "../da_dataset/finalSleep/sleep_target"
-final_test_sleep_data = "../da_dataset/finalSleep/testing"
+source_path = "/home/vernon/mne_data/SleepSource/"
+final_target_sleep_data = "/home/vernon/mne_data/finalSleep/sleep_target/"
+final_test_sleep_data = "/home/vernon/mne_data/finalSleep/testing/"
 #
 #
 

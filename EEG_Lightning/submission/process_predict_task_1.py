@@ -23,8 +23,8 @@ def count(label,name=""):
 
 
 # model_path = "task_1\\tune_cla"
-model_path = "task_1\\tune_cla_2"
-result_path = model_path+"\\deepsleep_vanilla\\full_dataset\\model\\predict_folder"
+model_path = "/home/vernon/software/NeurIPS_competition/EEG_Lightning/submission/task_1/tune_cla_2"
+result_path = model_path+"/deepsleep_vanilla/full_dataset/model/predict_folder"
 
 case="task_1"
 
