@@ -35,5 +35,5 @@ The code to run our experiments can be found in ```EEG_Lightning/submission```.
 2. In a new terminal, go to ```EEG_Lightning/submission/task_2_script``` and edit [the following line](https://github.com/mcd4874/NeurIPS_competition/blob/main/EEG_Lightning/submission/task_2_script/task_2_script.sh#L8) with the path to this repository on your system.
 3. Activate the ```beetl``` conda environment, and train the model with ```bash task_2_script.sh```. Training time is approximately 45 min - 1 hour on an NVIDIA RTX 2080 Ti. 
 4. Go to ```EEG_Lightning/submission```, edit the [following line](https://github.com/mcd4874/NeurIPS_competition/blob/main/EEG_Lightning/submission/process_predict_task_2.py#L9) of ```process_predict_task_2.py``` with the path to ```/submission/task_2``` and run the script via ```python process_predict_task_2.py```.
-5. The prediction file will be found at ```EEG_Lightning/submission/util/task_1/answer.txt```
+5. The prediction file will be found at ```EEG_Lightning/submission/util/task_2/answer.txt```
 
