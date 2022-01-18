@@ -15,3 +15,4 @@ openpyxl
 optuna
 pytorch_lightning==1.4.1
 braindecode
+mne==0.23

@@ -221,7 +221,14 @@ class LabelAlignment:
 
     def calculate_inv_sqrt_cov(self,data):
         assert len(data.shape) == 3
-        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        # r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        #calculate covariance matrix of each trial
+        r = 0
+        for trial in data:
+            cov = np.cov(trial, rowvar=True)
+            r += cov
+
+        r = r/data.shape[0]
         # print("origin cov : ", r)
         if np.iscomplexobj(r):
             print("covariance matrix problem")
@@ -240,7 +247,14 @@ class LabelAlignment:
 
     def calcualte_sqrt_cov(self,data):
         assert len(data.shape) == 3
-        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        # r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        #calculate covariance matrix of each trial
+        r = 0
+        for trial in data:
+            cov = np.cov(trial, rowvar=True)
+            r += cov
+
+        r = r/data.shape[0]
         if np.iscomplexobj(r):
             print("covariance matrix problem")
         if np.iscomplexobj(sqrtm(r)):
@@ -754,8 +768,19 @@ class EuclideanAlignment:
             print("only use r-op for subjects {}".format(subject_ids))
             self.list_r_op = update_list_r_op
     def calculate_r_op(self,data):
+
         assert len(data.shape) == 3
-        r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+        # r = np.matmul(data, data.transpose((0, 2, 1))).mean(0)
+
+        #calculate covariance matrix of each trial
+        # list_cov = list()
+        r = 0
+        for trial in data:
+            cov = np.cov(trial, rowvar=True)
+            r += cov
+
+        r = r/data.shape[0]
+
         if np.iscomplexobj(r):
             print("covariance matrix problem")
         if np.iscomplexobj(sqrtm(r)):
@@ -771,8 +796,6 @@ class EuclideanAlignment:
             r_op = np.real(r_op).astype(np.float64)
         elif not np.any(np.isfinite(r_op)):
             print("WARNING! Not finite values in R Matrix")
-
-        # r_op = r_op.astype(np.float32)
         return r_op
     def convert_trials(self,data,r_op):
         results = np.matmul(r_op, data)
